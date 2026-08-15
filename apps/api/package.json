@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --watch src/bun.ts",
+    "dev": "bun run --hot src/bun.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

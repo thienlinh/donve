@@ -98,7 +98,7 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "oxlint --type-aware .",
+    "lint": "oxlint --type-aware",
     "fmt": "oxfmt --write .",
     "fmt:check": "oxfmt --check .",
     "prepare": "lefthook install"
