@@ -15,6 +15,16 @@ Chia hệ thống theo bản chất workload:
 
 **Điểm mấu chốt thiết kế:** vì `packages/drivers` trừu tượng hoá jobs/cache/storage/realtime và Hono chạy được cả Workers lẫn Bun, **migration = đổi env + docker compose up**, không refactor.
 
+### 1.1 Rủi ro phụ thuộc hạ tầng Cloudflare (góc độ chi phí/vận hành)
+
+Quyết định "landing serving vĩnh viễn trên Cloudflare" ở trên là **có chủ đích**, không phải sơ suất — nhưng cần nói rõ cái giá phải trả: KV + R2 + Cache đều là hạ tầng CF, nên một sự cố CF toàn cầu ảnh hưởng **tất cả tenant cùng lúc**. Threat model kỹ thuật chi tiết (attack surface, WAF, v.v.) đã có ở architecture.md §7/§8; ở đây chỉ nói góc chi phí/vận hành.
+
+Biện pháp giảm thiểu kiểu "bảo hiểm" — không phải failover tự động, không dựng thêm hạ tầng chạy song song:
+- Backup định kỳ (cron job nhẹ, vd hàng ngày) object `deployments/*` từ R2 sang một object storage khác giá rẻ (vd Backblaze B2) — chỉ là nguồn khôi phục khi cần, không nhằm chuyển traffic sang ngay.
+- Uptime monitor đơn giản, miễn phí (vd UptimeRobot hoặc tương tự) theo dõi vài subdomain mẫu, báo founder khi có sự cố CF diện rộng.
+
+Đây **không phải** giải pháp high-availability multi-cloud: chấp nhận rủi ro downtime khi CF down, chỉ đảm bảo không mất dữ liệu và phản ứng nhanh.
+
 ## 2. Free tier — số liệu giới hạn & mức "đủ cho bao nhiêu"
 
 (Số liệu theo public pricing các dịch vụ; kiểm lại khi triển khai vì có thể thay đổi.)
@@ -36,7 +46,20 @@ Chia hệ thống theo bản chất workload:
 
 Ngưỡng phải hành động: Workers > 70k req/ngày hoặc Neon > 0.4GB hoặc cần Playwright chụp thumbnail server-side ổn định → kích hoạt giai đoạn 2.
 
-**Open question (chưa quyết, không block v1):** `pageVersions` là immutable — mỗi patch/manual edit tạo 1 bản HTML+srcmap mới trong R2. Không có policy retention/prune → landing chỉnh nhiều sẽ tích hàng trăm version nhỏ. R2 free 10GB rẻ nên không gấp, nhưng nên quyết trước khi user thật tạo nhiều landing: (a) giữ vĩnh viễn (đơn giản nhất, để sau), (b) prune version cũ hơn N ngày trừ version đã publish/gắn nhãn. Khuyến nghị: (a) cho v1, thêm job prune ở P2 khi thấy dung lượng thực tế.
+**Chốt policy retention `pageVersions`/R2** (trước là open question, nay quyết định để không phải quay lại khi có traffic thật): **giữ vĩnh viễn các version "quan trọng", tự động prune version "rác" sau ngưỡng thời gian/số lượng** — không chọn thuần "giữ hết" (phình vô hạn khi AI patch liên tục) cũng không chọn thuần "xoá theo tuổi" (mất lịch sử có giá trị).
+
+- **Không bao giờ prune**: version đang được `deployments` trỏ tới (`pageVersions.id = deployments.pageVersionId` bất kỳ), và version có `label` (user chủ động đặt tên/gắn mốc).
+- **Prune job (P1, chạy định kỳ, vd hàng tuần)**: với mỗi `landingPageId`, trong các version **không** thuộc 2 nhóm trên (tức version trung gian do AI patch tự động tạo, chưa từng publish, chưa gắn nhãn), giữ lại **50 version gần nhất** và xoá version cũ hơn **90 ngày** — điều kiện nào chạm trước thì áp dụng, tránh vừa phình vô hạn theo thời gian vừa phình vô hạn theo số lượng patch. Xoá nghĩa là xoá object R2 (`htmlKey`/`srcmapKey`) + set `pageVersions.prunedAt`, giữ lại row Postgres (nhẹ) để lịch sử chat/audit vẫn liên kết được, chỉ mất khả năng "restore" version đó.
+- **Vì sao quyết định này tối ưu**: R2 free 10GB đủ rộng nên không cần vội ở v1 (job này để P1, không block P0), nhưng định nghĩa rõ ngưỡng ngay từ đầu tránh phải thiết kế lại khi landing đầu tiên có traffic AI patch dày đặc (dễ xảy ra hơn dự kiến vì mỗi comment/chat sửa nhỏ đều tạo 1 version theo FR-B-27).
+
+### 2.1 Kiểm soát chi phí khi 1 landing viral
+
+- R2 egress $0 (xem bảng trên) nên viral traffic không đội chi phí băng thông. Chi phí thật nằm ở **CF Workers request count** (100k req/ngày free) và **CF KV read count** (100k reads/ngày free) — xem bảng §2.
+- Asset tĩnh (ảnh/video/`landing-runtime`) đặt tên theo content-hash, header `Cache-Control: public, max-age=31536000, immutable` → cache ở edge/browser, không tính lại request khi đã cache.
+- Cảnh báo (đủ cho v1, không cần dựng dashboard riêng): theo dõi qua CF Analytics; alert tự động (CF Workers Analytics Engine hoặc đơn giản hơn là email alert) khi 1 hostname vượt >10x request/ngày so với trung bình 7 ngày trước đó.
+- Nguyên tắc quan trọng: **không** tự động chặn/giới hạn traffic của tenant khi phát hiện viral (mất doanh thu của họ) — chỉ cảnh báo cho founder để chủ động đánh giá; viral có thể là tín hiệu tốt (tenant đó nên lên gói cao hơn).
+- Video (giữ nguyên file gốc trên R2 theo FR-B-29, xem functional-requirements.md): khi 1 landing vượt ~5GB egress-tương-đương/tháng, chuyển sang **Bunny Stream** (không phải Cloudflare Stream — tính phí theo GB thực tế thay vì theo phút cố định, rẻ hơn rõ rệt cho video nén hợp lý như hero/demo clip; chi tiết + số liệu so sánh ở functional-requirements.md NFR-15) — quyết định theo nhu cầu thực tế phát sinh, không làm trước.
+- Rate limit `/e/*` (event beacon) và endpoint polling trạng thái đơn hàng, theo IP + campaign — bổ sung cho cache 2s ở edge đã có (architecture.md §5.3), tránh 1 landing viral kéo sập backend polling dù không tốn băng thông.
 
 ## 3. Giai đoạn 2 — VPS Việt Nam + Dokploy
 

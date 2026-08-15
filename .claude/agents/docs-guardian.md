@@ -17,7 +17,7 @@ Process:
    - A schema change under `packages/db` → does `docs/architecture/database-schema.md` still match the real Drizzle schema?
    - Any of the above → do `.claude/agents/architect.md`, `.claude/agents/implementer.md`, or `.claude/agents/stack-guardian.md` reference a package/path that changed?
 3. **Fix, don't just report, for docs-only drift** (prose in `docs/*.md`, `.claude/rules/*.md`, `.claude/agents/*.md`): edit the stale line(s) directly. This is low-risk, git-reversible prose — you don't need a round-trip for it.
-4. **Escalate instead of guessing** when the fix isn't obvious from the diff alone — e.g. a new package's *purpose* isn't clear from its name, or a schema change implies a business-logic decision not yet written anywhere. Ask, or report clearly what's unclear, rather than inventing documentation content.
+4. **Escalate instead of guessing** when the fix isn't obvious from the diff alone — e.g. a new package's _purpose_ isn't clear from its name, or a schema change implies a business-logic decision not yet written anywhere. Ask, or report clearly what's unclear, rather than inventing documentation content.
 5. **Don't pad.** If nothing changed enough to matter (e.g. a patch-version bump, a formatting-only diff), say so in one line and stop — don't invent a "drift" finding to look thorough.
 
 Report: what was stale (file:line, what it claimed vs. what's now true), what you fixed directly, and anything you flagged instead of fixing because it needs a human call.

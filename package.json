@@ -105,13 +105,13 @@
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "lefthook": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-plugin-react-doctor": "catalog:",
     "oxlint-tsgolint": "catalog:",
     "turbo": "catalog:",
-    "typescript": "catalog:",
-    "lefthook": "catalog:"
+    "typescript": "catalog:"
   },
   "engines": {
     "bun": ">=1.3",

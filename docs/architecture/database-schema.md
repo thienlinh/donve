@@ -5,6 +5,7 @@ Quy ước: PK = ULID (`text`, sortable theo thời gian); mọi bảng nghiệp
 ```ts
 // packages/db/src/schema/core.ts
 import { pgTable, text, timestamp, integer, boolean, jsonb, numeric, uniqueIndex, index, pgEnum } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 // ===== Tenancy & Auth (Better Auth quản user/session/account; ta thêm phần org) =====
 export const organizations = pgTable("organizations", {
@@ -57,7 +58,7 @@ export const products = pgTable("products", {
 export const campaigns = pgTable("campaigns", {
   id: text("id").primaryKey(),
   orgId: text("org_id").notNull(),
-  publicId: text("public_id").notNull().unique(),  // dùng ở landing runtime, không lộ ULID nội bộ
+  publicId: text("public_id").notNull(),           // dùng ở landing runtime, không lộ ULID nội bộ
   name: text("name").notNull(),
   status: text("status", { enum: ["draft","active","paused","ended"] }).notNull().default("draft"),
   startsAt: timestamp("starts_at"), endsAt: timestamp("ends_at"),
@@ -70,7 +71,7 @@ export const campaigns = pgTable("campaigns", {
        transferPrefix:"DV", sepayAuto:true, zaloGroupUrl, expireMinutes:1440 } */
   utmDefaults: jsonb("utm_defaults").default({}),
   ...timestamps, deletedAt: timestamp("deleted_at"),
-});
+}, t => [uniqueIndex("uq_campaign_public_id").on(t.publicId).where(sql`deleted_at IS NULL`)]);
 
 export const campaignProducts = pgTable("campaign_products", {
   campaignId: text("campaign_id").notNull(),
@@ -106,6 +107,7 @@ export const pageVersions = pgTable("page_versions", {
   label: text("label"),
   createdBy: text("created_by"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  prunedAt: timestamp("pruned_at"), // set khi job retention xoá htmlKey/srcmapKey khỏi R2 (infra-deployment-cost.md §2) — row Postgres vẫn giữ cho lịch sử/audit
 }, t => [uniqueIndex("uq_pv").on(t.landingPageId, t.seq)]);
 
 export const pageAssets = pgTable("page_assets", {
@@ -116,6 +118,9 @@ export const pageAssets = pgTable("page_assets", {
   r2Key: text("r2_key").notNull(),
   mime: text("mime").notNull(), sizeBytes: integer("size_bytes").notNull(),
   variants: jsonb("variants").default({}),         // webp/avif/resized keys
+  source: text("source", { enum: ["user_upload","stock_licensed","ai_generated"] }).notNull().default("user_upload"),
+  license: jsonb("license").default({}),           // { provider, attribution, sourceUrl } — bắt buộc khi source=stock_licensed
+  unverifiedSource: boolean("unverified_source").notNull().default(false), // true khi import HTML kéo ảnh URL ngoài không rõ nguồn
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -155,9 +160,23 @@ export const deployments = pgTable("deployments", {
   r2Prefix: text("r2_prefix").notNull(),
   meta: jsonb("meta").default({}),                 // lighthouse score, size
   createdAt: timestamp("created_at").notNull().defaultNow(),
-}, t => [index("ix_deploy_host").on(t.hostname, t.status)]);
+}, t => [
+  index("ix_deploy_host").on(t.hostname, t.status),
+  uniqueIndex("uq_deploy_live_host").on(t.hostname).where(sql`status = 'live'`), // chỉ 1 bản ghi "live" mỗi hostname
+]);
 
 export const customDomains = pgTable("custom_domains", { /* orgId, hostname, status, cfHostnameId */ });
+
+export const publishOutbox = pgTable("publish_outbox", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  deploymentId: text("deployment_id").notNull(),
+  hostname: text("hostname").notNull(),
+  targetDeployId: text("target_deploy_id").notNull(), // deployment sẽ trỏ tới sau khi áp dụng (publish hoặc rollback)
+  status: text("status", { enum: ["pending","applied","failed"] }).notNull().default("pending"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  appliedAt: timestamp("applied_at"),
+}, t => [index("ix_outbox_status").on(t.status, t.createdAt)]);
 ```
 
 ```ts
@@ -176,7 +195,7 @@ export const leads = pgTable("leads", {
   assigneeId: text("assignee_id"),
   ...timestamps, deletedAt: timestamp("deleted_at"),
 }, t => [
-  uniqueIndex("uq_lead_phone").on(t.orgId, t.phone),     // dedupe FR-E-06
+  uniqueIndex("uq_lead_phone").on(t.orgId, t.phone).where(sql`deleted_at IS NULL`), // dedupe FR-E-06
   index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
   index("ix_leads_assignee").on(t.orgId, t.assigneeId),
 ]);
@@ -191,6 +210,17 @@ export const leadActivities = pgTable("lead_activities", {
   actorId: text("actor_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, t => [index("ix_act_lead").on(t.leadId, t.createdAt)]);
+
+// tuân thủ Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân — lưu vết đồng ý thu thập dữ liệu
+export const consents = pgTable("consents", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  leadId: text("lead_id").notNull(),
+  consentType: text("consent_type").notNull().default("data_collection"),
+  policyVersion: text("policy_version").notNull(),
+  ip: text("ip"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, t => [index("ix_consent_lead").on(t.leadId)]);
 
 export const orders = pgTable("orders", {
   id: text("id").primaryKey(),
@@ -222,7 +252,49 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, t => [uniqueIndex("uq_payment_tx").on(t.provider, t.providerTxId)]); // idempotency
 
-export const unmatchedTransactions = pgTable("unmatched_transactions", { /* orgId?, rawPayload, status */ });
+// mô hình non-custodial: mỗi org tự kết nối provider thanh toán của họ, nền tảng không giữ tiền hộ.
+// provider: "sepay" (driver mặc định v1) | "vnpay" | "momo" | "casso" | "payos" — xem FR-D-10
+export const paymentConnections = pgTable("payment_connections", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  provider: text("provider").notNull().default("sepay"),
+  encryptedApiKey: text("encrypted_api_key").notNull(), // webhook auth secret, AES-256-GCM giống ai_connections.encryptedKey
+  bankBin: text("bank_bin").notNull(),
+  accountNumber: text("account_number").notNull(),
+  accountName: text("account_name").notNull(),
+  status: text("status", { enum: ["active","invalid"] }).notNull().default("active"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, t => [uniqueIndex("uq_payment_conn_org").on(t.orgId, t.provider)]);
+
+export const unmatchedTransactions = pgTable("unmatched_transactions", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),          // luôn xác định được org qua webhook secret per-org — KHÔNG nullable
+  providerTxId: text("provider_tx_id").notNull(),
+  rawPayload: jsonb("raw_payload").notNull(),
+  reason: text("reason", { enum: ["no_candidate","ambiguous","already_paid"] }).notNull(),
+  candidateOrderIds: jsonb("candidate_order_ids").default([]), // dùng khi reason=ambiguous, xếp hạng độ khớp ở tầng app
+  status: text("status", { enum: ["pending","resolved"] }).notNull().default("pending"),
+  resolvedOrderId: text("resolved_order_id"),
+  resolvedBy: text("resolved_by"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, t => [index("ix_unmatched_org").on(t.orgId, t.status)]);
+
+// flow hoàn tiền thủ công — nền tảng không giữ tiền, ops phải tự chuyển khoản hoàn trả
+export const refundRequests = pgTable("refund_requests", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  orderId: text("order_id").notNull(),
+  paymentId: text("payment_id"),
+  reason: text("reason", { enum: ["customer_request","duplicate_payment","wrong_match","other"] }).notNull(),
+  amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
+  remitterInfo: jsonb("remitter_info").default({}), // trích từ payments.rawPayload nếu SePay trả tên/tài khoản người chuyển
+  status: text("status", { enum: ["pending","processing","completed","rejected"] }).notNull().default("pending"),
+  evidenceKey: text("evidence_key"), // R2 key ảnh chứng từ hoàn tiền, tuỳ chọn
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, t => [index("ix_refund_org").on(t.orgId, t.status)]);
 ```
 
 ```ts
@@ -295,10 +367,13 @@ export const events = pgTable("events", {
 
 0. **Full-text/fuzzy search** (`leads.fullName`/`phone`/`email` — FR-E-01): bật extension `pg_trgm` + GIN index (`gin_trgm_ops`) trên các cột này thay vì kéo thêm search engine (Meilisearch/Typesense) — quy mô tenant/lead ở v1 không cần search engine riêng, Postgres native đã đủ nhanh.
 
-1. **HTML/srcmap không lưu trong Postgres** — lưu R2, DB chỉ giữ key + metadata. Neon free 0.5GB sống thoải mái; version lớn không phình DB.
+1. **HTML/srcmap không lưu trong Postgres** — lưu R2, DB chỉ giữ key + metadata. Neon free 0.5GB sống thoải mái; version lớn không phình DB. Retention: version không phải deployment hiện tại và không có `label` bị prune sau 90 ngày hoặc khi vượt 50 version/page (whichever trước) — chi tiết infra-deployment-cost.md §2, cột `pageVersions.prunedAt`.
 2. **Idempotency thanh toán** nằm ở `uq_payment_tx` — webhook retry bao nhiêu lần cũng an toàn.
-3. **`orders.code`**: 6 ký tự base32 không nhầm lẫn (bỏ 0/O/1/I), prefix theo `paymentConfig.transferPrefix`; unique per org, sinh retry-on-conflict.
-4. **RLS**: bật trên `leads, orders, payments, ai_connections, chat_messages` — policy `org_id = current_setting('app.current_org')`; api set setting mỗi transaction. Trên CF Workers dùng Neon serverless driver (HTTP) — set qua `SET LOCAL` trong cùng transaction.
+3. **`orders.code`**: 6 ký tự base32 không nhầm lẫn (bỏ 0/O/1/I) + 1 ký tự checksum tính từ 6 ký tự trước (thuật toán dạng mod-31 hoặc tương đương trên bảng chữ base32 đã chọn) — mục đích: phát hiện gõ sai 1 ký tự thay vì âm thầm khớp nhầm sang mã đơn hợp lệ khác. Prefix theo `paymentConfig.transferPrefix`; unique per org, sinh retry-on-conflict.
+4. **RLS**: bật trên `leads, orders, payments, ai_connections, chat_messages, unmatched_transactions, refund_requests, payment_connections, consents` (bổ sung các bảng mới chứa dữ liệu nhạy cảm) — policy `org_id = current_setting('app.current_org')`; api set setting mỗi transaction. Trên CF Workers dùng Neon serverless driver (HTTP) — set qua `SET LOCAL` trong cùng transaction.
 5. **Pipeline stages** để trong `organizations.settings.pipeline` (mảng {key,label,color}) — đổi không cần migration; `leads.stage` validate ở app layer.
 6. **Migration flow**: `drizzle-kit generate` + migrate trong CI; seed platform skills bằng script `tooling/seed`.
 7. **Extensibility đối tượng mới (FR-C-06)**: thêm giá trị `products.type` + JSON schema attributes đăng ký trong code — không đổi bảng.
+8. **Atomic AI credit debit**: trừ `organizations.aiCreditBalance` phải nằm CÙNG transaction với insert `ai_usage`, dùng `UPDATE organizations SET ai_credit_balance = ai_credit_balance - $cost WHERE id = $orgId AND ai_credit_balance >= $cost RETURNING ai_credit_balance`; nếu 0 dòng được update → báo lỗi thiếu credit, rollback transaction, không insert `ai_usage`.
+9. **Concurrency cho `pageVersions.seq`**: 2 patch đồng thời trên cùng landing page phải tránh đụng `uq_pv(landingPageId, seq)`; dùng `pg_advisory_xact_lock(hashtext(landing_page_id))` bọc quanh bước tính `seq` kế tiếp + insert, trong cùng transaction — không tính `seq` bằng cách đọc `MAX(seq)` rồi insert riêng lẻ (race condition).
+10. **Publish/rollback outbox**: xem `publishOutbox` ở trên + architecture.md §5.2; `deployments.status` chỉ chuyển `live` sau khi outbox xác nhận đã áp KV, không set trực tiếp.

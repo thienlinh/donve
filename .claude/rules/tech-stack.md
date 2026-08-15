@@ -104,7 +104,7 @@ real IIFE bundle, not TS source.
   `useMemo`/`useCallback` for object literals passed as context value/props,
   which is exactly what `react-doctor/react-compiler-no-manual-memoization`
   tells you to remove since the compiler handles it. With React Compiler
-  wired in, they'd fire on every idiomatic component. If a *function*
+  wired in, they'd fire on every idiomatic component. If a _function_
   (not object) shows up as a fresh dependency in a `useEffect`/`useMemo` array
   (`react-hooks/exhaustive-deps`, `react-doctor/no-effect-with-fresh-deps`),
   prefer inlining the function inside the effect/memo callback over disabling

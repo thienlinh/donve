@@ -43,7 +43,7 @@
 | `@dnd-kit/core` + `@dnd-kit/sortable` | **6.3.1** / **10.0.0** | Kéo thả: kanban CRM (FR-E-02), layer reorder (FR-B-19), reorder section prompt template (FR-F-03). Thay `react-beautiful-dnd` (đã ngừng bảo trì từ Atlassian) — dnd-kit modern, accessible (keyboard dnd), tree-shakeable, 1 lib dùng chung mọi nơi kéo-thả trong dashboard thay vì mỗi chỗ 1 lib khác nhau |
 | `@ai-sdk/react` | **4.0.69** | `useChat` cho studio chat (đi cùng `ai` v7) |
 | AI Elements | registry components (shadcn-style, copy-in) | Conversation/Message/PromptInput/Reasoning — dựng chat UI trong ~1 ngày thay vì 1 tuần. Chọn thay `@assistant-ui/react` (0.15.x) vì cần custom sâu chip comment/annotation; assistant-ui trừu tượng cao hơn nhưng khó "mổ" |
-| `streamdown` | latest | `Message`/`MessageResponse` của AI Elements **đã dùng streamdown nội bộ** để render markdown streaming (GFM built-in: table/task-list/strikethrough) — không cần cài `react-markdown`+`remark-gfm` riêng cho chat. Nhớ import CSS của streamdown (bắt buộc, nếu thiếu style không áp). Tái dùng luôn package này cho markdown preview Skill/Prompt template (FR-F-01/03) thay vì thêm 1 lib markdown thứ 2 — streamdown là "drop-in replacement cho react-markdown", dùng standalone được ngoài context chat |
+| `streamdown` | **2.5.0** | `Message`/`MessageResponse` của AI Elements **đã dùng streamdown nội bộ** để render markdown streaming (GFM built-in: table/task-list/strikethrough) — không cần cài `react-markdown`+`remark-gfm` riêng cho chat. Nhớ import CSS của streamdown (bắt buộc, nếu thiếu style không áp). Tái dùng luôn package này cho markdown preview Skill/Prompt template (FR-F-01/03) thay vì thêm 1 lib markdown thứ 2 — streamdown là "drop-in replacement cho react-markdown", dùng standalone được ngoài context chat |
 | `modern-screenshot` | **4.7.0** | Chụp iframe → thumbnail/composite draw-mode phía client. Thay thế hiện đại của html2canvas (nhanh hơn, ít bug CSS hơn) |
 | `zod` | **4.4.3** | v4: nhanh hơn nhiều, `z.interface`, bundle nhỏ; dùng chung FE/BE qua `packages/contracts` |
 | `react-hook-form` + `@hookform/resolvers` | **7.65.x** / **5.2.x** | Mọi form CRUD trong dashboard (product/campaign/skill/prompt config...) — resolver dùng thẳng schema `zod` đã có trong `contracts`, không viết validate 2 lần. Không dùng TanStack Form: react-hook-form phổ biến hơn, ít re-render hơn nhờ uncontrolled inputs, đủ cho form-heavy CRM/campaign config |
@@ -73,7 +73,7 @@
 | Package | Version | Ghi chú |
 |---|---|---|
 | `ai` | **7.0.66** | Core: `streamText`, `ToolLoopAgent`, tool approvals, telemetry |
-| OpenRouter provider (`@openrouter/ai-sdk-provider`) | latest | **Provider mặc định v1** (không phải "thứ 3" nữa — quyết định đổi theo FR-H-01/H-03): 1 key, truy cập DeepSeek/Qwen/Llama free hoặc rất rẻ để test trước khi trả tiền Anthropic/OpenAI trực tiếp. Prompt caching của Anthropic vẫn hoạt động khi gọi Claude qua OpenRouter (pass-through) |
+| OpenRouter provider (`@openrouter/ai-sdk-provider`) | **3.0.0** | **Provider mặc định v1** (không phải "thứ 3" nữa — quyết định đổi theo FR-H-01/H-03): 1 key, truy cập DeepSeek/Qwen/Llama free hoặc rất rẻ để test trước khi trả tiền Anthropic/OpenAI trực tiếp. Prompt caching của Anthropic vẫn hoạt động khi gọi Claude qua OpenRouter (pass-through). Bản 3.0.0 yêu cầu `ai@^7.0.0` (khớp catalog `ai: 7.0.66` ở trên) và Node ≥ 22 |
 | `@ai-sdk/anthropic` | **4.0.39** | Claude provider trực tiếp (prompt caching cho system prompt dài — giảm mạnh input cost); dùng khi org tự có key Anthropic thay vì qua OpenRouter |
 | `@ai-sdk/openai` | **4.0.42** | OpenAI provider trực tiếp |
 
@@ -161,7 +161,7 @@
         "@inlang/paraglide-js": "2.0.0"
       },
       "content": {
-        "streamdown": "latest",
+        "streamdown": "2.5.0",
         "libphonenumber-js": "1.12.0",
         "qrcode": "1.5.4"
       },
@@ -177,7 +177,7 @@
       "ai": {
         "ai": "7.0.66",
         "@ai-sdk/react": "4.0.69",
-        "@openrouter/ai-sdk-provider": "latest",
+        "@openrouter/ai-sdk-provider": "3.0.0",
         "@ai-sdk/anthropic": "4.0.39",
         "@ai-sdk/openai": "4.0.42"
       },

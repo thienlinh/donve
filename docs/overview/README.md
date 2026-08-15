@@ -8,7 +8,7 @@
 
 | Thư mục | Tài liệu | Nội dung chính |
 |---------|----------|----------------|
-| `product/` | `business-analysis.md` | Tầm nhìn, personas, business model, đối thủ (LadiPage, Webcake, Pancake), định vị |
+| `product/` | `business-analysis.md` | Tầm nhìn, personas, business model, GTM, định vị |
 | `product/` | `functional-requirements.md` | Yêu cầu chức năng chi tiết từng module (FR-xx), user flows, edge cases |
 | `architecture/` | `architecture.md` | Kiến trúc tổng thể, monorepo layout, data flow, multi-tenant, portability CF ↔ VPS |
 | `architecture/` | `database-schema.md` | Schema Drizzle đầy đủ, index strategy, RLS, migration plan |
@@ -32,11 +32,12 @@
 9. **Trang quản lý Landing Pages** (`/landings`, gallery kiểu Genspark — screenshot #8) đứng **trước** Studio editor, không vào thẳng canvas (chi tiết studio-builder-spec.md §2).
 10. **Kéo-thả trong dashboard dùng 1 lib duy nhất: dnd-kit** (kanban CRM, layer reorder) — không mỗi chỗ 1 lib khác nhau.
 
-## Open questions (chưa chốt, không block code v1)
+## Quyết định đã chốt (trước là open question)
 
-- Domain gửi email Resend (subdomain riêng cần verify SPF/DKIM/DMARC) — chốt cùng lúc tên miền nền tảng (đã nhắc ở implementation-plan.md).
-- Chính sách retention cho `pageVersions`/R2 (không giới hạn hay prune sau N ngày) — xem infra-deployment-cost.md, không gấp vì free tier còn nhiều dư địa.
-- Video trong assets: giữ nguyên format v1 hay dùng Cloudflare Stream ngay — xem functional-requirements.md FR-B-29, quyết định khi thấy nhu cầu video thực tế.
+- **Domain gửi email Resend**: `mail.donve.vn`, gửi từ `no-reply@mail.donve.vn`; `info@donve.vn` giữ riêng làm hộp thư liên hệ thật, không qua Resend — chi tiết functional-requirements.md FR-I-05/06.
+- **Retention `pageVersions`/R2**: giữ vĩnh viễn version đang publish/có nhãn; prune version trung gian sau 90 ngày hoặc khi vượt 50 version/page — chi tiết infra-deployment-cost.md §2, cột `pageVersions.prunedAt` (database-schema.md).
+- **Video trong assets**: giữ nguyên file gốc trên R2 ở v1; ngưỡng ~5GB egress-tương-đương/tháng thì chuyển sang **Bunny Stream** (không phải Cloudflare Stream — rẻ hơn cho video nén hợp lý, xem lý do + số liệu ở functional-requirements.md NFR-15).
+- **Payment provider**: không giới hạn SePay — mô hình non-custodial áp dụng cho mọi provider tenant tự đăng ký (VNPAY, MoMo, Casso, PayOS...); SePay là driver mặc định v1 vì rẻ/đơn giản nhất cho tài khoản cá nhân — xem business-analysis.md §4.4, functional-requirements.md FR-D-10/15.
 
 ## Thuật ngữ dùng xuyên suốt
 

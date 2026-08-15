@@ -31,6 +31,15 @@
 
 Chú ý business: phương án A còn là **cơ hội content** — "cách tạo API key Claude/OpenAI và nạp $5" là đúng loại video kênh bạn đang dạy; onboarding friction biến thành GTM.
 
+### 1.4 Theo dõi thay đổi ToS — quy trình định kỳ
+
+Phân tích ToS ở §1.1/§1.2 chỉ đúng **tại thời điểm viết tài liệu này (08/2026)** — đây là lĩnh vực đang thay đổi rất nhanh (ví dụ điển hình: Anthropic mới siết chặn OAuth bên thứ ba từ 01/2026, sau khi tài liệu hỗ trợ của họ còn mơ hồ trước đó). Kết luận "không dùng subscription cá nhân làm nguồn inference cho SaaS multi-tenant" là đúng **ở thời điểm hiện tại**, **không phải** một quyết định chốt một lần rồi bỏ qua vĩnh viễn.
+
+- **Tần suất review**: mỗi quý (hoặc sớm hơn nếu có tin tức lớn về policy AI provider — theo dõi blog/changelog chính thức của Anthropic, OpenAI). Review lại ToS/Developer Policy của Anthropic, OpenAI, và các provider quan trọng khác đang dùng (trước hết là OpenRouter) xem có thay đổi gì so với bảng ở §1.3, cập nhật lại bảng nếu cần.
+- **Người sở hữu**: giai đoạn hiện tại (dự án còn nhỏ) — founder tự theo dõi. Khi có dev team, phải gán rõ cho 1 người cụ thể, không để mặc định "ai đó sẽ để ý" — đây là loại rủi ro dễ rơi vào khoảng trống trách nhiệm.
+- **Vì sao `packages/ai-gateway` (kiến trúc ở §2) là hướng đúng**: abstraction cắm-được-provider-mới giúp giảm chi phí kỹ thuật khi phải đổi chiến lược provider — ví dụ nếu sau này Anthropic/OpenAI mở chương trình "Sign in with Claude/ChatGPT" chính thức theo điều khoản khác (xem FR-H-04), chỉ cần thêm 1 provider mới vào gateway chứ không phải viết lại pipeline. Nhưng **abstraction kỹ thuật không thay thế được việc con người chủ động theo dõi chính sách** — gateway sẵn sàng thêm provider không có nghĩa là tự động biết khi nào cần thêm.
+- **Rủi ro nếu bỏ qua**: phát hiện muộn một thay đổi ToS có thể khiến tính năng BYOK hiện tại vô tình vi phạm điều khoản nhà cung cấp mà nền tảng không hay biết, ảnh hưởng tới toàn bộ tenant đang dùng provider đó (tài khoản bị khoá, key bị thu hồi hàng loạt) chứ không chỉ 1 user.
+
 ## 2. AI Gateway (packages/ai-gateway)
 
 ```ts
@@ -119,6 +128,20 @@ Câu hỏi của bạn: có cần xây thêm 1 lớp "agent harness"/"agent work
 - **Chỗ multi-agent thật sự đáng cân nhắc (P2, không phải v1)**: một "critic pass" riêng biệt — sau khi generate lần đầu (không phải mọi patch nhỏ), chạy **model rẻ** kiểm tra output theo checklist skill (`cwv-budget`, `seo-landing-vn`) trước khi trả cho user, tự động sửa nếu sai (vd thiếu `alt`, thiếu meta). Đây đúng là "eval set 20 trang mẫu" đã nhắc ở implementation-plan.md — làm thủ công/CI trước, chỉ tự động hoá thành 1 agent bước 2 khi thấy lỗi lặp lại đủ nhiều để đáng chi phí thêm 1 lượt gọi model mỗi lần generate.
 - **Không dùng LangChain/CrewAI/AutoGen** (đã loại ở tech-stack.md §6) — lý do cụ thể hoá ở đây: framework agent nặng thêm 1 lớp trừu tượng cho use-case mà AI SDK 7's `ToolLoopAgent` (tool approvals, retry, streaming built-in) đã cover; thêm framework chỉ tăng bundle/debug surface không tăng khả năng.
 
+### Provider bổ sung cho tier rẻ/nội bộ — nghiên cứu thêm 08/2026
+
+Ngoài OpenRouter (`:free` models, đã chọn làm mặc định ở §1.3), có thêm vài lựa chọn gần-như-miễn-phí đáng cân nhắc cho **tác vụ phụ** (không phải generate landing chính) — số liệu khảo sát tại thời điểm viết, cần verify lại khi implement vì free tier các hãng đổi nhanh:
+
+| Provider | Free tier | Phù hợp cho | Không dùng cho |
+|---|---|---|---|
+| **Cloudflare Workers AI** | 10.000 Neuron/ngày miễn phí, $0.011/1.000 Neuron ngoài free tier | Đã sẵn trên hạ tầng — gọi thẳng qua binding `env.AI` trong Worker, **không cần thêm BYOK key/vendor mới**, latency thấp nhất. Đặt tên layer, phân loại spam lead form, tóm tắt rolling summary (mục Context/memory ở trên), và luồng "dùng thử không cần API key" (FR-H-05) | Generate landing chính — model catalog chưa đủ mạnh cho chất lượng copywriting/design cần thiết |
+| **Groq Cloud** | 30 RPM / 6.000 TPM / 14.400 req/ngày (khá thấp cho generate cả trang) | Tốc độ inference rất nhanh (LPU) — hợp route ưu tiên phản hồi tức thời (patch nhỏ, chat ack). **Paid tier không tối thiểu, pay-as-you-go rẻ** (vd Llama 3.1 8B ~$0.05/$0.08 mỗi triệu token in/out) — đáng cân nhắc hơn ở tier trả phí rẻ là free tier | Generate chính (TPM 6k free dễ chạm trần với output landing vài nghìn token) |
+| **Google AI Studio (Gemini API)** | Flash-Lite tới ~1.000 req/ngày, Flash 250–1.500 req/ngày tuỳ model — quota ngày cao nhất trong các lựa chọn khảo sát | Dev/test nội bộ | **Không dùng cho nội dung tenant thật** (landing copy, lead data): từ 04/2026 Google công bố dữ liệu free tier có thể được dùng để cải thiện sản phẩm của họ — vi phạm kỳ vọng bảo mật dữ liệu tenant nếu không disclose rõ. Đây cũng là lý do **không chọn Gemini** cho luồng dùng thử FR-H-05 dù quota ngày cao nhất — chọn Cloudflare Workers AI thay thế để tránh caveat này |
+
+**Ý tưởng rút ra — giảm ma sát onboarding**: free tier hiện bắt buộc user tự tạo BYOK key trước khi thử được tính năng cốt lõi — rào cản lớn cho persona non-tech (P1, chưa từng tạo API key bao giờ). FR-H-05 (functional-requirements.md) dùng chính Cloudflare Workers AI cho N lần generate thử đầu tiên, chi phí gần 0đ nhờ free Neuron pool, để user thấy giá trị sản phẩm trước khi bị yêu cầu làm bước kỹ thuật (tạo key).
+
+**Không đổi provider mặc định v1 cho tác vụ chính** — quyết định OpenRouter ở §1.3 giữ nguyên; các provider trên chỉ bổ sung cho tier rẻ/nội bộ/dùng-thử, không thay thế.
+
 ### Thứ tự đòn bẩy tiết kiệm chi phí (làm theo đúng thứ tự này, cái đầu rẻ nhất/dễ nhất)
 1. Patch protocol thay vì regenerate full file (đã có, tiết kiệm nhiều nhất — 1 patch nhỏ ~vài trăm token thay vì cả trang ~vài nghìn token).
 2. Model tiering: model mạnh cho generate lần đầu, model rẻ (Haiku/DeepSeek) cho patch nhỏ + đặt tên layer (đã có ở doc này §2).
@@ -127,6 +150,7 @@ Câu hỏi của bạn: có cần xây thêm 1 lớp "agent harness"/"agent work
 5. Context trimming + rolling summary chat history (mới bổ sung ở trên — **cần thêm vào Phase 3 khi implement prompt compiler**, implementation-plan.md/prompt-playbook.md chưa nhắc rõ điểm này).
 6. Cap `maxOutputTokens` theo loại request (patch nhỏ không cần budget bằng generate lần đầu).
 7. Platform credit pre-check trước khi stream (đã có ở doc này §2) — chặn runaway cost phía gói trả phí trước khi gọi API chứ không phải sau.
+8. Định tuyến tác vụ phụ (đặt tên, phân loại, tóm tắt, dùng thử FR-H-05) sang Cloudflare Workers AI/Groq thay vì luôn dùng model chính qua OpenRouter — xem "Provider bổ sung cho tier rẻ/nội bộ" ở trên.
 
 ## 7. Quản lý Prompt & Skills (module F) — UI
 

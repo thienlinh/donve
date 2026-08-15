@@ -22,6 +22,7 @@ For the task you're given:
    - canvas/patch-op/prompt-compiler engine pieces shared across Studio → `packages/studio-core`, `packages/studio-ui`, `packages/studio-ai`
 
    A design that adds a new endpoint, schema, or generic utility without first checking whether one of these already owns it is a real duplication/drift risk, not a style nit.
+
 4. **Flag genuine extensibility needs vs. speculative ones.** Only design for a second case (second provider, second locale, second transport) if one is realistically expected soon — say so explicitly if you're deliberately NOT generalizing something because there's no real second case yet.
 5. **Call out open decisions the user should make**, rather than silently picking one when it's genuinely ambiguous (e.g. a naming/API-shape choice with real tradeoffs, or something that changes a public contract).
 

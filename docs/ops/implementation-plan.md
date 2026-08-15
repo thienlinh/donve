@@ -34,8 +34,8 @@ Giả định: bạn là dev chính (senior, đã có dv-studio-kit + kinh nghi�
 - Analytics cơ bản (views/submits/conversion per campaign).
 - **DoD:** flow landing → form → lead xuất hiện realtime trong CRM → sales thao tác đầy đủ.
 
-## Phase 5 — Payment & fulfillment (2 tuần) *(tái dùng kinh nghiệm checkout đã build)*
-- Orders + mã đơn + VietQR render trong popup; SePay webhook (idempotent, fuzzy match, unmatched queue); nút "Tôi đã chuyển khoản" + popup Zalo; poll status; sales confirm + fulfilled; đối soát UI.
+## Phase 5 — Payment & fulfillment (2.5 tuần) *(tái dùng kinh nghiệm checkout đã build)*
+- Org tự kết nối tài khoản SePay của họ (`paymentConnections`, non-custodial) + trang hướng dẫn; orders + mã đơn (checksum) + VietQR render trong popup; SePay webhook (idempotent, match checksum 2 bước — không phải fuzzy chịu lỗi chung chung, không có ngưỡng dung sai amount, unmatched queue có lý do); nút "Tôi đã chuyển khoản" + popup Zalo; poll status; sales confirm + fulfilled; đối soát UI; flow hoàn tiền thủ công + double-match guard.
 - `landing-runtime` v2 hoàn chỉnh (QR, poll, popup chuỗi).
 - **DoD:** chuyển khoản thật 10k đồng → popup "thanh toán thành công" tự bật ≤ 30s; kịch bản manual đủ; webhook replay không tạo double-paid.
 - *Mốc này = có thể chạy khoá học thật của chính bạn trên nền tảng (dogfood + GTM).* 
@@ -48,7 +48,7 @@ Giả định: bạn là dev chính (senior, đã có dv-studio-kit + kinh nghi�
 ## Phase 7 — VPS & scale (1 tuần, khi chạm ngưỡng infra-deployment-cost.md §2)
 - Dokploy stack, migration runbook, BullMQ + Playwright thumbnail/screenshot server-side, monitoring Grafana.
 
-**Tổng: ~16–19 tuần (~4–4.5 tháng) đến hết Phase 6.** Đường găng: Phase 2 (AI patch reliability) và Phase 5 (tiền bạc — phải đúng tuyệt đối).
+**Tổng: ~16.5–19.5 tuần (~4–4.5 tháng) đến hết Phase 6** (Phase 5 +0.5 tuần so với ước lượng ban đầu do thêm flow kết nối tài khoản thanh toán + hoàn tiền, xem chi tiết functional-requirements.md Module D). Đường găng: Phase 2 (AI patch reliability) và Phase 5 (tiền bạc — phải đúng tuyệt đối).
 
 ## Thứ tự có chủ đích
 Publish (P3) đứng trước CRM (P4) để bạn demo/quay content sớm bằng chính sản phẩm; Payment (P5) tách riêng vì cần độ tập trung cao nhất về tính đúng đắn.
@@ -59,9 +59,11 @@ Publish (P3) đứng trước CRM (P4) để bạn demo/quay content sớm bằn
 |---|---|---|
 | AI patch sai/không stable trên trang phức tạp | Cao | Schema chặt + server validate + fallback full-file + eval set 20 trang mẫu chạy regression mỗi khi đổi prompt (test bench FR-F-04 phục vụ chính việc này) |
 | Zoom/pan + overlay lệch toạ độ đa trình duyệt | Trung | Đã có bài học dv-studio-kit; test matrix Safari/Chrome/Firefox + touchpad/chuột ngay Phase 1 |
-| SePay fuzzy match sai đơn | Trung | Ngưỡng match bảo thủ; mơ hồ → unmatched queue cho người xử; không bao giờ auto-match khi 2 đơn cùng amount trong cửa sổ thời gian |
+| Khớp sai mã đơn (nhầm sang đơn khác) | Trung | Mã đơn có checksum (phát hiện gõ sai, không âm thầm khớp nhầm) + auto-match **luôn** yêu cầu amount khớp chính xác (không có ngưỡng dung sai) + đúng 1 ứng viên; mơ hồ/double-match → unmatched queue, không bao giờ tự động xử lý (functional-requirements.md FR-D-05) |
+| RLS mất hiệu lực do driver serverless Neon (SET LOCAL không chung transaction với query) | Cao nếu xảy ra, phát hiện muộn | Helper `withOrgScope` bắt buộc, test tích hợp thật (không chỉ test tầng app) ngay từ Phase 0 — architecture.md §6.1 |
+| Publish/rollback lệch trạng thái giữa KV và Postgres khi job crash giữa chừng | Trung | Outbox pattern + partial unique index + job reconciliation định kỳ — architecture.md §5.2 |
 | Workers CPU limit khi sanitize/parse HTML lớn | Trung | Giới hạn size input; việc nặng đẩy qua QStash job; sau về VPS thì hết |
-| ToS AI thay đổi tiếp | Trung | Multi-provider từ Phase 2; theo dõi 2 chương trình Sign-in chính thức |
+| ToS AI thay đổi tiếp | Trung | Multi-provider từ Phase 2; theo dõi 2 chương trình Sign-in chính thức; review ToS định kỳ mỗi quý (ai-integration-byok.md §1.4) |
 | Scope creep (bệnh nghề nghiệp của chính chúng ta) | Cao | Mọi ý tưởng mới → backlog P2, chỉ review sau Phase 6 |
 
 ## Việc cần làm ngay tuần này (không phải code)

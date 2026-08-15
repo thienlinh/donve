@@ -1,5 +1,5 @@
 {
-  "name": "edge-router",
+  "name": "@dv/edge-router",
   "version": "0.0.0",
   "private": true,
   "type": "module",
