@@ -1,0 +1,22 @@
+{
+  "name": "@dv/studio-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dv/studio-core": "workspace:*",
+    "@dv/ui": "workspace:*",
+    "@tanstack/react-virtual": "catalog:data",
+    "react": "catalog:react",
+    "react-dom": "catalog:react"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "dashboard",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dv/config": "workspace:*",
+    "@dv/ui": "workspace:*",
+    "lucide-react": "catalog:ui",
+    "react": "catalog:react",
+    "react-dom": "catalog:react"
+  },
+  "devDependencies": {
+    "@babel/core": "catalog:react",
+    "@rolldown/plugin-babel": "catalog:react",
+    "@tailwindcss/vite": "catalog:react",
+    "@types/babel__core": "catalog:react",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "@vitejs/plugin-react": "catalog:react",
+    "babel-plugin-react-compiler": "catalog:react",
+    "globals": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:react"
+  }
+}

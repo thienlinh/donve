@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; if printf '%s' \"$f\" | grep -qE '(^|/)package\\.json$|(^|/)tsconfig[^/]*\\.json$|(^|/)turbo\\.json$|(^|/)\\.oxlintrc\\.json$|(^|/)\\.oxfmtrc\\.json$|(^|/)\\.claude/rules/.*\\.md$|packages/db/.*schema'; then jq -nc --arg f \"$f\" '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:(\"Structural file changed (\" + $f + \") — check whether docs/architecture/*.md (esp. architecture.md, tech-stack.md) or .claude/rules/tech-stack.md need updating before finishing this task. Use the docs-guardian subagent if so.\")}}'; fi; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

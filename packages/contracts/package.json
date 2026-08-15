@@ -1,0 +1,16 @@
+{
+  "name": "@dv/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "semi": false,
+  "singleQuote": false,
+  "trailingComma": "es5",
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    ".turbo",
+    "bun.lock",
+    "docs",
+    "README.md"
+  ],
+  "sortImports": true,
+  "sortTailwindcss": {
+    "functions": ["cn", "cva"],
+    "stylesheet": "packages/ui/src/styles/globals.css"
+  }
+}

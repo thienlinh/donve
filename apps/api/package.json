@@ -1,0 +1,26 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/bun.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dv/ai-gateway": "workspace:*",
+    "@dv/auth": "workspace:*",
+    "@dv/contracts": "workspace:*",
+    "@dv/db": "workspace:*",
+    "@dv/drivers": "workspace:*",
+    "@hono/zod-validator": "catalog:server",
+    "hono": "catalog:server",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "bun-types": "catalog:",
+    "typescript": "catalog:",
+    "wrangler": "catalog:server"
+  }
+}

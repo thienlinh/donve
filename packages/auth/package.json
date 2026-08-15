@@ -1,0 +1,17 @@
+{
+  "name": "@dv/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dv/db": "workspace:*",
+    "better-auth": "catalog:server"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

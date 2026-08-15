@@ -1,0 +1,17 @@
+{
+  "name": "@dv/studio-ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dv/studio-core": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

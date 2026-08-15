@@ -1,0 +1,19 @@
+{
+  "name": "@dv/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "catalog:db",
+    "drizzle-orm": "catalog:db",
+    "ulid": "catalog:db"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "drizzle-kit": "catalog:db",
+    "typescript": "catalog:"
+  }
+}

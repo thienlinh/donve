@@ -1,0 +1,19 @@
+{
+  "name": "@dv/ai-gateway",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "catalog:ai",
+    "@ai-sdk/openai": "catalog:ai",
+    "ai": "catalog:ai",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

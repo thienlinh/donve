@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Vite App",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
