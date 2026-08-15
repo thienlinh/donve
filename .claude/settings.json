@@ -9,7 +9,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; if printf '%s' \"$f\" | grep -qE '(^|/)package\\.json$|(^|/)tsconfig[^/]*\\.json$|(^|/)turbo\\.json$|(^|/)\\.oxlintrc\\.json$|(^|/)\\.oxfmtrc\\.json$|(^|/)\\.claude/rules/.*\\.md$|packages/db/.*schema'; then jq -nc --arg f \"$f\" '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:(\"Structural file changed (\" + $f + \") — check whether docs/architecture/*.md (esp. architecture.md, tech-stack.md) or .claude/rules/tech-stack.md need updating before finishing this task. Use the docs-guardian subagent if so.\")}}'; fi; } 2>/dev/null || true"
+            "shell": "powershell",
+            "command": "$j = [Console]::In.ReadToEnd() | ConvertFrom-Json; $f = $j.tool_input.file_path; if (-not $f) { $f = $j.tool_response.filePath }; if ($f -match \"(^|/)package\\.json$|(^|/)tsconfig[^/]*\\.json$|(^|/)turbo\\.json$|(^|/)\\.oxlintrc\\.json$|(^|/)\\.oxfmtrc\\.json$|(^|/)\\.claude/rules/.*\\.md$|packages/db/.*schema\") { $ctx = \"Structural file changed ($f) - check whether docs/architecture/*.md (esp. architecture.md, tech-stack.md) or .claude/rules/tech-stack.md need updating before finishing this task. Use the docs-guardian subagent if so.\"; $out = @{ hookSpecificOutput = @{ hookEventName = \"PostToolUse\"; additionalContext = $ctx } } | ConvertTo-Json -Compress; Write-Output $out }"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$j = [Console]::In.ReadToEnd() | ConvertFrom-Json; $f = $j.tool_input.file_path; if (-not $f) { $f = $j.tool_response.filePath }; if ($f -and ($f -match \"\\.(ts|tsx|js|jsx)$\") -and ($f -notmatch \"\\.(test|spec)\\.[jt]sx?$\") -and ($f -notmatch \"[\\\\/](dist|node_modules|\\.turbo|__tests__)[\\\\/]\")) { $ctx = \"Source file changed ($f) - run bunx fallow audit (changed-file gate) to check for dead code, unused exports, circular deps, and architecture-boundary violations before finishing this task.\"; $out = @{ hookSpecificOutput = @{ hookEventName = \"PostToolUse\"; additionalContext = $ctx } } | ConvertTo-Json -Compress; Write-Output $out }"
           }
         ]
       }

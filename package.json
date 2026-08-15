@@ -20,7 +20,8 @@
       "bun-types": "1.3.14",
       "@types/node": "26.2.0",
       "globals": "17.11.0",
-      "zod": "4.4.3"
+      "zod": "4.4.3",
+      "lefthook": "^2.1.10"
     },
     "catalogs": {
       "react": {
@@ -93,13 +94,14 @@
     }
   },
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "lint": "oxlint --type-aware .",
     "fmt": "oxfmt --write .",
-    "fmt:check": "oxfmt --check ."
+    "fmt:check": "oxfmt --check .",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
@@ -108,7 +110,8 @@
     "oxlint-plugin-react-doctor": "catalog:",
     "oxlint-tsgolint": "catalog:",
     "turbo": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "lefthook": "catalog:"
   },
   "engines": {
     "bun": ">=1.3",
