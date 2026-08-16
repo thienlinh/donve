@@ -3,12 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@upstash/qstash": "catalog:queue",
+    "@upstash/redis": "catalog:queue",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
-    "typescript": "catalog:"
+    "bun-types": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
