@@ -1,3 +1,8 @@
-// Schema thật theo docs/architecture/database-schema.md — chưa viết ở bước scaffold này,
-// đây chỉ là entrypoint hợp lệ để drizzle.config.ts trỏ tới.
-export const PLACEHOLDER = true
+export * from "./ai.js"
+export * from "./analytics.js"
+export * from "./catalog.js"
+export * from "./core.js"
+export * from "./crm.js"
+export * from "./email.js"
+export * from "./publishing.js"
+export * from "./studio.js"

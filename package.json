@@ -72,7 +72,8 @@
         "drizzle-kit": "0.31.10",
         "@neondatabase/serverless": "1.1.0",
         "postgres": "3.4.9",
-        "ulid": "3.0.2"
+        "ulid": "3.0.2",
+        "@testcontainers/postgresql": "12.1.0"
       },
       "queue": {
         "@upstash/redis": "1.38.2",
@@ -98,10 +99,11 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "oxlint --type-aware",
-    "fmt": "oxfmt --write .",
-    "fmt:check": "oxfmt --check .",
-    "prepare": "lefthook install"
+    "lint": "oxlint --type-aware --fix",
+    "fmt": "oxfmt --write",
+    "fmt:check": "oxfmt --check",
+    "prepare": "lefthook install",
+    "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",

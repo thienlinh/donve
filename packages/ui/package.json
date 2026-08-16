@@ -10,7 +10,8 @@
     "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "@base-ui/react": "catalog:ui",

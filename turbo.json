@@ -4,46 +4,74 @@
     "tags": {
       "tools": {
         "dependencies": {
-          "deny": ["foundation", "shared", "ui", "app"]
+          "deny": [
+            "foundation",
+            "shared",
+            "ui",
+            "app"
+          ]
         }
       },
       "foundation": {
         "dependencies": {
-          "deny": ["shared", "ui", "app"]
+          "deny": [
+            "shared",
+            "ui",
+            "app"
+          ]
         }
       },
       "shared": {
         "dependencies": {
-          "deny": ["ui", "app"]
+          "deny": [
+            "ui",
+            "app"
+          ]
         }
       },
       "ui": {
         "dependencies": {
-          "deny": ["app"]
+          "deny": [
+            "app"
+          ]
         }
       },
       "app": {
         "dependencies": {
-          "deny": ["app"]
+          "deny": [
+            "app"
+          ]
         }
       }
     }
   },
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": [
+        "^typecheck"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
-    }
+    },
+    "clean": {}
   }
 }

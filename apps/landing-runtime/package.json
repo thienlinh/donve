@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",

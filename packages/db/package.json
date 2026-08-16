@@ -4,16 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "bun run src/seed.ts",
+    "test": "vitest run",
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "@neondatabase/serverless": "catalog:db",
     "drizzle-orm": "catalog:db",
+    "postgres": "catalog:db",
     "ulid": "catalog:db"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "@testcontainers/postgresql": "catalog:db",
+    "bun-types": "catalog:",
     "drizzle-kit": "catalog:db",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

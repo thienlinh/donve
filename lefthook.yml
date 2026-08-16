@@ -1,7 +1,9 @@
+no_tty: true
+
 pre-commit:
   parallel: true
   jobs:
-    - run: bun run lint --fix {staged_files}
+    - run: bun run lint {staged_files}
       glob:
         - "**/*.js"
         - "**/*.jsx"

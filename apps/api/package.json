@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/bun.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "@dv/ai-gateway": "workspace:*",
