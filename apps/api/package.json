@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/bun.ts",
+    "dev:workers": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules"
   },

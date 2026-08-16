@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dv-api",
+  "main": "src/workers.ts",
+  "compatibility_date": "2026-08-01",
+  // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN are secrets, set per environment
+  // via `wrangler secret put` — not committed here.
+  "vars": {},
+}
