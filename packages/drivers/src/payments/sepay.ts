@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { z } from "zod";
 
-import { matchContentBasedTransaction } from "./content-based-matching.js"
+import { matchContentBasedTransaction } from "./content-based-matching.js";
 import type {
   MatchTransactionInput,
   MatchTransactionResult,
@@ -8,19 +8,19 @@ import type {
   PaymentsDriver,
   VerifiedPaymentEvent,
   VerifyWebhookInput,
-} from "./types.js"
-import { PaymentWebhookVerificationError } from "./types.js"
+} from "./types.js";
+import { PaymentWebhookVerificationError } from "./types.js";
 
 const sepayWebhookPayloadSchema = z.object({
   id: z.union([z.string(), z.number()]),
   transferAmount: z.coerce.number(),
   content: z.string().default(""),
   transactionDate: z.string(),
-})
+});
 
 export interface SepayDriverConfig {
   /** campaign/org `paymentConfig.transferPrefix`, e.g. "DV" — needed to scan transfer content for order codes. */
-  transferPrefix: string
+  transferPrefix: string;
 }
 
 export function createSepayPaymentsDriver(
@@ -33,27 +33,27 @@ export function createSepayPaymentsDriver(
       input: VerifyWebhookInput
     ): Promise<VerifiedPaymentEvent> {
       const authHeader =
-        input.headers.authorization ?? input.headers.Authorization
+        input.headers.authorization ?? input.headers.Authorization;
       if (authHeader !== `Apikey ${input.connection.apiKey}`) {
         throw new PaymentWebhookVerificationError(
           "invalid SePay webhook Authorization header"
-        )
+        );
       }
 
-      let json: unknown
+      let json: unknown;
       try {
-        json = JSON.parse(input.rawBody)
+        json = JSON.parse(input.rawBody);
       } catch {
         throw new PaymentWebhookVerificationError(
           "SePay webhook body is not valid JSON"
-        )
+        );
       }
 
-      const parsed = sepayWebhookPayloadSchema.safeParse(json)
+      const parsed = sepayWebhookPayloadSchema.safeParse(json);
       if (!parsed.success) {
         throw new PaymentWebhookVerificationError(
           "unrecognized SePay webhook payload shape"
-        )
+        );
       }
 
       return {
@@ -64,7 +64,7 @@ export function createSepayPaymentsDriver(
         orderRef: null,
         occurredAt: new Date(parsed.data.transactionDate),
         rawPayload: parsed.data,
-      }
+      };
     },
 
     matchTransaction(
@@ -73,7 +73,7 @@ export function createSepayPaymentsDriver(
       return matchContentBasedTransaction({
         ...input,
         prefix: config.transferPrefix,
-      })
+      });
     },
 
     getConnectionGuide(): PaymentConnectionGuide {
@@ -97,7 +97,7 @@ export function createSepayPaymentsDriver(
             body: 'Nhấn "Kiểm tra kết nối" để xác nhận webhook SePay hoạt động đúng trước khi bật tự động đối soát.',
           },
         ],
-      }
+      };
     },
-  }
+  };
 }

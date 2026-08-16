@@ -3,7 +3,7 @@ import type {
   PutObjectResult,
   StorageDriver,
   StoredObject,
-} from "./types.js"
+} from "./types.js";
 
 /**
  * Minimal structural subset of Cloudflare's global `R2Bucket` binding type. Declared locally
@@ -16,13 +16,13 @@ export interface R2BucketBinding {
     key: string,
     value: ReadableStream | ArrayBuffer | ArrayBufferView | string,
     options?: { httpMetadata?: { contentType?: string } }
-  ): Promise<{ size: number } | null>
+  ): Promise<{ size: number } | null>;
   get(key: string): Promise<{
-    body: ReadableStream
-    httpMetadata?: { contentType?: string }
-    size: number
-  } | null>
-  delete(key: string): Promise<void>
+    body: ReadableStream;
+    httpMetadata?: { contentType?: string };
+    size: number;
+  } | null>;
+  delete(key: string): Promise<void>;
 }
 
 export function createR2StorageDriver(bucket: R2BucketBinding): StorageDriver {
@@ -32,23 +32,23 @@ export function createR2StorageDriver(bucket: R2BucketBinding): StorageDriver {
         httpMetadata: input.contentType
           ? { contentType: input.contentType }
           : undefined,
-      })
-      return { key: input.key, size: result?.size ?? 0 }
+      });
+      return { key: input.key, size: result?.size ?? 0 };
     },
 
     async get(key: string): Promise<StoredObject | null> {
-      const object = await bucket.get(key)
-      if (!object) return null
+      const object = await bucket.get(key);
+      if (!object) return null;
       return {
         key,
         body: object.body,
         contentType: object.httpMetadata?.contentType ?? null,
         size: object.size,
-      }
+      };
     },
 
     async delete(key: string): Promise<void> {
-      await bucket.delete(key)
+      await bucket.delete(key);
     },
-  }
+  };
 }

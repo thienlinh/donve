@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_onboardingtitle1 =
   /** @type {(inputs: Onboardingtitle1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Tạo tổ chức của bạn`
-  }
+    return /** @type {LocalizedString} */ `Tạo tổ chức của bạn`;
+  };
 
 const en_onboardingtitle1 =
   /** @type {(inputs: Onboardingtitle1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Create your organization`
-  }
+    return /** @type {LocalizedString} */ `Create your organization`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_onboardingtitle1 =
 const onboardingtitle1 =
   /** @type {((inputs?: Onboardingtitle1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Onboardingtitle1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_onboardingtitle1(inputs)
-      return vi_onboardingtitle1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_onboardingtitle1(inputs);
+      return vi_onboardingtitle1(inputs);
     }
-  )
-export { onboardingtitle1 as "onboardingTitle" }
+  );
+export { onboardingtitle1 as "onboardingTitle" };

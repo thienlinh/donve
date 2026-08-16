@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_shellsignedinas3 =
   /** @type {(inputs: Shellsignedinas3Inputs) => LocalizedString} */ (i) => {
-    return /** @type {LocalizedString} */ `Đăng nhập với ${i?.email}`
-  }
+    return /** @type {LocalizedString} */ `Đăng nhập với ${i?.email}`;
+  };
 
 const en_shellsignedinas3 =
   /** @type {(inputs: Shellsignedinas3Inputs) => LocalizedString} */ (i) => {
-    return /** @type {LocalizedString} */ `Signed in as ${i?.email}`
-  }
+    return /** @type {LocalizedString} */ `Signed in as ${i?.email}`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_shellsignedinas3 =
 const shellsignedinas3 =
   /** @type {((inputs: Shellsignedinas3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Shellsignedinas3Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_shellsignedinas3(inputs)
-      return vi_shellsignedinas3(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_shellsignedinas3(inputs);
+      return vi_shellsignedinas3(inputs);
     }
-  )
-export { shellsignedinas3 as "shellSignedInAs" }
+  );
+export { shellsignedinas3 as "shellSignedInAs" };

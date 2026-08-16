@@ -1,6 +1,6 @@
 export interface RealtimeMessage<T = unknown> {
-  channel: string
-  data: T
+  channel: string;
+  data: T;
 }
 
 /**
@@ -10,10 +10,10 @@ export interface RealtimeMessage<T = unknown> {
  */
 export interface RealtimeDriver {
   // oxlint-disable-next-line no-unnecessary-type-parameters -- lets callers annotate the payload at the call site instead of casting `data`.
-  publish<T = unknown>(channel: string, data: T): Promise<void>
+  publish<T = unknown>(channel: string, data: T): Promise<void>;
   /** Ends when `signal` aborts (e.g. the client disconnects and the route cancels the stream). */
   subscribe(
     channel: string,
     signal: AbortSignal
-  ): AsyncIterable<RealtimeMessage>
+  ): AsyncIterable<RealtimeMessage>;
 }

@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Onboardingorgnamelabel3Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Onboardingorgnamelabel3Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Onboardingorgnamelabel3Inputs = {}
 declare const onboardingorgnamelabel3: ((
   inputs?: Onboardingorgnamelabel3Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Onboardingorgnamelabel3Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { onboardingorgnamelabel3 as "onboardingOrgNameLabel" }
+  >;
+export { onboardingorgnamelabel3 as "onboardingOrgNameLabel" };

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_commonloading1 =
   /** @type {(inputs: Commonloading1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Đang tải...`
-  }
+    return /** @type {LocalizedString} */ `Đang tải...`;
+  };
 
 const en_commonloading1 =
   /** @type {(inputs: Commonloading1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Loading...`
-  }
+    return /** @type {LocalizedString} */ `Loading...`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_commonloading1 =
 const commonloading1 =
   /** @type {((inputs?: Commonloading1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Commonloading1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_commonloading1(inputs)
-      return vi_commonloading1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_commonloading1(inputs);
+      return vi_commonloading1(inputs);
     }
-  )
-export { commonloading1 as "commonLoading" }
+  );
+export { commonloading1 as "commonLoading" };

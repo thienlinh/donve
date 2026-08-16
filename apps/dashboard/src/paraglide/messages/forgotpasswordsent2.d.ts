@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Forgotpasswordsent2Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Forgotpasswordsent2Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Forgotpasswordsent2Inputs = {}
 declare const forgotpasswordsent2: ((
   inputs?: Forgotpasswordsent2Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Forgotpasswordsent2Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { forgotpasswordsent2 as "forgotPasswordSent" }
+  >;
+export { forgotpasswordsent2 as "forgotPasswordSent" };

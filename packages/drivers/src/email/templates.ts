@@ -2,7 +2,7 @@ import type {
   InviteEmailProps,
   ResetPasswordProps,
   VerifyEmailProps,
-} from "./types.js"
+} from "./types.js";
 
 /** FR-I-01 v1: plain HTML string per template, not React Email. */
 function layout(title: string, bodyHtml: string): string {
@@ -17,16 +17,16 @@ function layout(title: string, bodyHtml: string): string {
       </td></tr>
     </table>
   </body>
-</html>`
+</html>`;
 }
 
 function button(url: string, label: string): string {
-  return `<p><a href="${url}" style="display:inline-block;background:#18181b;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">${label}</a></p>`
+  return `<p><a href="${url}" style="display:inline-block;background:#18181b;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">${label}</a></p>`;
 }
 
 export function renderVerifyEmail(props: VerifyEmailProps): {
-  subject: string
-  html: string
+  subject: string;
+  html: string;
 } {
   return {
     subject: "Xác thực email của bạn",
@@ -36,12 +36,12 @@ export function renderVerifyEmail(props: VerifyEmailProps): {
        <p>Nhấn nút bên dưới để xác thực email và hoàn tất đăng ký tài khoản Donve.</p>
        ${button(props.url, "Xác thực email")}`
     ),
-  }
+  };
 }
 
 export function renderResetPassword(props: ResetPasswordProps): {
-  subject: string
-  html: string
+  subject: string;
+  html: string;
 } {
   return {
     subject: "Đặt lại mật khẩu",
@@ -51,12 +51,12 @@ export function renderResetPassword(props: ResetPasswordProps): {
        <p>Nhấn nút bên dưới để đặt lại mật khẩu. Nếu bạn không yêu cầu việc này, hãy bỏ qua email này.</p>
        ${button(props.url, "Đặt lại mật khẩu")}`
     ),
-  }
+  };
 }
 
 export function renderInviteEmail(props: InviteEmailProps): {
-  subject: string
-  html: string
+  subject: string;
+  html: string;
 } {
   return {
     subject: `Bạn được mời tham gia ${props.orgName} trên Donve`,
@@ -66,5 +66,5 @@ export function renderInviteEmail(props: InviteEmailProps): {
        ${button(props.inviteUrl, "Chấp nhận lời mời")}
        <p style="color:#71717a;font-size:12px;">Lời mời hết hạn sau 7 ngày.</p>`
     ),
-  }
+  };
 }

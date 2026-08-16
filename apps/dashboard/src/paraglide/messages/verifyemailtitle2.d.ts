@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Verifyemailtitle2Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Verifyemailtitle2Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Verifyemailtitle2Inputs = {}
 declare const verifyemailtitle2: ((
   inputs?: Verifyemailtitle2Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Verifyemailtitle2Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { verifyemailtitle2 as "verifyEmailTitle" }
+  >;
+export { verifyemailtitle2 as "verifyEmailTitle" };

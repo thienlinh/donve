@@ -4,17 +4,17 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@dv/ui/components/card"
-import type { ReactNode } from "react"
+} from "@dv/ui/components/shadcn/card";
+import type { ReactNode } from "react";
 
 export function AuthCard({
   title,
   description,
   children,
 }: {
-  title: string
-  description?: string
-  children: ReactNode
+  title: string;
+  description?: string;
+  children: ReactNode;
 }) {
   return (
     <div className="flex min-h-svh items-center justify-center p-6">
@@ -26,5 +26,5 @@ export function AuthCard({
         <CardContent>{children}</CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import { createNeonDb, createPostgresDb } from "@dv/db"
-import type { Db } from "@dv/db"
+import { createNeonDb, createPostgresDb } from "@dv/db";
+import type { Db } from "@dv/db";
 
-import type { Bindings } from "../types.js"
+import type { Bindings } from "../types.js";
 
 /**
  * CF Workers gets the HTTP driver (no persistent connection possible there);
@@ -12,5 +12,5 @@ import type { Bindings } from "../types.js"
 export function createDbFromEnv(env: Bindings): Db {
   return env.RUNTIME === "workers"
     ? createNeonDb(env.DATABASE_URL)
-    : createPostgresDb(env.DATABASE_URL)
+    : createPostgresDb(env.DATABASE_URL);
 }

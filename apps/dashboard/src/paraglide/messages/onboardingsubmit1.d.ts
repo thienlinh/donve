@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Onboardingsubmit1Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Onboardingsubmit1Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Onboardingsubmit1Inputs = {}
 declare const onboardingsubmit1: ((
   inputs?: Onboardingsubmit1Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Onboardingsubmit1Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { onboardingsubmit1 as "onboardingSubmit" }
+  >;
+export { onboardingsubmit1 as "onboardingSubmit" };

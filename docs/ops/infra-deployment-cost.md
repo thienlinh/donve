@@ -5,7 +5,7 @@
 Chia hệ thống theo bản chất workload:
 
 | Workload | Nơi chạy vĩnh viễn | Lý do |
-|---|---|---|
+| --- | --- | --- |
 | **Landing serving** (`edge-router` + R2 + KV) | **Cloudflare edge — mãi mãi** | PoP tại VN → TTFB ~30–80ms toàn quốc, chịu viral traffic không lo, free gần như vô hạn ở tầng này, SSL wildcard tự động. Đưa về VPS là tự bắn vào chân CWV/SEO |
 | Dashboard SPA (static) | Cloudflare Pages — mãi mãi | Static host free, không có lý do chuyển |
 | **API (Hono)** | CF Workers (giai đoạn 1) → **VPS VN (Bun)** khi cần | Workers free 100k req/ngày đủ lâu; VPS khi cần job dài, Playwright, BullMQ, latency DB thấp |
@@ -20,6 +20,7 @@ Chia hệ thống theo bản chất workload:
 Quyết định "landing serving vĩnh viễn trên Cloudflare" ở trên là **có chủ đích**, không phải sơ suất — nhưng cần nói rõ cái giá phải trả: KV + R2 + Cache đều là hạ tầng CF, nên một sự cố CF toàn cầu ảnh hưởng **tất cả tenant cùng lúc**. Threat model kỹ thuật chi tiết (attack surface, WAF, v.v.) đã có ở architecture.md §7/§8; ở đây chỉ nói góc chi phí/vận hành.
 
 Biện pháp giảm thiểu kiểu "bảo hiểm" — không phải failover tự động, không dựng thêm hạ tầng chạy song song:
+
 - Backup định kỳ (cron job nhẹ, vd hàng ngày) object `deployments/*` từ R2 sang một object storage khác giá rẻ (vd Backblaze B2) — chỉ là nguồn khôi phục khi cần, không nhằm chuyển traffic sang ngay.
 - Uptime monitor đơn giản, miễn phí (vd UptimeRobot hoặc tương tự) theo dõi vài subdomain mẫu, báo founder khi có sự cố CF diện rộng.
 
@@ -30,7 +31,7 @@ Biện pháp giảm thiểu kiểu "bảo hiểm" — không phải failover t�
 (Số liệu theo public pricing các dịch vụ; kiểm lại khi triển khai vì có thể thay đổi.)
 
 | Dịch vụ | Free tier | Quy đổi thực tế |
-|---|---|---|
+| --- | --- | --- |
 | CF Workers | 100.000 req/ngày, 10ms CPU/req | ~vài trăm tenant hoạt động nhẹ; landing serving ăn phần lớn → tách sang cache: request cache-hit không tốn Worker CPU đáng kể |
 | CF Pages | Unlimited bandwidth static, 500 builds/tháng | Dashboard + không giới hạn thực tế |
 | CF KV | 100k reads/ngày, 1k writes/ngày | Hostname lookup có Cache API đệm → writes chỉ khi publish |
@@ -64,16 +65,17 @@ Ngưỡng phải hành động: Workers > 70k req/ngày hoặc Neon > 0.4GB ho�
 ## 3. Giai đoạn 2 — VPS Việt Nam + Dokploy
 
 ### 3.1 Cấu hình đề xuất
+
 - VPS 4 vCPU / 8GB RAM / 100GB NVMe tại VN (Viettel IDC / VNG Cloud / CMC / hoặc rẻ hơn: VinaHost, AZDIGI...) — khoảng **300–600k VND/tháng**. Nằm gọn trong budget bạn nêu.
 - Stack Dokploy (bạn đã quen docker):
 
 ```yaml
 # docker-compose (Dokploy quản lý) — dịch vụ chính
 services:
-  api:        # Bun + Hono (image build từ monorepo, entrypoint bun.ts)
-  worker:     # BullMQ workers: build_deploy, thumbnail (Playwright), webhook retry, email
-  postgres:   # postgres:17 + pgbackrest sidecar (backup → R2, PITR)
-  redis:      # redis:7 (BullMQ + cache + pub/sub realtime)
+  api: # Bun + Hono (image build từ monorepo, entrypoint bun.ts)
+  worker: # BullMQ workers: build_deploy, thumbnail (Playwright), webhook retry, email
+  postgres: # postgres:17 + pgbackrest sidecar (backup → R2, PITR)
+  redis: # redis:7 (BullMQ + cache + pub/sub realtime)
   # KHÔNG có nginx cho landing — landing vẫn ở Cloudflare
   # Traefik do Dokploy quản lý cho api.domain
 ```
@@ -82,6 +84,7 @@ services:
 - Realtime SSE: hub trong api process + Redis pub/sub giữa instances.
 
 ### 3.2 Migration runbook (thiết kế sẵn từ ngày 0)
+
 1. `drizzle-kit` schema như nhau; dump Neon (`pg_dump`) → restore VPS; bật maintenance mode 15 phút (dashboard only — landing không ảnh hưởng).
 2. Đổi env DNS `api.donve.vn` từ Workers route → VPS (CF proxied) — contract API không đổi.
 3. Đổi driver env: `JOBS_DRIVER=bullmq`, `CACHE_DRIVER=ioredis`, `DB_URL=postgres://local`.
@@ -89,6 +92,7 @@ services:
 5. Rollback = trỏ DNS lại Workers (giữ Workers deployment 30 ngày).
 
 ### 3.3 "Mua VPS từ đầu luôn cho khỏi migrate?"
+
 Phân tích thẳng: migrate theo runbook trên tốn ~1 buổi vì đã portable-by-design, còn vận hành VPS từ ngày 0 tốn tiền + tâm trí ops (patch OS, backup, monitor) trong chính giai đoạn bạn cần 100% năng lượng cho product. **Khuyến nghị: bắt đầu free tier, mua VPS ở phase 5–6 (implementation-plan.md) khi cần Playwright/BullMQ ổn định** — trừ khi bạn muốn dogfood Dokploy làm content dạy học sớm (lý do hợp lệ, và là lý do duy nhất nên mua sớm).
 
 ## 4. Publishing lên subdomain — chi tiết vận hành
@@ -111,6 +115,7 @@ request → hostname
 ## 5. SEO & Core Web Vitals cho landing (thực thi NFR-01)
 
 Build pipeline bắt buộc (không phụ thuộc AI "nhớ" làm đúng — pipeline ép):
+
 1. Minify HTML/CSS; inline toàn bộ CSS (landing 1 trang — inline luôn tối ưu nhất).
 2. Ảnh: chuyển AVIF/WebP + `srcset` + width/height chống CLS; ảnh hero → `<link rel="preload" as="image">`; lazy-load ảnh dưới fold.
 3. Font: hệ thống (system-ui stack) mặc định; nếu brand font → subset woff2 + `font-display: swap`, preload.

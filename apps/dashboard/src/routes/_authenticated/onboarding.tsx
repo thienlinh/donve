@@ -1,28 +1,28 @@
-import { Button } from "@dv/ui/components/button"
+import { Button } from "@dv/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@dv/ui/components/card"
-import { Input } from "@dv/ui/components/input"
-import { Label } from "@dv/ui/components/label"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+} from "@dv/ui/components/shadcn/card";
+import { Input } from "@dv/ui/components/shadcn/input";
+import { Label } from "@dv/ui/components/shadcn/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { authClient } from "@/features/auth/auth-client"
-import * as m from "@/paraglide/messages.js"
+import { authClient } from "@/features/auth/auth-client";
+import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
-})
+});
 
-const onboardingSchema = z.object({ name: z.string().min(1) })
+const onboardingSchema = z.object({ name: z.string().min(1) });
 
-const COMBINING_DIACRITICS = /[̀-ͯ]/g
+const COMBINING_DIACRITICS = /[̀-ͯ]/g;
 
 function slugify(name: string): string {
   return name
@@ -30,26 +30,26 @@ function slugify(name: string): string {
     .normalize("NFD")
     .replace(COMBINING_DIACRITICS, "")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
+    .replace(/(^-|-$)/g, "");
 }
 
 function OnboardingPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(onboardingSchema) })
+  } = useForm({ resolver: zodResolver(onboardingSchema) });
 
   const onSubmit = handleSubmit(async ({ name }) => {
     const { data: org, error } = await authClient.organization.create({
       name,
       slug: `${slugify(name)}-${Date.now().toString(36)}`,
-    })
-    if (error || !org) return
-    await authClient.organization.setActive({ organizationId: org.id })
-    await navigate({ to: "/landings" })
-  })
+    });
+    if (error || !org) return;
+    await authClient.organization.setActive({ organizationId: org.id });
+    await navigate({ to: "/landings" });
+  });
 
   return (
     <div className="flex min-h-svh items-center justify-center p-6">
@@ -80,5 +80,5 @@ function OnboardingPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

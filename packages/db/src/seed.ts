@@ -1,7 +1,7 @@
-import { createPostgresDb } from "./client/postgres-js.js"
-import { organizationsRepository } from "./repositories/organizations.js"
-import { skills } from "./schema/ai.js"
-import { organizations } from "./schema/core.js"
+import { createPostgresDb } from "./client/postgres-js.js";
+import { organizationsRepository } from "./repositories/organizations.js";
+import { skills } from "./schema/ai.js";
+import { organizations } from "./schema/core.js";
 
 const PLATFORM_SKILLS = [
   {
@@ -14,13 +14,13 @@ const PLATFORM_SKILLS = [
     name: "Pricing table",
     content: "# Pricing\nDefault pricing table skill.",
   },
-]
+];
 
 async function seed() {
-  const databaseUrl = process.env.DATABASE_URL
-  if (!databaseUrl) throw new Error("DATABASE_URL is required to seed")
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("DATABASE_URL is required to seed");
 
-  const db = createPostgresDb(databaseUrl)
+  const db = createPostgresDb(databaseUrl);
 
   await Promise.all(
     PLATFORM_SKILLS.map((skill) =>
@@ -29,23 +29,23 @@ async function seed() {
         .values({ orgId: null, ...skill })
         .onConflictDoNothing()
     )
-  )
+  );
 
   await db.raw
     .insert(organizations)
     .values({ name: "Demo Org", slug: "demo-org" })
-    .onConflictDoNothing({ target: organizations.slug })
-  const demoOrg = await organizationsRepository.findBySlug(db, "demo-org")
-  if (!demoOrg) throw new Error("demo org seed failed")
+    .onConflictDoNothing({ target: organizations.slug });
+  const demoOrg = await organizationsRepository.findBySlug(db, "demo-org");
+  if (!demoOrg) throw new Error("demo org seed failed");
 
   console.log(
     `Seeded ${PLATFORM_SKILLS.length} platform skills and org "${demoOrg.slug}" (${demoOrg.id})`
-  )
+  );
 }
 
 seed()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+    console.error(err);
+    process.exit(1);
+  });

@@ -1,27 +1,27 @@
-import { Button } from "@dv/ui/components/button"
+import { Button } from "@dv/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@dv/ui/components/dropdown-menu"
-import { useNavigate } from "@tanstack/react-router"
-import { ChevronsUpDown, Plus } from "lucide-react"
+} from "@dv/ui/components/shadcn/dropdown-menu";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronsUpDown, Plus } from "lucide-react";
 
 import {
   authClient,
   useActiveOrganization,
   useListOrganizations,
-} from "@/features/auth/auth-client"
-import * as m from "@/paraglide/messages.js"
+} from "@/features/auth/auth-client";
+import * as m from "@/paraglide/messages.js";
 
 export function OrgSwitcher() {
-  const navigate = useNavigate()
-  const { data: organizations } = useListOrganizations()
-  const { data: activeOrganization } = useActiveOrganization()
+  const navigate = useNavigate();
+  const { data: organizations } = useListOrganizations();
+  const { data: activeOrganization } = useActiveOrganization();
 
-  const label = activeOrganization?.name ?? m.orgSwitcherNoOrg()
+  const label = activeOrganization?.name ?? m.orgSwitcherNoOrg();
 
   return (
     <DropdownMenu>
@@ -50,5 +50,5 @@ export function OrgSwitcher() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

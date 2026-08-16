@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Forgotpasswordemaillabel3Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Forgotpasswordemaillabel3Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Forgotpasswordemaillabel3Inputs = {}
 declare const forgotpasswordemaillabel3: ((
   inputs?: Forgotpasswordemaillabel3Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Forgotpasswordemaillabel3Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { forgotpasswordemaillabel3 as "forgotPasswordEmailLabel" }
+  >;
+export { forgotpasswordemaillabel3 as "forgotPasswordEmailLabel" };

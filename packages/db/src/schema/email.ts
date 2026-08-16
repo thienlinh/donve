@@ -1,6 +1,6 @@
-import { index, pgTable, text } from "drizzle-orm/pg-core"
+import { index, pgTable, text } from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
+import { id, timestamps } from "./columns.js";
 
 export const emailLogs = pgTable(
   "email_logs",
@@ -18,4 +18,4 @@ export const emailLogs = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_email_org_time").on(t.orgId, t.createdAt)]
-)
+);

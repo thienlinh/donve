@@ -1,12 +1,12 @@
-import { Button } from "@dv/ui/components/button"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { Button } from "@dv/ui/components/shadcn/button";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { AuthCard } from "@/features/auth/components/auth-card"
-import * as m from "@/paraglide/messages.js"
+import { AuthCard } from "@/features/auth/components/auth-card";
+import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/verified")({
   component: VerifiedPage,
-})
+});
 
 function VerifiedPage() {
   return (
@@ -16,5 +16,5 @@ function VerifiedPage() {
         {m.verifiedLoginLink()}
       </Button>
     </AuthCard>
-  )
+  );
 }

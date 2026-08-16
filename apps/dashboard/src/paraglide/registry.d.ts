@@ -14,7 +14,7 @@ export type RelativeTimeFormatUnit =
   | "minute"
   | "minutes"
   | "second"
-  | "seconds"
+  | "seconds";
 /**
  * @typedef {"year" | "years" | "quarter" | "quarters" | "month" | "months" | "week" | "weeks" | "day" | "days" | "hour" | "hours" | "minute" | "minutes" | "second" | "seconds"} RelativeTimeFormatUnit
  */
@@ -28,7 +28,7 @@ export declare function plural(
   locale: import("./runtime.js").Locale,
   input: unknown,
   options?: Intl.PluralRulesOptions
-): string
+): string;
 /**
  * @param {import("./runtime.js").Locale} locale
  * @param {unknown} input
@@ -39,7 +39,7 @@ export declare function number(
   locale: import("./runtime.js").Locale,
   input: unknown,
   options?: Intl.NumberFormatOptions
-): string
+): string;
 /**
  * @param {import("./runtime.js").Locale} locale
  * @param {unknown} input
@@ -50,7 +50,7 @@ export declare function datetime(
   locale: import("./runtime.js").Locale,
   input: unknown,
   options?: Intl.DateTimeFormatOptions
-): string
+): string;
 /**
  * @param {import("./runtime.js").Locale} locale
  * @param {unknown} input
@@ -61,6 +61,6 @@ export declare function relativetime(
   locale: import("./runtime.js").Locale,
   input: unknown,
   options: Intl.RelativeTimeFormatOptions & {
-    unit: RelativeTimeFormatUnit
+    unit: RelativeTimeFormatUnit;
   }
-): string
+): string;

@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Shellsettingsnav2Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Shellsettingsnav2Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Shellsettingsnav2Inputs = {}
 declare const shellsettingsnav2: ((
   inputs?: Shellsettingsnav2Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Shellsettingsnav2Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { shellsettingsnav2 as "shellSettingsNav" }
+  >;
+export { shellsettingsnav2 as "shellSettingsNav" };

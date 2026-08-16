@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js"
+import { orgIdSchema, ulidSchema } from "./common.js";
 
 export const eventTypeValues = [
   "view",
@@ -8,9 +8,9 @@ export const eventTypeValues = [
   "order_created",
   "paid_popup",
   "zalo_click",
-] as const
-export const eventTypeSchema = z.enum(eventTypeValues)
-export type EventType = z.infer<typeof eventTypeSchema>
+] as const;
+export const eventTypeSchema = z.enum(eventTypeValues);
+export type EventType = z.infer<typeof eventTypeSchema>;
 
 /** events.meta — e.g. utm, referrer; open-ended since the edge beacon can add fields freely. */
 export const eventMetaSchema = z
@@ -19,8 +19,8 @@ export const eventMetaSchema = z
     referrer: z.string().optional(),
   })
   .catchall(z.unknown())
-  .default({})
-export type EventMeta = z.infer<typeof eventMetaSchema>
+  .default({});
+export type EventMeta = z.infer<typeof eventMetaSchema>;
 
 /** append-only, written from the edge beacon — no updatedAt. */
 export const eventSchema = z.object({
@@ -33,5 +33,5 @@ export const eventSchema = z.object({
   sessionHash: z.string().nullable(),
   meta: eventMetaSchema,
   createdAt: z.coerce.date(),
-})
-export type Event = z.infer<typeof eventSchema>
+});
+export type Event = z.infer<typeof eventSchema>;

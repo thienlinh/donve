@@ -1,10 +1,10 @@
-import type { Db } from "@dv/db"
-import { schema } from "@dv/db"
-import type { email } from "@dv/drivers"
-import { betterAuth } from "better-auth"
-import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { organization } from "better-auth/plugins"
-import { ulid } from "ulid"
+import type { Db } from "@dv/db";
+import { schema } from "@dv/db";
+import type { email } from "@dv/drivers";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
+import { ulid } from "ulid";
 
 import {
   accessControl,
@@ -12,7 +12,7 @@ import {
   editorRole,
   ownerRole,
   salesRole,
-} from "./permissions.js"
+} from "./permissions.js";
 
 export interface AuthConfig {
   // drizzleAdapter's `db` param is untyped (`Record<string, any>`) — it accepts
@@ -20,24 +20,24 @@ export interface AuthConfig {
   // from whichever driver they constructed (postgres-js for Bun/VPS, neon-http
   // for CF Workers). `Db` itself is a `{kind, raw}` tagged union built for
   // `withOrgScope` and isn't what the adapter expects directly.
-  db: Db["raw"]
-  baseURL: string
-  secret: string
-  trustedOrigins?: string[]
+  db: Db["raw"];
+  baseURL: string;
+  secret: string;
+  trustedOrigins?: string[];
   socialProviders?: {
-    google?: { clientId: string; clientSecret: string }
-    facebook?: { clientId: string; clientSecret: string }
-  }
+    google?: { clientId: string; clientSecret: string };
+    facebook?: { clientId: string; clientSecret: string };
+  };
   /**
    * FR-A-01/FR-I-02: Resend wiring for verify-email + reset-password. Optional
    * so `createAuth` stays usable without an email provider (e.g. unit tests) —
    * both hooks below are no-ops when omitted.
    */
   email?: {
-    sender: email.EmailSender
+    sender: email.EmailSender;
     /** dashboard origin — verify/reset links redirect here after the backend handles the token. */
-    appURL: string
-  }
+    appURL: string;
+  };
 }
 
 /**
@@ -60,24 +60,24 @@ export function createAuth(config: AuthConfig) {
       enabled: true,
       requireEmailVerification: true,
       sendResetPassword: async ({ user, url }) => {
-        if (!config.email) return
+        if (!config.email) return;
         await config.email.sender.send({
           to: user.email,
           template: "reset_password",
           props: { name: user.name || user.email, url },
-        })
+        });
       },
     },
     emailVerification: {
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
-        if (!config.email) return
+        if (!config.email) return;
         await config.email.sender.send({
           to: user.email,
           template: "verify_email",
           props: { name: user.name || user.email, url },
-        })
+        });
       },
     },
     socialProviders: config.socialProviders,
@@ -130,5 +130,5 @@ export function createAuth(config: AuthConfig) {
         },
       }),
     ],
-  })
+  });
 }

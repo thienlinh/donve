@@ -6,9 +6,9 @@ import {
   text,
   timestamp,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
+import { id, timestamps } from "./columns.js";
 
 // Better Auth owns user/session/account; these tables add the org layer on top.
 export const organizations = pgTable("organizations", {
@@ -21,7 +21,7 @@ export const organizations = pgTable("organizations", {
   aiCreditBalance: integer("ai_credit_balance").notNull().default(0),
   settings: jsonb("settings").notNull().default({}),
   ...timestamps,
-})
+});
 
 export const memberships = pgTable(
   "memberships",
@@ -37,7 +37,7 @@ export const memberships = pgTable(
     salesConfig: jsonb("sales_config").default({}),
   },
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
-)
+);
 
 export const invites = pgTable("invites", {
   id: id(),
@@ -47,7 +47,7 @@ export const invites = pgTable("invites", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-})
+});
 
 export const auditLogs = pgTable(
   "audit_logs",
@@ -62,4 +62,4 @@ export const auditLogs = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_audit_org_time").on(t.orgId, t.createdAt)]
-)
+);

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_signupnamelabel2 =
   /** @type {(inputs: Signupnamelabel2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Họ tên`
-  }
+    return /** @type {LocalizedString} */ `Họ tên`;
+  };
 
 const en_signupnamelabel2 =
   /** @type {(inputs: Signupnamelabel2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Full name`
-  }
+    return /** @type {LocalizedString} */ `Full name`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_signupnamelabel2 =
 const signupnamelabel2 =
   /** @type {((inputs?: Signupnamelabel2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Signupnamelabel2Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_signupnamelabel2(inputs)
-      return vi_signupnamelabel2(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_signupnamelabel2(inputs);
+      return vi_signupnamelabel2(inputs);
     }
-  )
-export { signupnamelabel2 as "signupNameLabel" }
+  );
+export { signupnamelabel2 as "signupNameLabel" };

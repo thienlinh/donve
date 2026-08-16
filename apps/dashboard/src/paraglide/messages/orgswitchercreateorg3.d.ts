@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Orgswitchercreateorg3Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Orgswitchercreateorg3Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Orgswitchercreateorg3Inputs = {}
 declare const orgswitchercreateorg3: ((
   inputs?: Orgswitchercreateorg3Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Orgswitchercreateorg3Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { orgswitchercreateorg3 as "orgSwitcherCreateOrg" }
+  >;
+export { orgswitchercreateorg3 as "orgSwitcherCreateOrg" };

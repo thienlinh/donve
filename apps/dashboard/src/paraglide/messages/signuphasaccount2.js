@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_signuphasaccount2 =
   /** @type {(inputs: Signuphasaccount2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Đã có tài khoản?`
-  }
+    return /** @type {LocalizedString} */ `Đã có tài khoản?`;
+  };
 
 const en_signuphasaccount2 =
   /** @type {(inputs: Signuphasaccount2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Already have an account?`
-  }
+    return /** @type {LocalizedString} */ `Already have an account?`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_signuphasaccount2 =
 const signuphasaccount2 =
   /** @type {((inputs?: Signuphasaccount2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Signuphasaccount2Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_signuphasaccount2(inputs)
-      return vi_signuphasaccount2(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_signuphasaccount2(inputs);
+      return vi_signuphasaccount2(inputs);
     }
-  )
-export { signuphasaccount2 as "signupHasAccount" }
+  );
+export { signuphasaccount2 as "signupHasAccount" };

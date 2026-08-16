@@ -15,7 +15,7 @@
     "hooks": "@/hooks",
     "lib": "@/lib",
     "utils": "@dv/ui/lib/utils",
-    "ui": "@dv/ui/components"
+    "ui": "@dv/ui/components/shadcn"
   },
   "rtl": true,
   "menuColor": "default",

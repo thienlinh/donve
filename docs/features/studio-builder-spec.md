@@ -5,7 +5,7 @@ Tài liệu này map trực tiếp 8 screenshot tham chiếu vào spec triển k
 ## 1. Tái sử dụng dv-studio-kit
 
 | Thành phần đã có | Dùng cho | Việc cần làm thêm |
-|---|---|---|
+| --- | --- | --- |
 | `@dv/core` srcmap engine | FR-B-08..11, B-15..19 | Bổ sung op `toggleVisibility`, layer rename metadata, serialize srcmap ra file `.srcmap.json` (khớp screenshot #2 mục DATA) |
 | Mode system view/select/comment/draw | FR-B-08, B-12, B-14 | Thêm trạng thái "queue comments" + badge |
 | `StudioProvider` context + portal-scoped CSS vars | Toàn bộ studio UI | Nhúng vào `apps/dashboard/features/studio` như package L2 |
@@ -58,11 +58,13 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 ## 4. Canvas engine
 
 ### 4.1 Iframe & giao tiếp
+
 - `<iframe sandbox="allow-same-origin">` (không `allow-scripts` khi edit — HTML landing không cần JS lúc thiết kế; runtime script chỉ inject lúc publish → loại trừ toàn bộ rủi ro script trong editor).
 - Nạp nội dung bằng `srcdoc` từ version hiện hành; **mọi mutation qua `@dv/core` áp trực tiếp vào `iframe.contentDocument`** — không reload trừ khi restore version/AI full-file.
 - Overlay hệ thống (border hover/select, label, vẽ draw) đặt ở **layer div bên ngoài iframe**, đồng bộ toạ độ qua `getBoundingClientRect` của element trong iframe × transform canvas. Lý do: không "làm bẩn" DOM trang (screenshot #4/#6 cho thấy overlay label `span [cc-2] "STREET"` nằm đè lên, đúng pattern này).
 
 ### 4.2 Zoom / Pan (FR-B-05..07)
+
 - Transform model: `{scale, tx, ty}` áp `transform: translate(tx,ty) scale(s)` lên wrapper iframe; `transform-origin: 0 0`.
 - Input mapping:
   - Touchpad pinch: sự kiện `wheel` với `e.ctrlKey === true` → zoom quanh con trỏ: `s' = clamp(s * exp(-e.deltaY * 0.01), 0.1, 4)`.
@@ -73,6 +75,7 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 - Fit-to-screen: `s = min((W-pad)/pageW, (H-pad)/pageH)`; hiển thị % ở toolbar (75%/100% như screenshot #3/#1).
 
 ### 4.3 Hover / Select (FR-B-08, B-09; screenshot #4, #6)
+
 - Comment/Edit mode: `pointermove` → `document.elementFromPoint` trong iframe (quy đổi toạ độ) → tìm ancestor gần nhất **có srcmap id** → vẽ overlay:
   - Hover: border 1.5px **dashed** màu primary + label chip: `{tag} [{srcmapId}] "{text 20 ký tự}"`.
   - Selected: border 2px **solid**, label giữ; đồng thời LayerTree scroll + highlight item.
@@ -97,7 +100,7 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 ## 7. Draw mode (FR-B-14, P1; flow ở screenshot #1)
 
 - Toolbar phụ: bút, mũi tên, khung chữ nhật, màu, undo nét vẽ, clear.
-- Vẽ lên `<canvas>` overlay khớp transform. Khi gửi: composite screenshot iframe (dùng `modern-screenshot` trên contentDocument hoặc chụp qua backend browser-rendering) + layer nét vẽ → PNG đính vào chat với prompt mặc định *"Apply the marked-up changes to <Page>.html. The attached image shows the current preview with my annotations drawn on top."* — đúng nguyên văn flow screenshot #1. AI (vision) đọc annotation → trả patch.
+- Vẽ lên `<canvas>` overlay khớp transform. Khi gửi: composite screenshot iframe (dùng `modern-screenshot` trên contentDocument hoặc chụp qua backend browser-rendering) + layer nét vẽ → PNG đính vào chat với prompt mặc định _"Apply the marked-up changes to <Page>.html. The attached image shows the current preview with my annotations drawn on top."_ — đúng nguyên văn flow screenshot #1. AI (vision) đọc annotation → trả patch.
 
 ## 8. Layer tree (FR-B-16..19; screenshot #1/#3/#6)
 
@@ -113,7 +116,7 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 ## 10. Keyboard map
 
 | Phím | Hành động |
-|---|---|
+| --- | --- |
 | V / E / C / D | Mode view / edit / comment / draw |
 | Cmd+Z / Shift+Cmd+Z | Undo / Redo |
 | Cmd+= / Cmd+- / Cmd+0 / Cmd+1 | Zoom in / out / 100% / fit |

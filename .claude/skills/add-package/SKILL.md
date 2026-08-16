@@ -5,8 +5,7 @@ description: Scaffold a new package under packages/ or app under apps/ in this m
 
 # Add a package or app (donve monorepo)
 
-Read `.claude/rules/tech-stack.md` first if not already in context — it has
-the full rationale. This skill is just the mechanical steps.
+Read `.claude/rules/tech-stack.md` first if not already in context — it has the full rationale. This skill is just the mechanical steps.
 
 ## Steps
 
@@ -19,14 +18,9 @@ the full rationale. This skill is just the mechanical steps.
 2. **Create `<dir>/package.json`**:
    - Name: `@dv/<name>` for packages, plain `<name>` for apps (matches existing convention).
    - `"private": true`, `"type": "module"`.
-   - Any real dependency version goes through `"catalog:"` — if it's not yet
-     in the root `workspaces.catalog`, add it there first (check the real
-     published version via `npm view <pkg> versions`, don't guess).
-   - `devDependencies` always includes `"@dv/config": "workspace:*"` and
-     `"typescript": "catalog:"`.
-   - Only add a `"build"` script if this package is meant to be compiled
-     (rare — see the JIT-packages note in the tech-stack rule). Otherwise
-     just `"typecheck": "tsc --noEmit"`.
+   - Any real dependency version goes through `"catalog:"` — if it's not yet in the root `workspaces.catalog`, add it there first (check the real published version via `npm view <pkg> versions`, don't guess).
+   - `devDependencies` always includes `"@dv/config": "workspace:*"` and `"typescript": "catalog:"`.
+   - Only add a `"build"` script if this package is meant to be compiled (rare — see the JIT-packages note in the tech-stack rule). Otherwise just `"typecheck": "tsc --noEmit"`.
 
 3. **Create `<dir>/tsconfig.json`** extending the chosen preset:
 
@@ -46,9 +40,6 @@ the full rationale. This skill is just the mechanical steps.
    { "$schema": "https://turbo.build/schema.json", "extends": ["//"] }
    ```
 
-5. **Create `<dir>/src/index.ts`** with real, non-empty content — oxlint's
-   `unicorn/no-empty-file` rejects a file that's just a comment. A minimal
-   placeholder export is fine while the module is unimplemented.
+5. **Create `<dir>/src/index.ts`** with real, non-empty content — oxlint's `unicorn/no-empty-file` rejects a file that's just a comment. A minimal placeholder export is fine while the module is unimplemented.
 
-6. **Verify**: `bun install && bun run lint && bun run typecheck && bun run build`.
-   All four must stay green.
+6. **Verify**: `bun install && bun run lint && bun run typecheck && bun run build`. All four must stay green.

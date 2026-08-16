@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_commoncontinue1 =
   /** @type {(inputs: Commoncontinue1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Tiếp tục`
-  }
+    return /** @type {LocalizedString} */ `Tiếp tục`;
+  };
 
 const en_commoncontinue1 =
   /** @type {(inputs: Commoncontinue1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Continue`
-  }
+    return /** @type {LocalizedString} */ `Continue`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_commoncontinue1 =
 const commoncontinue1 =
   /** @type {((inputs?: Commoncontinue1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Commoncontinue1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_commoncontinue1(inputs)
-      return vi_commoncontinue1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_commoncontinue1(inputs);
+      return vi_commoncontinue1(inputs);
     }
-  )
-export { commoncontinue1 as "commonContinue" }
+  );
+export { commoncontinue1 as "commonContinue" };

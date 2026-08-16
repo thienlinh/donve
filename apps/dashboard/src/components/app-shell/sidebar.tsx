@@ -1,12 +1,12 @@
-import { Link } from "@tanstack/react-router"
-import { LayoutTemplate } from "lucide-react"
+import { Link } from "@tanstack/react-router";
+import { LayoutTemplate } from "lucide-react";
 
-import * as m from "@/paraglide/messages.js"
+import * as m from "@/paraglide/messages.js";
 
 const navItems = [
   { to: "/landings", label: () => m.shellLandingsNav(), icon: LayoutTemplate },
   // "/settings" isn't built yet — Phase 1+ fills this in (studio/CRM land first).
-]
+];
 
 export function Sidebar() {
   return (
@@ -27,5 +27,5 @@ export function Sidebar() {
         ))}
       </nav>
     </aside>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Loginerror1Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Loginerror1Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Loginerror1Inputs = {}
 declare const loginerror1: ((
   inputs?: Loginerror1Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Loginerror1Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { loginerror1 as "loginError" }
+  >;
+export { loginerror1 as "loginError" };

@@ -1,16 +1,16 @@
-import type { MembershipRole } from "@dv/contracts"
-import type { Db } from "@dv/db"
-import { invitesRepository, membershipsRepository } from "@dv/db"
-import type { email } from "@dv/drivers"
-import { ulid } from "ulid"
+import type { MembershipRole } from "@dv/contracts";
+import type { Db } from "@dv/db";
+import { invitesRepository, membershipsRepository } from "@dv/db";
+import type { email } from "@dv/drivers";
+import { ulid } from "ulid";
 
-const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface CreateInviteEmailOptions {
-  sender: email.EmailSender
-  orgName: string
+  sender: email.EmailSender;
+  orgName: string;
   /** dashboard origin — the invite link points to `${appURL}/invites/:token`. */
-  appURL: string
+  appURL: string;
 }
 
 /**
@@ -30,9 +30,9 @@ export async function createInvite(
     role,
     token: ulid(),
     expiresAt: new Date(Date.now() + INVITE_TTL_MS),
-  })
+  });
   if (!invite) {
-    throw new Error("invite insert returned no row")
+    throw new Error("invite insert returned no row");
   }
 
   if (emailOptions) {
@@ -44,10 +44,10 @@ export async function createInvite(
         inviteUrl: `${emailOptions.appURL}/invites/${invite.token}`,
         role,
       },
-    })
+    });
   }
 
-  return invite
+  return invite;
 }
 
 /**
@@ -61,10 +61,10 @@ export async function acceptInvite(
   token: string,
   userId: string
 ) {
-  const invite = await invitesRepository.findByToken(db, orgId, token)
-  if (!invite) return null
+  const invite = await invitesRepository.findByToken(db, orgId, token);
+  if (!invite) return null;
   return membershipsRepository.insert(db, orgId, {
     userId,
     role: invite.role,
-  })
+  });
 }

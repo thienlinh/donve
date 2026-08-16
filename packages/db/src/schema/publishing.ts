@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm"
+import { sql } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -6,9 +6,9 @@ import {
   text,
   timestamp,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
+import { id, timestamps } from "./columns.js";
 
 export const deployments = pgTable(
   "deployments",
@@ -32,7 +32,7 @@ export const deployments = pgTable(
       .on(t.hostname)
       .where(sql`status = 'live'`),
   ]
-)
+);
 
 export const customDomains = pgTable("custom_domains", {
   id: id(),
@@ -43,7 +43,7 @@ export const customDomains = pgTable("custom_domains", {
     .default("pending"),
   cfHostnameId: text("cf_hostname_id"),
   createdAt: timestamps.createdAt,
-})
+});
 
 export const publishOutbox = pgTable(
   "publish_outbox",
@@ -61,4 +61,4 @@ export const publishOutbox = pgTable(
     appliedAt: timestamp("applied_at"),
   },
   (t) => [index("ix_outbox_status").on(t.status, t.createdAt)]
-)
+);

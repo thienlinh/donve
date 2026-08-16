@@ -1,11 +1,11 @@
-import { and, eq, isNull } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm";
 
-import type { Db } from "../client/types.js"
-import { withOrgScope } from "../org-scope.js"
-import { leads } from "../schema/crm.js"
-import { createOrgScopedRepository } from "./scoped-repository.js"
+import type { Db } from "../client/types.js";
+import { withOrgScope } from "../org-scope.js";
+import { leads } from "../schema/crm.js";
+import { createOrgScopedRepository } from "./scoped-repository.js";
 
-const base = createOrgScopedRepository(leads)
+const base = createOrgScopedRepository(leads);
 
 export const leadsRepository = {
   ...base,
@@ -27,7 +27,7 @@ export const leadsRepository = {
             )
           )
           .limit(1)
-    )
-    return rows[0]
+    );
+    return rows[0];
   },
-}
+};

@@ -1,16 +1,16 @@
-import { sql } from "drizzle-orm"
-import type { NeonHttpDatabase } from "drizzle-orm/neon-http"
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
+import { sql } from "drizzle-orm";
+import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import type { Db, Schema } from "./client/types.js"
+import type { Db, Schema } from "./client/types.js";
 
 type PostgresJsTx = Parameters<
   PostgresJsDatabase<Schema>["transaction"]
 >[0] extends (tx: infer TX, ...rest: never[]) => unknown
   ? TX
-  : never
+  : never;
 
-type QueryBuilder = NeonHttpDatabase<Schema> | PostgresJsTx
+type QueryBuilder = NeonHttpDatabase<Schema> | PostgresJsTx;
 
 /**
  * Every repository query MUST go through this helper (NFR-04 / architecture.md §6.1) —
@@ -39,25 +39,25 @@ export async function withOrgScope<T>(
     return db.raw.transaction(async (tx) => {
       await tx.execute(
         sql`select set_config('app.current_org', ${orgId}, true)`
-      )
+      );
       // build()'s row shape is erased to `unknown` on purpose so both driver branches share
       // one signature; the caller recovers it via withOrgScope<T>()'s explicit type parameter.
       // oxlint-disable-next-line no-unsafe-type-assertion
-      return (await build(tx)) as T
-    })
+      return (await build(tx)) as T;
+    });
   }
 
   const setOrgScope = db.raw.execute(
     sql`select set_config('app.current_org', ${orgId}, true)`
-  )
-  const query = build(db.raw)
+  );
+  const query = build(db.raw);
   // batch() wants a concrete tuple of RunnableQuery; `query` is a query builder shaped like
   // one but typed `unknown` above, so the cast just re-asserts what build() actually returns.
   // oxlint-disable-next-line no-unsafe-type-assertion
   const results: readonly unknown[] = await db.raw.batch([
     setOrgScope,
     query,
-  ] as Parameters<typeof db.raw.batch>[0])
+  ] as Parameters<typeof db.raw.batch>[0]);
   // oxlint-disable-next-line no-unsafe-type-assertion -- same erased-shape reason as above.
-  return results[1] as T
+  return results[1] as T;
 }

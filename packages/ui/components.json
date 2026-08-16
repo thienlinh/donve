@@ -11,11 +11,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@dv/ui/components",
-    "utils": "@dv/ui/lib/utils",
-    "hooks": "@dv/ui/hooks",
-    "lib": "@dv/ui/lib",
-    "ui": "@dv/ui/components"
+    "components": "#components/dv",
+    "utils": "#lib/utils",
+    "hooks": "#hooks",
+    "lib": "#lib",
+    "ui": "#components/shadcn"
   },
   "rtl": true,
   "menuColor": "default",

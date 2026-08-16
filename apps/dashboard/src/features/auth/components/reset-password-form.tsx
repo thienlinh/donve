@@ -1,42 +1,42 @@
-import { Button } from "@dv/ui/components/button"
-import { Input } from "@dv/ui/components/input"
-import { Label } from "@dv/ui/components/label"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { Button } from "@dv/ui/components/shadcn/button";
+import { Input } from "@dv/ui/components/shadcn/input";
+import { Label } from "@dv/ui/components/shadcn/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import * as m from "@/paraglide/messages.js"
+import * as m from "@/paraglide/messages.js";
 
-import { authClient } from "../auth-client"
+import { authClient } from "../auth-client";
 
-const resetPasswordSchema = z.object({ newPassword: z.string().min(8) })
+const resetPasswordSchema = z.object({ newPassword: z.string().min(8) });
 
 export function ResetPasswordForm({ token }: { token: string }) {
-  const [success, setSuccess] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(resetPasswordSchema) })
+  } = useForm({ resolver: zodResolver(resetPasswordSchema) });
 
   const onSubmit = handleSubmit(async ({ newPassword }) => {
-    setServerError(null)
-    const { error } = await authClient.resetPassword({ newPassword, token })
+    setServerError(null);
+    const { error } = await authClient.resetPassword({ newPassword, token });
     if (error) {
-      setServerError(error.message ?? null)
-      return
+      setServerError(error.message ?? null);
+      return;
     }
-    setSuccess(true)
-  })
+    setSuccess(true);
+  });
 
   if (success) {
     return (
       <p className="text-sm text-muted-foreground">
         {m.resetPasswordSuccess()}
       </p>
-    )
+    );
   }
 
   return (
@@ -60,5 +60,5 @@ export function ResetPasswordForm({ token }: { token: string }) {
         {isSubmitting ? m.commonLoading() : m.resetPasswordSubmit()}
       </Button>
     </form>
-  )
+  );
 }

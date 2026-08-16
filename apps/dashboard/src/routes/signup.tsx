@@ -1,12 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { AuthCard } from "@/features/auth/components/auth-card"
-import { SignupForm } from "@/features/auth/components/signup-form"
-import * as m from "@/paraglide/messages.js"
+import { AuthCard } from "@/features/auth/components/auth-card";
+import { SignupForm } from "@/features/auth/components/signup-form";
+import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
-})
+});
 
 function SignupPage() {
   return (
@@ -22,5 +22,5 @@ function SignupPage() {
         </Link>
       </p>
     </AuthCard>
-  )
+  );
 }

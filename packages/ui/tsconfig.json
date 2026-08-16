@@ -2,9 +2,7 @@
   "extends": "@dv/config/react-library.json",
   "compilerOptions": {
     "noEmit": true,
-    "paths": {
-      "@dv/ui/*": ["./src/*"]
-    }
+    "resolvePackageJsonImports": true
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]

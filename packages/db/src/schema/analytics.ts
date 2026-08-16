@@ -1,6 +1,6 @@
-import { index, jsonb, pgTable, text } from "drizzle-orm/pg-core"
+import { index, jsonb, pgTable, text } from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
+import { id, timestamps } from "./columns.js";
 
 // append-only, written from the edge beacon
 export const events = pgTable(
@@ -16,4 +16,4 @@ export const events = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_events").on(t.orgId, t.campaignId, t.type, t.createdAt)]
-)
+);

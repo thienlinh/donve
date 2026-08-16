@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 import {
   jsonRecordSchema,
@@ -7,7 +7,7 @@ import {
   timestampsSchema,
   ulidSchema,
   utmSchema,
-} from "./common.js"
+} from "./common.js";
 
 export const leadSchema = z.object({
   id: ulidSchema,
@@ -25,8 +25,8 @@ export const leadSchema = z.object({
   assigneeId: ulidSchema.nullable(),
   ...timestampsSchema.shape,
   ...softDeleteSchema.shape,
-})
-export type Lead = z.infer<typeof leadSchema>
+});
+export type Lead = z.infer<typeof leadSchema>;
 
 export const leadActivityTypeValues = [
   "note",
@@ -36,9 +36,9 @@ export const leadActivityTypeValues = [
   "payment",
   "resubmit",
   "system",
-] as const
-export const leadActivityTypeSchema = z.enum(leadActivityTypeValues)
-export type LeadActivityType = z.infer<typeof leadActivityTypeSchema>
+] as const;
+export const leadActivityTypeSchema = z.enum(leadActivityTypeValues);
+export type LeadActivityType = z.infer<typeof leadActivityTypeSchema>;
 
 export const leadActivitySchema = z.object({
   id: ulidSchema,
@@ -49,8 +49,8 @@ export const leadActivitySchema = z.object({
   meta: jsonRecordSchema.default({}),
   actorId: ulidSchema.nullable(),
   createdAt: z.coerce.date(),
-})
-export type LeadActivity = z.infer<typeof leadActivitySchema>
+});
+export type LeadActivity = z.infer<typeof leadActivitySchema>;
 
 /** consent trail required under Nghị định 13/2023/NĐ-CP on personal data protection. */
 export const consentSchema = z.object({
@@ -61,8 +61,8 @@ export const consentSchema = z.object({
   policyVersion: z.string(),
   ip: z.string().nullable(),
   createdAt: z.coerce.date(),
-})
-export type Consent = z.infer<typeof consentSchema>
+});
+export type Consent = z.infer<typeof consentSchema>;
 
 export const orderStatusValues = [
   "pending",
@@ -71,9 +71,9 @@ export const orderStatusValues = [
   "fulfilled",
   "cancelled",
   "refunded",
-] as const
-export const orderStatusSchema = z.enum(orderStatusValues)
-export type OrderStatus = z.infer<typeof orderStatusSchema>
+] as const;
+export const orderStatusSchema = z.enum(orderStatusValues);
+export type OrderStatus = z.infer<typeof orderStatusSchema>;
 
 export const orderSchema = z.object({
   id: ulidSchema,
@@ -89,12 +89,12 @@ export const orderSchema = z.object({
   fulfilledAt: z.coerce.date().nullable(),
   expiresAt: z.coerce.date().nullable(),
   ...timestampsSchema.shape,
-})
-export type Order = z.infer<typeof orderSchema>
+});
+export type Order = z.infer<typeof orderSchema>;
 
-export const paymentMatchTypeValues = ["auto", "fuzzy", "manual"] as const
-export const paymentMatchTypeSchema = z.enum(paymentMatchTypeValues)
-export type PaymentMatchType = z.infer<typeof paymentMatchTypeSchema>
+export const paymentMatchTypeValues = ["auto", "fuzzy", "manual"] as const;
+export const paymentMatchTypeSchema = z.enum(paymentMatchTypeValues);
+export type PaymentMatchType = z.infer<typeof paymentMatchTypeSchema>;
 
 export const paymentSchema = z.object({
   id: ulidSchema,
@@ -107,16 +107,16 @@ export const paymentSchema = z.object({
   rawPayload: jsonRecordSchema,
   matchType: paymentMatchTypeSchema.nullable(),
   createdAt: z.coerce.date(),
-})
-export type Payment = z.infer<typeof paymentSchema>
+});
+export type Payment = z.infer<typeof paymentSchema>;
 
-export const paymentConnectionStatusValues = ["active", "invalid"] as const
+export const paymentConnectionStatusValues = ["active", "invalid"] as const;
 export const paymentConnectionStatusSchema = z.enum(
   paymentConnectionStatusValues
-)
+);
 export type PaymentConnectionStatus = z.infer<
   typeof paymentConnectionStatusSchema
->
+>;
 
 /** non-custodial: each org connects its own payment provider account (BYOK-style). */
 export const paymentConnectionSchema = z.object({
@@ -129,28 +129,31 @@ export const paymentConnectionSchema = z.object({
   accountName: z.string(),
   status: paymentConnectionStatusSchema.default("active"),
   createdAt: z.coerce.date(),
-})
-export type PaymentConnection = z.infer<typeof paymentConnectionSchema>
+});
+export type PaymentConnection = z.infer<typeof paymentConnectionSchema>;
 
 export const unmatchedTransactionReasonValues = [
   "no_candidate",
   "ambiguous",
   "already_paid",
-] as const
+] as const;
 export const unmatchedTransactionReasonSchema = z.enum(
   unmatchedTransactionReasonValues
-)
+);
 export type UnmatchedTransactionReason = z.infer<
   typeof unmatchedTransactionReasonSchema
->
+>;
 
-export const unmatchedTransactionStatusValues = ["pending", "resolved"] as const
+export const unmatchedTransactionStatusValues = [
+  "pending",
+  "resolved",
+] as const;
 export const unmatchedTransactionStatusSchema = z.enum(
   unmatchedTransactionStatusValues
-)
+);
 export type UnmatchedTransactionStatus = z.infer<
   typeof unmatchedTransactionStatusSchema
->
+>;
 
 export const unmatchedTransactionSchema = z.object({
   id: ulidSchema,
@@ -165,26 +168,26 @@ export const unmatchedTransactionSchema = z.object({
   resolvedBy: ulidSchema.nullable(),
   resolvedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
-})
-export type UnmatchedTransaction = z.infer<typeof unmatchedTransactionSchema>
+});
+export type UnmatchedTransaction = z.infer<typeof unmatchedTransactionSchema>;
 
 export const refundReasonValues = [
   "customer_request",
   "duplicate_payment",
   "wrong_match",
   "other",
-] as const
-export const refundReasonSchema = z.enum(refundReasonValues)
-export type RefundReason = z.infer<typeof refundReasonSchema>
+] as const;
+export const refundReasonSchema = z.enum(refundReasonValues);
+export type RefundReason = z.infer<typeof refundReasonSchema>;
 
 export const refundStatusValues = [
   "pending",
   "processing",
   "completed",
   "rejected",
-] as const
-export const refundStatusSchema = z.enum(refundStatusValues)
-export type RefundStatus = z.infer<typeof refundStatusSchema>
+] as const;
+export const refundStatusSchema = z.enum(refundStatusValues);
+export type RefundStatus = z.infer<typeof refundStatusSchema>;
 
 /** refundRequests.remitterInfo — extracted from payments.rawPayload when the provider exposes it. */
 export const remitterInfoSchema = z
@@ -193,8 +196,8 @@ export const remitterInfoSchema = z
     accountNumber: z.string().optional(),
   })
   .catchall(z.unknown())
-  .default({})
-export type RemitterInfo = z.infer<typeof remitterInfoSchema>
+  .default({});
+export type RemitterInfo = z.infer<typeof remitterInfoSchema>;
 
 /** manual refund flow — platform never holds funds, ops must transfer the refund themselves. */
 export const refundRequestSchema = z.object({
@@ -210,5 +213,5 @@ export const refundRequestSchema = z.object({
   createdBy: ulidSchema.nullable(),
   createdAt: z.coerce.date(),
   completedAt: z.coerce.date().nullable(),
-})
-export type RefundRequest = z.infer<typeof refundRequestSchema>
+});
+export type RefundRequest = z.infer<typeof refundRequestSchema>;

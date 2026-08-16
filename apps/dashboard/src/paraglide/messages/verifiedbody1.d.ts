@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Verifiedbody1Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Verifiedbody1Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Verifiedbody1Inputs = {}
 declare const verifiedbody1: ((
   inputs?: Verifiedbody1Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Verifiedbody1Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { verifiedbody1 as "verifiedBody" }
+  >;
+export { verifiedbody1 as "verifiedBody" };

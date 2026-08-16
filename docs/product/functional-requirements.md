@@ -14,23 +14,27 @@ Quy ước: `FR-<module>-<số>`. Mức ưu tiên: **P0** (bắt buộc v1), **P
 ## Module B — Landing Studio (chi tiết kỹ thuật ở studio-builder-spec.md)
 
 ### B0. Trang quản lý Landing Pages (trước khi vào Studio)
+
 - **FR-B-00 (P0)** Route `/landings`: **lưới card** landing của org (thumbnail `.thumbnail.jpg`, tên, badge trạng thái `Draft`/`Published`, campaign gắn, cập nhật lần cuối) — theo mẫu Genspark (screenshot #8): thanh "Bạn muốn tạo landing gì?" (prompt input + chọn design system) ở trên/sidebar, lưới kết quả bên dưới; **không** cần tabs loại thiết kế (Website/Poster/...) vì nền tảng chỉ có 1 loại đối tượng (landing page).
 - **FR-B-00b (P0)** Filter/sort: tất cả / theo campaign / Published / Draft; search theo tên; sort theo cập nhật gần nhất (mặc định) hoặc tên.
 - **FR-B-00c (P0)** Tạo mới: nhập prompt ở thanh input trên trang này → tạo `landingPages` + gọi thẳng generate lần đầu (FR-B-21) → điều hướng sang `/landings/:id/studio` khi xong (hoặc mở ngay Studio ở trạng thái "đang generate" nếu muốn thấy tiến trình streaming). Trạng thái "Published" suy ra từ có `deployments.status=live` hay không — không cần cột riêng trên `landingPages`.
 - **FR-B-00d (P1)** Card actions (menu ⋯): Đổi tên, Nhân bản, Xoá (soft-delete), Xem live (nếu published), Gỡ khỏi campaign.
 
 ### B1. Bố cục & điều hướng (theo screenshot #1, #2)
+
 - **FR-B-01 (P0)** Layout 2 vùng: **Chat sidebar trái** (lịch sử hội thoại, input "Describe what you want to create", chọn design system, voice input P2) + **vùng phải** gồm 2 tab: **Design Files** (cây file: FOLDERS/PAGES/DATA/IMAGES như screenshot #2) và **tab preview trang** (canvas).
 - **FR-B-02 (P0)** Chat sidebar thu gọn/mở rộng được (nút "Show chat" — screenshot #6); khi thu gọn, canvas chiếm toàn bộ chiều rộng.
 - **FR-B-03 (P0)** Header canvas: nút refresh preview, nhóm actions phải: `+ Tweaks`, `Comment`, `Edit`, `Draw` (P2), zoom indicator (`75%`/`100%`). Top bar: `Export` (dropdown: HTML/ZIP/PNG), `Present` (fullscreen preview), `Build it` (P2), `Download`, `Share`.
 
 ### B2. Canvas & preview
+
 - **FR-B-04 (P0)** Preview render trong **iframe sandboxed** load HTML thật của trang (không phải ảnh chụp).
 - **FR-B-05 (P0)** Zoom 10%–400%: pinch trên touchpad Macbook (wheel + `ctrlKey`), `Cmd +/-`, nút UI; pan bằng space-drag, two-finger scroll, middle-mouse drag. Zoom quanh vị trí con trỏ.
 - **FR-B-06 (P0)** Canvas mở rộng được (kéo splitter chat/canvas; nhớ kích thước theo user).
 - **FR-B-07 (P0)** Fit-to-screen mặc định khi mở trang; double-click nền canvas = fit lại.
 
 ### B3. Chế độ tương tác (mode system: `view | select/edit | comment | draw`)
+
 - **FR-B-08 (P0)** **Hover** ở mode comment/edit: element dưới con trỏ hiện **border nét đứt** + label tag (`span [cc-2] "STREET"` — screenshot #4, #6: label tím hiển thị tagName, mã srcmap id, text rút gọn).
 - **FR-B-09 (P0)** **Click chọn**: border chuyển **nét liền**; element được chọn đồng bộ highlight ở Layer tree.
 - **FR-B-10 (P0)** **Edit mode** (screenshot #3): panel trái hiện properties element đang chọn, nhóm: Typography (font, size, weight, color, align, case, style, decoration, line-height, tracking), Size (width/height), Box (opacity, overflow, padding, margin, border, bcolor, radius). Thay đổi apply trực tiếp vào source qua srcmap + cập nhật preview tức thì (không reload full iframe).
@@ -41,12 +45,14 @@ Quy ước: `FR-<module>-<số>`. Mức ưu tiên: **P0** (bắt buộc v1), **P
 - **FR-B-15 (P0)** **Undo/Redo** toàn cục cho mọi thay đổi source (manual edit, inline text, AI patch), `Cmd+Z / Shift+Cmd+Z`, lịch sử ≥ 100 bước trong session.
 
 ### B4. Layer tree (screenshot #1, #3, #6)
+
 - **FR-B-16 (P0)** Panel LAYERS: liệt kê element có ngữ nghĩa (được đánh dấu qua srcmap: heading, section, image, text đặt tên như "Bottom bar", "Tagline", "Title", "Satay grill (background)"), đếm tổng, thu gọn panel.
 - **FR-B-17 (P0)** Mỗi layer: icon loại (T = text, ảnh thumbnail cho image), toggle mắt ẩn/hiện (apply `visibility`/`display` vào source), click = chọn element trên canvas (scroll into view), hover = highlight nét đứt.
 - **FR-B-18 (P1)** Đổi tên layer (icon bút chì — screenshot #1 dòng Satay grill); tên lưu vào srcmap metadata.
 - **FR-B-19 (P1)** Kéo thả đổi thứ tự layer trong cùng parent (ghi lại vào source DOM order) — dùng **dnd-kit** (`@dnd-kit/core` + `@dnd-kit/sortable`, xem tech-stack.md), cùng lib dùng cho kanban CRM (FR-E-02) để không có 2 lib kéo-thả khác nhau trong dashboard.
 
 ### B5. Chat & AI generate
+
 - **FR-B-20 (P0)** Chat streaming với AI (Claude/OpenAI tuỳ kết nối — ai-integration-byok.md). Tin nhắn user có thể kèm: ảnh đính (paste/upload), comment context, file tham chiếu.
 - **FR-B-21 (P0)** Generate lần đầu: prompt → AI sinh HTML hoàn chỉnh (single-file, inline CSS, tuân theo Skills đang bật) → hiện trong canvas + tự tạo srcmap + layer tree.
 - **FR-B-22 (P0)** Chỉnh sửa qua AI: AI trả về **patch có cấu trúc** (danh sách thao tác trên srcmap id: replaceText, setStyle, setAttr, replaceOuterHTML, insertBefore/After, remove) — không regenerate cả file, để giữ manual edits và diff được. Fallback: full-file khi patch fail.
@@ -55,6 +61,7 @@ Quy ước: `FR-<module>-<số>`. Mức ưu tiên: **P0** (bắt buộc v1), **P
 - **FR-B-25 (P2)** Voice input (Web Speech API).
 
 ### B6. Files, versioning, export
+
 - **FR-B-26 (P0)** Cấu trúc project mỗi landing (screenshot #2): `assets/` (ảnh upload/AI tìm), `screenshots/`, `Page.html`, `Page.html.srcmap.json`, `.thumbnail.jpg` (tự chụp sau mỗi lần save).
 - **FR-B-27 (P0)** Version history: mỗi save/AI patch tạo version immutable; xem diff, restore, đặt nhãn. Mỗi version AI patch **liên kết ngược lại tin nhắn chat đã sinh ra nó** (`pageVersions.chatMessageId`) — trong chat, mỗi message assistant có link "Xem version này" và trong timeline version có link "Xem đoạn chat" (2 chiều). Chat history (toàn bộ `chatMessages` của session) xem được độc lập trong ChatPanel, cuộn ngược, không giới hạn — đây là lịch sử hội thoại; version history (FR-B-27) là lịch sử **kết quả**. Cả hai đã có trong schema (database-schema.md), chỉ cần UI liên kết.
 - **FR-B-28 (P0)** Export: HTML đơn file, ZIP (kèm assets), PNG full-page.
@@ -67,6 +74,7 @@ Quy ước: `FR-<module>-<số>`. Mức ưu tiên: **P0** (bắt buộc v1), **P
 - **FR-B-34 (P1)** AI tự sinh ảnh (image generation) là roadmap, **chưa bật ở v1** — cần chọn provider có điều khoản sở hữu/sử dụng thương mại rõ ràng cho output trước khi bật, tránh vùng xám bản quyền khi tenant dùng landing để bán hàng thật.
 
 ### B7. Import từ bên ngoài
+
 - **FR-B-30 (P0)** Import bằng: paste HTML, upload `.html`/`.zip`, hoặc paste link artifact công khai. Pipeline: sanitize (strip script nguy hiểm, external tracker lạ) → tách inline assets → generate srcmap → đặt tên layer tự động (heuristic + AI) → mở trong Studio. Ảnh trong HTML import trỏ tới URL bên ngoài không rõ nguồn (xem FR-B-35) được gắn cờ, không tự coi là ảnh có license hợp lệ.
 - **FR-B-35 (P1)** Ảnh từ URL bên ngoài phát hiện lúc import (FR-B-30) không rõ nguồn: gắn cờ `unverified_source` trên asset; yêu cầu tenant tick xác nhận "Tôi có quyền sử dụng ảnh này" trước khi publish landing chứa ảnh gắn cờ này — trách nhiệm bản quyền thuộc về tenant khi họ xác nhận, nền tảng chỉ cảnh báo.
 - **FR-B-31 (P1)** "Chuẩn hoá phễu": sau import, wizard đề nghị AI gắn form đăng ký chuẩn của nền tảng + meta SEO nếu thiếu.
@@ -101,8 +109,7 @@ Landing → Form đăng ký → Submit → API /public/leads
 - **FR-D-05 (P0)** **Webhook provider thanh toán** (SePay là driver mặc định v1 — xem FR-D-10 cho các provider khác): endpoint theo từng org, verify secret riêng của org tra theo `paymentConnections` (org tự kết nối tài khoản của họ — mô hình non-custodial, xem business-analysis.md §4.4), idempotent theo `providerTxId` (`uq_payment_tx`). Logic trích mã đơn dưới đây áp dụng cho các provider kiểu "đọc biến động số dư + nội dung CK" (SePay, Casso...); provider kiểu cổng thanh toán có callback riêng (VNPAY, MoMo) map thẳng qua `orderId`/mã tham chiếu do chính cổng đó trả về, không cần bước trích mã từ nội dung CK. Trích mã đơn theo 2 bước tuần tự, **không dùng "fuzzy match" mơ hồ**:
   1. **Khớp tuyệt đối**: tìm chuỗi đúng định dạng mã đơn (prefix + 6 ký tự + checksum hợp lệ) trong nội dung CK. Nếu có đúng 1 mã hợp lệ, order tương ứng đang `pending`/`awaiting_confirmation` (chưa `paid`/`refunded`), amount khớp chính xác, và `expiresAt` chưa qua → auto-match, `matchType=auto`.
   2. **Khớp sửa lỗi** (chỉ chạy khi bước 1 không ra kết quả): quét chuỗi gần giống định dạng, áp bảng ký tự dễ nhầm khi gõ tay (`O↔0, I↔1, S↔5, B↔8`), tính lại checksum sau khi sửa. Chỉ auto-match khi đồng thời: mã sau sửa hợp lệ theo checksum, amount khớp chính xác, và có **đúng 1** order ứng viên thoả cả hai điều kiện trong cửa sổ hiệu lực đơn. Ghi `matchType=fuzzy` (nhãn để truy vết, không có nghĩa "kém tin cậy hơn" — vẫn bắt buộc checksum + amount cùng đúng).
-  3. Không có ứng viên hợp lệ duy nhất (0 hoặc >1 ứng viên thoả bước 1/2), **hoặc** giao dịch khớp vào order đã ở trạng thái `paid`/`refunded` từ trước (double-match — xem FR-D-14) → **không** auto-match; ghi vào `unmatchedTransactions` kèm lý do (`no_candidate`|`ambiguous`|`already_paid`), thông báo realtime cho sales/admin.
-  Match hợp lệ → order `paid`, ghi `payments` record, bắn realtime.
+  3. Không có ứng viên hợp lệ duy nhất (0 hoặc >1 ứng viên thoả bước 1/2), **hoặc** giao dịch khớp vào order đã ở trạng thái `paid`/`refunded` từ trước (double-match — xem FR-D-14) → **không** auto-match; ghi vào `unmatchedTransactions` kèm lý do (`no_candidate`|`ambiguous`|`already_paid`), thông báo realtime cho sales/admin. Match hợp lệ → order `paid`, ghi `payments` record, bắn realtime.
 - **FR-D-06 (P0)** Nút "Tôi đã chuyển khoản": order → `awaiting_confirmation`; popup hướng dẫn + **link nhóm Zalo** (theo campaign/course); CRM hiện badge cần xác nhận.
 - **FR-D-07 (P0)** Trang landing poll `GET /public/orders/:code/status` (hoặc SSE) tối đa 10 phút; quá hạn hiển thị hướng dẫn manual.
 - **FR-D-08 (P0)** Trạng thái đơn: `pending → awaiting_confirmation | paid → fulfilled | cancelled | refunded`. Sales đổi trạng thái có ghi log + lý do. Chuyển sang `refunded` chỉ qua flow FR-D-11..14.

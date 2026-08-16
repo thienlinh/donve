@@ -1,6 +1,6 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
+import { id, timestamps } from "./columns.js";
 
 // Better Auth's own base tables. The organization plugin is mapped onto the
 // hand-rolled organizations/memberships/invites tables in ./core.js instead of
@@ -12,7 +12,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   ...timestamps,
-})
+});
 
 export const session = pgTable("session", {
   id: id(),
@@ -24,7 +24,7 @@ export const session = pgTable("session", {
   userId: text("user_id").notNull(),
   // Set by the organization plugin to track which org a session is scoped to.
   activeOrganizationId: text("active_organization_id"),
-})
+});
 
 export const account = pgTable("account", {
   id: id(),
@@ -39,7 +39,7 @@ export const account = pgTable("account", {
   scope: text("scope"),
   password: text("password"),
   ...timestamps,
-})
+});
 
 export const verification = pgTable("verification", {
   id: id(),
@@ -48,4 +48,4 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
-})
+});

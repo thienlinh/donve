@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Forgotpasswordbody2Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Forgotpasswordbody2Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Forgotpasswordbody2Inputs = {}
 declare const forgotpasswordbody2: ((
   inputs?: Forgotpasswordbody2Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Forgotpasswordbody2Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { forgotpasswordbody2 as "forgotPasswordBody" }
+  >;
+export { forgotpasswordbody2 as "forgotPasswordBody" };

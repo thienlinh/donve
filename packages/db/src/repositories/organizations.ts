@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm"
+import { eq } from "drizzle-orm";
 
-import type { Db } from "../client/types.js"
-import { organizations } from "../schema/core.js"
+import type { Db } from "../client/types.js";
+import { organizations } from "../schema/core.js";
 
 /**
  * Organizations are the tenant boundary itself, so most of this repo's `orgId`
@@ -12,8 +12,8 @@ import { organizations } from "../schema/core.js"
  */
 export const organizationsRepository = {
   async create(db: Db, values: typeof organizations.$inferInsert) {
-    const rows = await db.raw.insert(organizations).values(values).returning()
-    return rows[0]
+    const rows = await db.raw.insert(organizations).values(values).returning();
+    return rows[0];
   },
 
   async findById(db: Db, orgId: string) {
@@ -21,8 +21,8 @@ export const organizationsRepository = {
       .select()
       .from(organizations)
       .where(eq(organizations.id, orgId))
-      .limit(1)
-    return rows[0]
+      .limit(1);
+    return rows[0];
   },
 
   async findBySlug(db: Db, slug: string) {
@@ -30,7 +30,7 @@ export const organizationsRepository = {
       .select()
       .from(organizations)
       .where(eq(organizations.slug, slug))
-      .limit(1)
-    return rows[0]
+      .limit(1);
+    return rows[0];
   },
-}
+};

@@ -1,39 +1,39 @@
-import { Button } from "@dv/ui/components/button"
-import { Input } from "@dv/ui/components/input"
-import { Label } from "@dv/ui/components/label"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { Button } from "@dv/ui/components/shadcn/button";
+import { Input } from "@dv/ui/components/shadcn/input";
+import { Label } from "@dv/ui/components/shadcn/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import * as m from "@/paraglide/messages.js"
+import * as m from "@/paraglide/messages.js";
 
-import { authClient } from "../auth-client"
+import { authClient } from "../auth-client";
 
 const loginSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
-})
+});
 
 export function LoginForm() {
-  const navigate = useNavigate()
-  const [serverError, setServerError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(loginSchema) })
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
-    setServerError(null)
-    const { error } = await authClient.signIn.email({ email, password })
+    setServerError(null);
+    const { error } = await authClient.signIn.email({ email, password });
     if (error) {
-      setServerError(m.loginError())
-      return
+      setServerError(m.loginError());
+      return;
     }
-    await navigate({ to: "/landings" })
-  })
+    await navigate({ to: "/landings" });
+  });
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -66,5 +66,5 @@ export function LoginForm() {
         {isSubmitting ? m.commonLoading() : m.loginSubmit()}
       </Button>
     </form>
-  )
+  );
 }

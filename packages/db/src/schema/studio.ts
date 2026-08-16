@@ -7,10 +7,10 @@ import {
   text,
   timestamp,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { deletedAt, id, timestamps } from "./columns.js"
-import { orgIsolationPolicy } from "./rls.js"
+import { deletedAt, id, timestamps } from "./columns.js";
+import { orgIsolationPolicy } from "./rls.js";
 
 export const landingPages = pgTable(
   "landing_pages",
@@ -29,7 +29,7 @@ export const landingPages = pgTable(
     deletedAt: deletedAt(),
   },
   (t) => [index("ix_lp_org").on(t.orgId, t.campaignId)]
-)
+);
 
 export const pageVersions = pgTable(
   "page_versions",
@@ -52,7 +52,7 @@ export const pageVersions = pgTable(
     prunedAt: timestamp("pruned_at"),
   },
   (t) => [uniqueIndex("uq_pv").on(t.landingPageId, t.seq)]
-)
+);
 
 export const pageAssets = pgTable("page_assets", {
   id: id(),
@@ -73,7 +73,7 @@ export const pageAssets = pgTable("page_assets", {
   // true when an imported HTML pulls in an external image URL of unknown provenance
   unverifiedSource: boolean("unverified_source").notNull().default(false),
   createdAt: timestamps.createdAt,
-})
+});
 
 export const studioComments = pgTable("studio_comments", {
   id: id(),
@@ -87,7 +87,7 @@ export const studioComments = pgTable("studio_comments", {
     .default("queued"),
   createdBy: text("created_by"),
   createdAt: timestamps.createdAt,
-})
+});
 
 export const chatSessions = pgTable("chat_sessions", {
   id: id(),
@@ -95,7 +95,7 @@ export const chatSessions = pgTable("chat_sessions", {
   landingPageId: text("landing_page_id").notNull(),
   title: text("title"),
   createdAt: timestamps.createdAt,
-})
+});
 
 export const chatMessages = pgTable(
   "chat_messages",
@@ -112,4 +112,4 @@ export const chatMessages = pgTable(
     index("ix_msg_session").on(t.sessionId, t.createdAt),
     orgIsolationPolicy(),
   ]
-).enableRLS()
+).enableRLS();

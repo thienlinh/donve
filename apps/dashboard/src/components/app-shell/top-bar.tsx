@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@dv/ui/components/avatar"
+import { Avatar, AvatarFallback } from "@dv/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,24 +6,24 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@dv/ui/components/dropdown-menu"
-import { useNavigate } from "@tanstack/react-router"
-import { LogOut } from "lucide-react"
+} from "@dv/ui/components/shadcn/dropdown-menu";
+import { useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
 
-import { authClient, useSession } from "@/features/auth/auth-client"
-import { OrgSwitcher } from "@/features/org-switcher/components/org-switcher"
-import * as m from "@/paraglide/messages.js"
+import { authClient, useSession } from "@/features/auth/auth-client";
+import { OrgSwitcher } from "@/features/org-switcher/components/org-switcher";
+import * as m from "@/paraglide/messages.js";
 
 export function TopBar() {
-  const navigate = useNavigate()
-  const { data: session } = useSession()
-  const email = session?.user.email ?? ""
-  const initial = email.slice(0, 1).toUpperCase()
+  const navigate = useNavigate();
+  const { data: session } = useSession();
+  const email = session?.user.email ?? "";
+  const initial = email.slice(0, 1).toUpperCase();
 
   const handleLogout = async () => {
-    await authClient.signOut()
-    await navigate({ to: "/login" })
-  }
+    await authClient.signOut();
+    await navigate({ to: "/login" });
+  };
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b px-4">
@@ -49,5 +49,5 @@ export function TopBar() {
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
-  )
+  );
 }

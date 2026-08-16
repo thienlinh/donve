@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Signupnamelabel2Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Signupnamelabel2Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Signupnamelabel2Inputs = {}
 declare const signupnamelabel2: ((
   inputs?: Signupnamelabel2Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Signupnamelabel2Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { signupnamelabel2 as "signupNameLabel" }
+  >;
+export { signupnamelabel2 as "signupNameLabel" };

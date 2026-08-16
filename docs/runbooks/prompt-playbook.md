@@ -1,8 +1,6 @@
 # Prompt playbook — build nền tảng từ đầu đến cuối
 
-> Đi kèm `ai-guide.md` (cách Claude tự detect agent/skill) và `implementation-plan.md`
-> (phase, effort, DoD). File này là phần **còn thiếu**: danh sách prompt cụ thể, đúng thứ tự,
-> để chạy từng phase mà không phải tự nhớ nêu context gì mỗi lần.
+> Đi kèm `ai-guide.md` (cách Claude tự detect agent/skill) và `implementation-plan.md` (phase, effort, DoD). File này là phần **còn thiếu**: danh sách prompt cụ thể, đúng thứ tự, để chạy từng phase mà không phải tự nhớ nêu context gì mỗi lần.
 
 ## Trả lời trước: Claude Code có "folder prompts" không?
 
@@ -38,6 +36,7 @@ Nếu về sau có việc lặp lại thật (vd cứ mỗi campaign mới lại
 - [x] "Tạo `apps/dashboard` skeleton: Vite 8 + React 19 + TanStack Router, layout cơ bản, auth flow (login/signup/verify email), org switcher, code-split theo route/module để đạt TTI < 3s lần đầu và chuyển route < 200ms (NFR-02), i18n scaffold tiếng Việt với kiến trúc message catalog ICU để thêm EN sau (NFR-07). Wiring Resend làm email provider cho Better Auth (verify email FR-A-01, invite FR-A-04, reset mật khẩu FR-I-02) — domain gửi đã chốt `mail.donve.vn`, địa chỉ `no-reply@mail.donve.vn` (FR-I-05/06); verify SPF/DKIM/DMARC trước khi test gửi thật."
 
 **— đã xong: layout/router/i18n/org-switcher + `/api/auth/*` mount thật trong `apps/api`, email+password flow (login/signup/verify/forgot/reset) đủ dùng, `packages/drivers/src/email` (Resend, from mặc định `no-reply@mail.donve.vn`) wired vào `createAuth` + `createInvite`. Còn thiếu, cố ý để lại: nút Google/Facebook OAuth (chỉ email+password), UI mời thành viên (chỉ mới wiring email, chưa có form/route), ghi `email_logs`, và test gửi thật + verify SPF/DKIM/DMARC (cần `RESEND_API_KEY`/`DATABASE_URL` thật — không có trong môi trường này).**
+
 - [ ] "Viết cross-tenant test suite: user org A gọi mọi endpoint hiện có với id thuộc org B phải trả 404/403 (NFR-04, architecture.md §6) — viết test cho các endpoint auth/org vừa tạo, cả edge case."
 - [ ] "Setup CI/CD theo infra-deployment-cost.md §6: GitHub Actions chạy `turbo run lint typecheck test build` (affected-only qua remote cache), 3 environment `dev` (miniflare/wrangler dev + Neon branch)/`staging` (Neon branch riêng)/`prod`, secrets qua Wrangler secrets tách riêng masterKey mã hoá BYOK (rotate được sau này); deploy staging tự động (CF Pages + Workers) cho `apps/dashboard` + `apps/api`."
 
@@ -131,7 +130,7 @@ Nếu về sau có việc lặp lại thật (vd cứ mỗi campaign mới lại
 - [ ] "Hoàn thiện `landing-runtime` v2: render QR, poll status, chuỗi popup (đăng ký thành công → đang chờ/paid → hướng dẫn Zalo) — FR-D-01 đầy đủ."
 - [ ] "Viết test: webhook replay (gọi lại cùng `providerTxId`) không được tạo double-paid; chuyển khoản đúng mã đơn + checksum hợp lệ auto-match; amount lệch dù mã đúng **không** được match (không có ngưỡng dung sai — khác thiết kế cũ, xác nhận lại nếu Claude tự thêm tolerance)."
 
-**DoD Phase 5**: chuyển khoản thật 10k → popup thành công tự bật ≤30s; webhook replay không double-paid; kịch bản manual đủ. *(Mốc dogfood — chạy khoá học thật của bạn trên nền tảng.)*
+**DoD Phase 5**: chuyển khoản thật 10k → popup thành công tự bật ≤30s; webhook replay không double-paid; kịch bản manual đủ. _(Mốc dogfood — chạy khoá học thật của bạn trên nền tảng.)_
 
 ---
 

@@ -1,38 +1,38 @@
-import { Button } from "@dv/ui/components/button"
-import { Input } from "@dv/ui/components/input"
-import { Label } from "@dv/ui/components/label"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { Button } from "@dv/ui/components/shadcn/button";
+import { Input } from "@dv/ui/components/shadcn/input";
+import { Label } from "@dv/ui/components/shadcn/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import * as m from "@/paraglide/messages.js"
+import * as m from "@/paraglide/messages.js";
 
-import { authClient } from "../auth-client"
+import { authClient } from "../auth-client";
 
-const forgotPasswordSchema = z.object({ email: z.email() })
+const forgotPasswordSchema = z.object({ email: z.email() });
 
 export function ForgotPasswordForm() {
-  const [sent, setSent] = useState(false)
+  const [sent, setSent] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(forgotPasswordSchema) })
+  } = useForm({ resolver: zodResolver(forgotPasswordSchema) });
 
   const onSubmit = handleSubmit(async ({ email }) => {
     await authClient.requestPasswordReset({
       email,
       redirectTo: `${window.location.origin}/reset-password`,
-    })
+    });
     // Don't reveal whether the email exists — same message either way.
-    setSent(true)
-  })
+    setSent(true);
+  });
 
   if (sent) {
     return (
       <p className="text-sm text-muted-foreground">{m.forgotPasswordSent()}</p>
-    )
+    );
   }
 
   return (
@@ -54,5 +54,5 @@ export function ForgotPasswordForm() {
         {isSubmitting ? m.commonLoading() : m.forgotPasswordSubmit()}
       </Button>
     </form>
-  )
+  );
 }

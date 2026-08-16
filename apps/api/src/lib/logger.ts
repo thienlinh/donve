@@ -1,9 +1,9 @@
-export type LogLevel = "info" | "warn" | "error"
+export type LogLevel = "info" | "warn" | "error";
 
 export interface LogFields {
-  requestId: string
-  orgId: string | null
-  [key: string]: unknown
+  requestId: string;
+  orgId: string | null;
+  [key: string]: unknown;
 }
 
 /**
@@ -16,10 +16,10 @@ export function log(level: LogLevel, fields: LogFields): void {
     level,
     time: new Date().toISOString(),
     ...fields,
-  })
+  });
   if (level === "error") {
-    console.error(line)
+    console.error(line);
   } else {
-    console.log(line)
+    console.log(line);
   }
 }

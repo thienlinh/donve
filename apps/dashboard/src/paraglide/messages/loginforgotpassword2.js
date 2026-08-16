@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_loginforgotpassword2 =
   /** @type {(inputs: Loginforgotpassword2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Quên mật khẩu?`
-  }
+    return /** @type {LocalizedString} */ `Quên mật khẩu?`;
+  };
 
 const en_loginforgotpassword2 =
   /** @type {(inputs: Loginforgotpassword2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Forgot password?`
-  }
+    return /** @type {LocalizedString} */ `Forgot password?`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_loginforgotpassword2 =
 const loginforgotpassword2 =
   /** @type {((inputs?: Loginforgotpassword2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Loginforgotpassword2Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_loginforgotpassword2(inputs)
-      return vi_loginforgotpassword2(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_loginforgotpassword2(inputs);
+      return vi_loginforgotpassword2(inputs);
     }
-  )
-export { loginforgotpassword2 as "loginForgotPassword" }
+  );
+export { loginforgotpassword2 as "loginForgotPassword" };

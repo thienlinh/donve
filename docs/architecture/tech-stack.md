@@ -13,7 +13,7 @@
 ### Ngôn ngữ, runtime, monorepo
 
 | Package | Version | Ghi chú quyết định |
-|---|---|---|
+| --- | --- | --- |
 | `typescript` | **7.0.2** | Go-native GA. `strict` + `esnext` là default mới; deprecations của 6.0 thành hard error → codebase mới không dính gì |
 | Node.js | **22 LTS** (engines `>=22.12`) | Yêu cầu tối thiểu của Vite 8; CI + VPS đồng nhất |
 | Bun | **1.3.x** (`bun-types` 1.3.14) | Runtime cho `apps/api` entrypoint VPS + test runner phụ; không dùng làm package manager (bun catalog tốt hơn cho monorepo) |
@@ -29,7 +29,7 @@
 ### Frontend (`apps/dashboard`)
 
 | Package | Version | Ghi chú |
-|---|---|---|
+| --- | --- | --- |
 | `react` / `react-dom` | **19.2.8** | React 19.2: Activity, `useEffectEvent`, View Transitions ổn định dần |
 | `babel-plugin-react-compiler` | **1.0.0** | **React Compiler đã 1.0** — bật qua `reactCompilerPreset` của plugin-react v6. Tiết kiệm lớn: gần như khỏi viết `useMemo`/`useCallback` thủ công trong studio (nơi re-render nhạy nhất) |
 | `vite` | **8.2.1** | Rolldown default; `build.rolldownOptions` (rollupOptions deprecated) |
@@ -58,7 +58,7 @@
 ### Backend (`apps/api`, `apps/edge-router`)
 
 | Package | Version | Ghi chú |
-|---|---|---|
+| --- | --- | --- |
 | `hono` | **4.13.2** | 2 entrypoints (Workers/Bun); RPC mode (`hc`) cho type-safe client nếu muốn thay REST thuần |
 | `@hono/zod-validator` | **0.9.0** | Validate input bằng chính schema trong `contracts` |
 | `better-auth` | **1.6.29** | + plugin `organization` (multi-tenant), `admin`; nhịp release rất nhanh — pin minor, đọc changelog khi bump |
@@ -71,7 +71,7 @@
 ### AI layer (`packages/ai-gateway`)
 
 | Package | Version | Ghi chú |
-|---|---|---|
+| --- | --- | --- |
 | `ai` | **7.0.66** | Core: `streamText`, `ToolLoopAgent`, tool approvals, telemetry |
 | OpenRouter provider (`@openrouter/ai-sdk-provider`) | **3.0.0** | **Provider mặc định v1** (không phải "thứ 3" nữa — quyết định đổi theo FR-H-01/H-03): 1 key, truy cập DeepSeek/Qwen/Llama free hoặc rất rẻ để test trước khi trả tiền Anthropic/OpenAI trực tiếp. Prompt caching của Anthropic vẫn hoạt động khi gọi Claude qua OpenRouter (pass-through). Bản 3.0.0 yêu cầu `ai@^7.0.0` (khớp catalog `ai: 7.0.66` ở trên) và Node ≥ 22 |
 | `@ai-sdk/anthropic` | **4.0.39** | Claude provider trực tiếp (prompt caching cho system prompt dài — giảm mạnh input cost); dùng khi org tự có key Anthropic thay vì qua OpenRouter |
@@ -80,7 +80,7 @@
 ### Jobs, cache, storage, sanitize
 
 | Package | Version | Giai đoạn |
-|---|---|---|
+| --- | --- | --- |
 | `@upstash/redis` | **1.38.2** | Free tier: cache, session |
 | `@upstash/ratelimit` | **2.0.6** | Rate limit public endpoints trên cùng Redis instance (NFR-05) — sliding window sẵn có, không tự viết |
 | `@upstash/qstash` | **2.11.3** | Free tier: jobs driver 1 |
@@ -95,13 +95,13 @@
 ### Build packages nội bộ
 
 | Package | Version | Ghi chú |
-|---|---|---|
+| --- | --- | --- |
 | `tsdown` | **0.22.14** | Bundler cho compiled packages (`landing-runtime` IIFE, `studio-core` nếu publish) — rolldown-based, thay tsup (tsup đã ngừng phát triển tích cực). Cùng hệ Rust toolchain với Vite 8 |
 
 ## 2. Vì sao stack này tối ưu THỜI GIAN (câu hỏi chính của bạn)
 
 | Quyết định | Thời gian tiết kiệm ước tính |
-|---|---|
+| --- | --- |
 | Tái sử dụng dv-studio-kit (không nằm trong bảng version nhưng là quyết định lớn nhất) | ~4–6 tuần |
 | AI Elements + AI SDK 7 `useChat`/`ToolLoopAgent` thay vì tự viết chat + agent loop | ~1.5–2 tuần |
 | Better Auth plugin organization thay vì tự viết multi-tenant auth/invite/RBAC | ~1.5 tuần |
@@ -141,9 +141,9 @@
     "catalog": {
       // nhóm mặc định: tooling cross-cutting dùng chung khắp repo
       "typescript": "7.0.2",
-      "oxlint": "1.78.0",   // pin exact nhóm pre-1.0/format
+      "oxlint": "1.78.0", // pin exact nhóm pre-1.0/format
       "oxfmt": "0.63.0",
-      "zod": "4.4.3"
+      "zod": "4.4.3",
     },
     "catalogs": {
       "react": {
@@ -158,40 +158,40 @@
         "@hookform/resolvers": "5.2.0",
         "recharts": "3.2.0",
         "react-colorful": "5.6.1",
-        "@inlang/paraglide-js": "2.0.0"
+        "@inlang/paraglide-js": "2.0.0",
       },
       "content": {
         "streamdown": "2.5.0",
         "libphonenumber-js": "1.12.0",
-        "qrcode": "1.5.4"
+        "qrcode": "1.5.4",
       },
       "data": {
         "@tanstack/react-router": "1.170.29",
-        "@tanstack/react-query": "5.101.4"
+        "@tanstack/react-query": "5.101.4",
       },
       "queue": {
         "@upstash/redis": "1.38.2",
         "@upstash/qstash": "2.11.3",
-        "@upstash/ratelimit": "2.0.6"
+        "@upstash/ratelimit": "2.0.6",
       },
       "ai": {
         "ai": "7.0.66",
         "@ai-sdk/react": "4.0.69",
         "@openrouter/ai-sdk-provider": "3.0.0",
         "@ai-sdk/anthropic": "4.0.39",
-        "@ai-sdk/openai": "4.0.42"
+        "@ai-sdk/openai": "4.0.42",
       },
       "server": {
         "hono": "4.13.2",
         "better-auth": "1.6.29",
         "tsdown": "0.22.14",
-        "resend": "6.1.2"
+        "resend": "6.1.2",
       },
       "db": {
-        "drizzle-orm": "0.45.2"
-      }
-    }
-  }
+        "drizzle-orm": "0.45.2",
+      },
+    },
+  },
 }
 ```
 
@@ -201,12 +201,12 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "bundler",   // FE/packages bundle; api VPS build: nodenext
-    "strict": true,                   // default của TS7, ghi tường minh
+    "moduleResolution": "bundler", // FE/packages bundle; api VPS build: nodenext
+    "strict": true, // default của TS7, ghi tường minh
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+  },
 }
 ```
 
@@ -217,12 +217,12 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "typecheck": "turbo run typecheck",   // tsc --noEmit (Go-native, --checkers auto)
+    "typecheck": "turbo run typecheck", // tsc --noEmit (Go-native, --checkers auto)
     "lint": "oxlint --type-aware .",
     "fmt": "oxfmt .",
     "test": "turbo run test",
-    "e2e": "playwright test"
-  }
+    "e2e": "playwright test",
+  },
 }
 ```
 

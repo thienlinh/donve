@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_appname1 =
   /** @type {(inputs: Appname1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Donve`
-  }
+    return /** @type {LocalizedString} */ `Donve`;
+  };
 
 const en_appname1 =
   /** @type {(inputs: Appname1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Donve`
-  }
+    return /** @type {LocalizedString} */ `Donve`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_appname1 =
 const appname1 =
   /** @type {((inputs?: Appname1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Appname1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_appname1(inputs)
-      return vi_appname1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_appname1(inputs);
+      return vi_appname1(inputs);
     }
-  )
-export { appname1 as "appName" }
+  );
+export { appname1 as "appName" };

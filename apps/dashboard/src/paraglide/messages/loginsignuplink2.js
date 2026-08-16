@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_loginsignuplink2 =
   /** @type {(inputs: Loginsignuplink2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Đăng ký`
-  }
+    return /** @type {LocalizedString} */ `Đăng ký`;
+  };
 
 const en_loginsignuplink2 =
   /** @type {(inputs: Loginsignuplink2Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Sign up`
-  }
+    return /** @type {LocalizedString} */ `Sign up`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_loginsignuplink2 =
 const loginsignuplink2 =
   /** @type {((inputs?: Loginsignuplink2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Loginsignuplink2Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_loginsignuplink2(inputs)
-      return vi_loginsignuplink2(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_loginsignuplink2(inputs);
+      return vi_loginsignuplink2(inputs);
     }
-  )
-export { loginsignuplink2 as "loginSignupLink" }
+  );
+export { loginsignuplink2 as "loginSignupLink" };

@@ -6,7 +6,7 @@ export type {
   SendEmailInput,
   SendEmailResult,
   VerifyEmailProps,
-} from "./types.js"
+} from "./types.js";
 
-export type { ResendEmailSenderConfig } from "./resend.js"
-export { createResendEmailSender } from "./resend.js"
+export type { ResendEmailSenderConfig } from "./resend.js";
+export { createResendEmailSender } from "./resend.js";

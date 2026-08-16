@@ -6,10 +6,10 @@ import {
   pgTable,
   text,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { id, timestamps } from "./columns.js"
-import { orgIsolationPolicy } from "./rls.js"
+import { id, timestamps } from "./columns.js";
+import { orgIsolationPolicy } from "./rls.js";
 
 export const aiConnections = pgTable(
   "ai_connections",
@@ -30,7 +30,7 @@ export const aiConnections = pgTable(
     createdAt: timestamps.createdAt,
   },
   () => [orgIsolationPolicy()]
-).enableRLS()
+).enableRLS();
 
 export const aiUsage = pgTable(
   "ai_usage",
@@ -46,7 +46,7 @@ export const aiUsage = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_usage_org_time").on(t.orgId, t.createdAt)]
-)
+);
 
 export const skills = pgTable(
   "skills",
@@ -61,7 +61,7 @@ export const skills = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("uq_skill").on(t.orgId, t.slug)]
-)
+);
 
 export const promptTemplates = pgTable("prompt_templates", {
   id: id(),
@@ -71,7 +71,7 @@ export const promptTemplates = pgTable("prompt_templates", {
   variables: jsonb("variables").default({}),
   version: integer("version").notNull().default(1),
   createdAt: timestamps.createdAt,
-})
+});
 
 export const landingSkills = pgTable(
   "landing_skills",
@@ -80,4 +80,4 @@ export const landingSkills = pgTable(
     skillId: text("skill_id").notNull(),
   },
   (t) => [uniqueIndex("uq_landing_skill").on(t.landingPageId, t.skillId)]
-)
+);

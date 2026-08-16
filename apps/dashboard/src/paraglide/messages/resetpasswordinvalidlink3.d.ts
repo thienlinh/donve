@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Resetpasswordinvalidlink3Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Resetpasswordinvalidlink3Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Resetpasswordinvalidlink3Inputs = {}
 declare const resetpasswordinvalidlink3: ((
   inputs?: Resetpasswordinvalidlink3Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Resetpasswordinvalidlink3Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { resetpasswordinvalidlink3 as "resetPasswordInvalidLink" }
+  >;
+export { resetpasswordinvalidlink3 as "resetPasswordInvalidLink" };

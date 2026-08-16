@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_signuptitle1 =
   /** @type {(inputs: Signuptitle1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Tạo tài khoản`
-  }
+    return /** @type {LocalizedString} */ `Tạo tài khoản`;
+  };
 
 const en_signuptitle1 =
   /** @type {(inputs: Signuptitle1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Create an account`
-  }
+    return /** @type {LocalizedString} */ `Create an account`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_signuptitle1 =
 const signuptitle1 =
   /** @type {((inputs?: Signuptitle1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Signuptitle1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_signuptitle1(inputs)
-      return vi_signuptitle1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_signuptitle1(inputs);
+      return vi_signuptitle1(inputs);
     }
-  )
-export { signuptitle1 as "signupTitle" }
+  );
+export { signuptitle1 as "signupTitle" };

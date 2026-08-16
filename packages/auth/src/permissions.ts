@@ -1,5 +1,5 @@
-import type { MembershipRole } from "@dv/contracts"
-import { createAccessControl } from "better-auth/plugins/access"
+import type { MembershipRole } from "@dv/contracts";
+import { createAccessControl } from "better-auth/plugins/access";
 
 /**
  * Coarse yes/no permission matrix — architecture.md §6. Application-layer route
@@ -20,12 +20,12 @@ export const PERMISSIONS = {
   crmRead: ["owner", "admin", "editor", "sales"],
   confirmPayment: ["owner", "admin", "sales"],
   promptSkillsTenant: ["owner", "admin", "editor"],
-} as const satisfies Record<string, readonly MembershipRole[]>
+} as const satisfies Record<string, readonly MembershipRole[]>;
 
-export type Permission = keyof typeof PERMISSIONS
+export type Permission = keyof typeof PERMISSIONS;
 
 export function can(role: MembershipRole, permission: Permission): boolean {
-  return (PERMISSIONS[permission] as readonly MembershipRole[]).includes(role)
+  return (PERMISSIONS[permission] as readonly MembershipRole[]).includes(role);
 }
 
 // Better Auth organization-plugin access control — wired into `createAuth`'s
@@ -39,9 +39,9 @@ const statement = {
   crm: ["write", "view"],
   payment: ["confirm"],
   promptSkills: ["manage"],
-} as const
+} as const;
 
-export const accessControl = createAccessControl(statement)
+export const accessControl = createAccessControl(statement);
 
 export const ownerRole = accessControl.newRole({
   org: ["billing", "delete", "aiKeys"],
@@ -51,7 +51,7 @@ export const ownerRole = accessControl.newRole({
   crm: ["write", "view"],
   payment: ["confirm"],
   promptSkills: ["manage"],
-})
+});
 
 export const adminRole = accessControl.newRole({
   member: ["manage"],
@@ -60,17 +60,17 @@ export const adminRole = accessControl.newRole({
   crm: ["write", "view"],
   payment: ["confirm"],
   promptSkills: ["manage"],
-})
+});
 
 export const editorRole = accessControl.newRole({
   studio: ["publish"],
   campaign: ["create", "update", "delete", "view"],
   crm: ["view"],
   promptSkills: ["manage"],
-})
+});
 
 export const salesRole = accessControl.newRole({
   campaign: ["view"],
   crm: ["write", "view"],
   payment: ["confirm"],
-})
+});

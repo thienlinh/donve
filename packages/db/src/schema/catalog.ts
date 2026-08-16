@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm"
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -8,9 +8,9 @@ import {
   text,
   timestamp,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { deletedAt, id, timestamps } from "./columns.js"
+import { deletedAt, id, timestamps } from "./columns.js";
 
 export const products = pgTable(
   "products",
@@ -30,7 +30,7 @@ export const products = pgTable(
     deletedAt: deletedAt(),
   },
   (t) => [index("ix_products_org").on(t.orgId, t.type)]
-)
+);
 
 export const campaigns = pgTable(
   "campaigns",
@@ -55,7 +55,7 @@ export const campaigns = pgTable(
       .on(t.publicId)
       .where(sql`deleted_at IS NULL`),
   ]
-)
+);
 
 export const campaignProducts = pgTable(
   "campaign_products",
@@ -65,4 +65,4 @@ export const campaignProducts = pgTable(
     orgId: text("org_id").notNull(),
   },
   (t) => [uniqueIndex("uq_cp").on(t.campaignId, t.productId)]
-)
+);

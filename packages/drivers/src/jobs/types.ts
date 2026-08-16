@@ -1,36 +1,36 @@
 export interface EnqueueJobInput<T = unknown> {
-  queue: string
-  payload: T
-  delaySeconds?: number
+  queue: string;
+  payload: T;
+  delaySeconds?: number;
   /** Dedupe within the driver's own window — same id + same queue is dropped, not retried. */
-  dedupeId?: string
+  dedupeId?: string;
 }
 
 export interface EnqueueJobResult {
-  jobId: string
+  jobId: string;
 }
 
 export interface ScheduleJobInput<T = unknown> {
-  queue: string
-  payload: T
-  cron: string
-  scheduleId?: string
+  queue: string;
+  payload: T;
+  cron: string;
+  scheduleId?: string;
 }
 
 export interface ScheduleJobResult {
-  scheduleId: string
+  scheduleId: string;
 }
 
 export interface JobDelivery<T = unknown> {
-  queue: string
-  jobId: string
-  attempt: number
-  payload: T
+  queue: string;
+  jobId: string;
+  attempt: number;
+  payload: T;
 }
 
 export interface VerifyDeliveryInput {
-  headers: Record<string, string>
-  rawBody: string
+  headers: Record<string, string>;
+  rawBody: string;
 }
 
 export class JobDeliveryVerificationError extends Error {}
@@ -42,9 +42,9 @@ export class JobDeliveryVerificationError extends Error {}
  * (the queue handler map dispatched from `JobDelivery.queue`) stays the same either way.
  */
 export interface JobsDriver {
-  enqueue<T = unknown>(input: EnqueueJobInput<T>): Promise<EnqueueJobResult>
-  schedule<T = unknown>(input: ScheduleJobInput<T>): Promise<ScheduleJobResult>
+  enqueue<T = unknown>(input: EnqueueJobInput<T>): Promise<EnqueueJobResult>;
+  schedule<T = unknown>(input: ScheduleJobInput<T>): Promise<ScheduleJobResult>;
   verifyDelivery<T = unknown>(
     input: VerifyDeliveryInput
-  ): Promise<JobDelivery<T>>
+  ): Promise<JobDelivery<T>>;
 }

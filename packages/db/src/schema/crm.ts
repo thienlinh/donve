@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm"
+import { sql } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -7,10 +7,10 @@ import {
   text,
   timestamp,
   uniqueIndex,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { deletedAt, id, timestamps } from "./columns.js"
-import { orgIsolationPolicy } from "./rls.js"
+import { deletedAt, id, timestamps } from "./columns.js";
+import { orgIsolationPolicy } from "./rls.js";
 
 export const leads = pgTable(
   "leads",
@@ -37,7 +37,7 @@ export const leads = pgTable(
     index("ix_leads_assignee").on(t.orgId, t.assigneeId),
     orgIsolationPolicy(),
   ]
-).enableRLS()
+).enableRLS();
 
 export const leadActivities = pgTable(
   "lead_activities",
@@ -62,7 +62,7 @@ export const leadActivities = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_act_lead").on(t.leadId, t.createdAt)]
-)
+);
 
 // Nghị định 13/2023/NĐ-CP (personal data protection) — keeps a record of collection consent
 export const consents = pgTable(
@@ -77,7 +77,7 @@ export const consents = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_consent_lead").on(t.leadId), orgIsolationPolicy()]
-).enableRLS()
+).enableRLS();
 
 export const orders = pgTable(
   "orders",
@@ -111,7 +111,7 @@ export const orders = pgTable(
     index("ix_orders_status").on(t.orgId, t.status, t.createdAt),
     orgIsolationPolicy(),
   ]
-).enableRLS()
+).enableRLS();
 
 export const payments = pgTable(
   "payments",
@@ -131,7 +131,7 @@ export const payments = pgTable(
     uniqueIndex("uq_payment_tx").on(t.provider, t.providerTxId),
     orgIsolationPolicy(),
   ]
-).enableRLS()
+).enableRLS();
 
 // non-custodial model: each org connects its own payment provider, the platform never holds funds
 export const paymentConnections = pgTable(
@@ -154,7 +154,7 @@ export const paymentConnections = pgTable(
     uniqueIndex("uq_payment_conn_org").on(t.orgId, t.provider),
     orgIsolationPolicy(),
   ]
-).enableRLS()
+).enableRLS();
 
 export const unmatchedTransactions = pgTable(
   "unmatched_transactions",
@@ -178,7 +178,7 @@ export const unmatchedTransactions = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("ix_unmatched_org").on(t.orgId, t.status), orgIsolationPolicy()]
-).enableRLS()
+).enableRLS();
 
 // manual refund flow — the platform never holds funds, ops must transfer the refund themselves
 export const refundRequests = pgTable(
@@ -205,4 +205,4 @@ export const refundRequests = pgTable(
     completedAt: timestamp("completed_at"),
   },
   (t) => [index("ix_refund_org").on(t.orgId, t.status), orgIsolationPolicy()]
-).enableRLS()
+).enableRLS();

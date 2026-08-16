@@ -74,7 +74,7 @@ Ghi chú theo kinh nghiệm bạn đã có: dùng chiến lược **JIT internal
 ## 4. Lựa chọn framework dashboard: Vite SPA (không phải Next.js)
 
 | Tiêu chí | Vite 8 SPA + TanStack Router | Next.js 16 |
-|---|---|---|
+| --- | --- | --- |
 | SEO cần cho dashboard? | Không (sau login) | Không cần thiết |
 | Host free, đơn giản | CF Pages static — trivial | Cần Workers/OpenNext hoặc node server |
 | Studio (canvas nặng client) | Hoàn toàn client — khớp | RSC không giúp gì, thêm phức tạp |
@@ -87,6 +87,7 @@ Chat UI: **AI SDK v6 (`useChat`) + AI Elements** (component shadcn-style: Conver
 ## 5. Data flow chi tiết các đường quan trọng
 
 ### 5.1 Generate/chỉnh sửa landing bằng AI
+
 ```
 dashboard → POST /ai/chat (stream)
   api: load org AI connection → compile system prompt
@@ -97,6 +98,7 @@ dashboard → POST /ai/chat (stream)
   client: studio-core áp cùng patch vào DOM iframe (optimistic, không reload)
         → đẩy vào undo stack
 ```
+
 AI luôn xuất thay đổi qua **tool call `apply_patch`** (schema trong ai-integration-byok.md §4) — đảm bảo FR-B-22.
 
 ### 5.2 Publish
@@ -126,6 +128,7 @@ POST /publish { landingId, subdomain }
 **Cache invalidation khi rollback:** asset tĩnh (đặt tên theo content-hash) cache vĩnh viễn ở Cache API/browser — không bao giờ cần invalidate. Nhưng HTML gốc (root document) tại hostname **không** được cache dài ở Cache API — Worker set `Cache-Control` ngắn/`no-store` cho response HTML gốc, để mỗi request đều tra KV pointer mới nhất → fetch đúng bản R2 hiện tại. Vì Worker vốn đã phải tra KV theo hostname mỗi request để route đúng deployment, việc không cache root HTML ở tầng Cache API là tự nhiên và giúp rollback có hiệu lực tức thời mà không cần bước purge cache riêng.
 
 ### 5.3 Submit form → thanh toán (xem sequence đầy đủ functional-requirements.md §D)
+
 - `POST /public/leads` (Turnstile verify, dedupe phone, tạo lead + order, trả `{orderCode, qrUrl, amount, zaloLink}`).
 - **Mô hình dòng tiền non-custodial:** mỗi org tự kết nối tài khoản thanh toán của chính họ — SePay là driver mặc định v1, nhưng interface hỗ trợ thêm VNPAY/MoMo/Casso/PayOS như nhau (functional-requirements.md FR-D-10) — giống mô hình BYOK cho AI key; thông tin kết nối mã hoá lưu ở bảng `paymentConnections`, chỉ giải mã trong payments driver. Webhook/callback là theo từng org (`Authorization: Apikey <secret>` riêng mỗi org với SePay, tra theo `paymentConnections`) — **không có** tài khoản trung gian của nền tảng; toàn bộ tiền đi thẳng vào tài khoản tenant. Xem lý do pháp lý (tránh bị coi là trung gian thanh toán cần giấy phép NHNN) ở business-analysis.md §4.4.
 - Webhook SePay (driver mặc định — xem FR-D-05 cho logic provider khác): idempotency key = provider transaction id (unique index); match mã đơn trong nội dung CK theo thuật toán checksum 2 bước (functional-requirements.md FR-D-05); ambiguous/double-match → bảng `unmatched_transactions`.
@@ -140,15 +143,15 @@ POST /publish { landingId, subdomain }
   3. Test: suite cross-tenant (user org A gọi mọi endpoint với id của org B → 404/403 toàn bộ).
 - **RBAC** (Better Auth organization plugin + custom permissions):
 
-| Quyền | owner | admin | editor | sales |
-|---|---|---|---|---|
-| Billing, xoá org, AI keys | ✅ | – | – | – |
-| Quản lý members | ✅ | ✅ | – | – |
-| Studio, publish | ✅ | ✅ | ✅ | – |
-| Campaign/Product CRUD | ✅ | ✅ | ✅ | xem |
-| CRM leads/orders | ✅ | ✅ | xem | ✅ (theo assignment) |
-| Xác nhận thanh toán | ✅ | ✅ | – | ✅ |
-| Prompt/Skills tenant | ✅ | ✅ | ✅ | – |
+| Quyền                     | owner | admin | editor | sales                |
+| ------------------------- | ----- | ----- | ------ | -------------------- |
+| Billing, xoá org, AI keys | ✅    | –     | –      | –                    |
+| Quản lý members           | ✅    | ✅    | –      | –                    |
+| Studio, publish           | ✅    | ✅    | ✅     | –                    |
+| Campaign/Product CRUD     | ✅    | ✅    | ✅     | xem                  |
+| CRM leads/orders          | ✅    | ✅    | xem    | ✅ (theo assignment) |
+| Xác nhận thanh toán       | ✅    | ✅    | –      | ✅                   |
+| Prompt/Skills tenant      | ✅    | ✅    | ✅     | –                    |
 
 - Public endpoints (`/public/*`, `/webhooks/*`) không có session — scope bằng khoá tường minh (campaign public id, webhook secret) + rate limit.
 
@@ -161,7 +164,7 @@ POST /publish { landingId, subdomain }
 ## 7. Bảo mật (threat model rút gọn)
 
 | Mối đe doạ | Kiểm soát |
-|---|---|
+| --- | --- |
 | HTML AI/import chứa script độc (XSS lên visitor hoặc chính studio) | Sanitizer server-side (allowlist tag/attr; strip `<script>` ngoại trừ runtime script inject lúc build; chặn `on*`, `javascript:`); preview iframe `sandbox="allow-same-origin"` **không** allow-scripts ở chế độ edit; CSP nghiêm trên domain publish |
 | Đánh cắp BYOK key | AES-256-GCM, key wrap bằng master secret (Workers Secret / env VPS), chỉ giải mã trong AI Gateway, log che, không trả API nào chứa key |
 | Webhook giả mạo SePay | Secret theo từng org (per-org, không phải secret dùng chung toàn nền tảng) — so khớp `Authorization: Apikey <secret>` tra theo `paymentConnections` của org + IP allowlist (nếu SePay công bố) + idempotency |

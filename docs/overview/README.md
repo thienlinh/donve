@@ -1,13 +1,11 @@
 # Content-Ops CRM Platform — Bộ tài liệu thiết kế & triển khai
 
-> Phiên bản 1.0 — 15/08/2026
-> Nền tảng: CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation
-> Đối tượng đọc: Founder/Tech Lead (bạn), sau này là dev team
+> Phiên bản 1.0 — 15/08/2026 Nền tảng: CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation Đối tượng đọc: Founder/Tech Lead (bạn), sau này là dev team
 
 ## Cấu trúc bộ tài liệu
 
 | Thư mục | Tài liệu | Nội dung chính |
-|---------|----------|----------------|
+| --- | --- | --- |
 | `product/` | `business-analysis.md` | Tầm nhìn, personas, business model, GTM, định vị |
 | `product/` | `functional-requirements.md` | Yêu cầu chức năng chi tiết từng module (FR-xx), user flows, edge cases |
 | `architecture/` | `architecture.md` | Kiến trúc tổng thể, monorepo layout, data flow, multi-tenant, portability CF ↔ VPS |

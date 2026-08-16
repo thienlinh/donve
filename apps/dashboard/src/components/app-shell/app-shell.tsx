@@ -1,7 +1,7 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from "react";
 
-import { Sidebar } from "./sidebar"
-import { TopBar } from "./top-bar"
+import { Sidebar } from "./sidebar";
+import { TopBar } from "./top-bar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -12,5 +12,5 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

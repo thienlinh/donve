@@ -11,6 +11,7 @@ Phạm vi ban đầu: **dùng cho chính bạn và nhóm người quen/học vi�
 ## 2. Personas
 
 ### P1 — "Cô giáo Yoga / Chuyên gia tự do" (primary)
+
 - Bán khoá học, workshop qua Zalo/Facebook/TikTok. Không biết code, sợ kỹ thuật.
 - Đang dùng: Google Form + chuyển khoản thủ công + Excel, hoặc Webcake/LadiPage bản rẻ.
 - Pain: tạo landing mất nhiều ngày, không biết viết copy, không track được ai đã chuyển khoản, sót lead.
@@ -18,14 +19,17 @@ Phạm vi ban đầu: **dùng cho chính bạn và nhóm người quen/học vi�
 - **Đây chính là các option trong dropdown form ở screenshot #7** ("Chủ doanh nghiệp", "Người làm nghề tự do có chuyên môn", "Người bán hàng online", "Người làm affiliate", "Đã có kênh nhưng chưa ra kết quả", "Mới bắt đầu", "Muốn thêm nguồn thu") — form phân loại persona ngay tại lead capture.
 
 ### P2 — "Học viên của bạn / Người học làm content automation" (primary, GTM channel)
+
 - Học theo kênh TikTok của bạn, muốn tự deploy landing và kiếm tiền — mô hình "dạy khách hàng deploy & monetize" bạn đang vận hành.
 - Kỹ thuật lưng chừng: dùng được Claude/ChatGPT bên ngoài để generate HTML → **cần tính năng Import** để đưa vào nền tảng chỉnh sửa + gắn phễu.
 
 ### P3 — "Nhân viên Sales của tenant" (secondary)
+
 - Vào CRM xử lý lead: gọi điện, ghi chú, đổi trạng thái, xác nhận chuyển khoản thủ công, active khoá học.
 - Cần: kanban/danh sách lọc nhanh, mobile-friendly, thông báo lead mới.
 
 ### P4 — "Agency nhỏ" (tertiary, mở rộng sau)
+
 - Quản lý nhiều campaign cho nhiều client → cần multi-workspace, phân quyền, white-label (roadmap).
 
 ## 3. Định vị
@@ -75,7 +79,7 @@ Không coi đây là kế hoạch phải triển khai ngay — chỉ là danh s�
 ## 8. Rủi ro business
 
 | Rủi ro | Mức | Giảm thiểu |
-|---|---|---|
+| --- | --- | --- |
 | User non-tech vẫn thấy studio phức tạp | Cao | Mode "đơn giản" mặc định: chỉ chat + comment; ẩn layer tree/edit properties sau toggle "Nâng cao" |
 | Phụ thuộc ToS AI provider (BYOK/OAuth thay đổi) | Trung | Multi-provider ngay từ đầu (Claude + OpenAI + đường OpenRouter), abstraction layer, xem ai-integration-byok.md — theo dõi ToS định kỳ hàng quý, không chỉ đọc một lần (chi tiết ai-integration-byok.md §1.4) |
 | SePay đổi API/chính sách | Trung | Payment provider interface; fallback manual luôn tồn tại như first-class flow |

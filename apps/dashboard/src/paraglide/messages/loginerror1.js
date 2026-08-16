@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { getLocale, experimentalStaticLocale } from "../runtime.js"
+import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
 
@@ -7,13 +7,13 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js"
 
 const vi_loginerror1 =
   /** @type {(inputs: Loginerror1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Email hoặc mật khẩu không đúng.`
-  }
+    return /** @type {LocalizedString} */ `Email hoặc mật khẩu không đúng.`;
+  };
 
 const en_loginerror1 =
   /** @type {(inputs: Loginerror1Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Incorrect email or password.`
-  }
+    return /** @type {LocalizedString} */ `Incorrect email or password.`;
+  };
 
 /**
  * | output |
@@ -27,9 +27,9 @@ const en_loginerror1 =
 const loginerror1 =
   /** @type {((inputs?: Loginerror1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Loginerror1Inputs, { locale?: "vi" | "en" }, {}>} */ (
     (inputs = {}, options = {}) => {
-      const locale = experimentalStaticLocale ?? options.locale ?? getLocale()
-      if (locale === "en") return en_loginerror1(inputs)
-      return vi_loginerror1(inputs)
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return en_loginerror1(inputs);
+      return vi_loginerror1(inputs);
     }
-  )
-export { loginerror1 as "loginError" }
+  );
+export { loginerror1 as "loginError" };

@@ -1,5 +1,5 @@
-export type LocalizedString = import("../runtime.js").LocalizedString
-export type Commonloading1Inputs = {}
+export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Commonloading1Inputs = {};
 /**
  * | output |
  * | --- |
@@ -12,14 +12,14 @@ export type Commonloading1Inputs = {}
 declare const commonloading1: ((
   inputs?: Commonloading1Inputs,
   options?: {
-    locale?: "vi" | "en"
+    locale?: "vi" | "en";
   }
 ) => LocalizedString) &
   import("../runtime.js").MessageMetadata<
     Commonloading1Inputs,
     {
-      locale?: "vi" | "en"
+      locale?: "vi" | "en";
     },
     {}
-  >
-export { commonloading1 as "commonLoading" }
+  >;
+export { commonloading1 as "commonLoading" };

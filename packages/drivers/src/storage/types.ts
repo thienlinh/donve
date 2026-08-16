@@ -1,19 +1,19 @@
 export interface PutObjectInput {
-  key: string
-  body: ReadableStream | ArrayBuffer | ArrayBufferView | string
-  contentType?: string
+  key: string;
+  body: ReadableStream | ArrayBuffer | ArrayBufferView | string;
+  contentType?: string;
 }
 
 export interface PutObjectResult {
-  key: string
-  size: number
+  key: string;
+  size: number;
 }
 
 export interface StoredObject {
-  key: string
-  body: ReadableStream
-  contentType: string | null
-  size: number
+  key: string;
+  body: ReadableStream;
+  contentType: string | null;
+  size: number;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface StoredObject {
  * deliberate architecture decision (architecture.md §3 "phạm vi portable").
  */
 export interface StorageDriver {
-  put(input: PutObjectInput): Promise<PutObjectResult>
-  get(key: string): Promise<StoredObject | null>
-  delete(key: string): Promise<void>
+  put(input: PutObjectInput): Promise<PutObjectResult>;
+  get(key: string): Promise<StoredObject | null>;
+  delete(key: string): Promise<void>;
 }
