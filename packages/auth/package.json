@@ -8,8 +8,10 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "@dv/contracts": "workspace:*",
     "@dv/db": "workspace:*",
-    "better-auth": "catalog:server"
+    "better-auth": "catalog:server",
+    "ulid": "catalog:db"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",

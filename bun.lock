@@ -96,8 +96,10 @@
       "name": "@dv/auth",
       "version": "0.0.0",
       "dependencies": {
+        "@dv/contracts": "workspace:*",
         "@dv/db": "workspace:*",
         "better-auth": "catalog:server",
+        "ulid": "catalog:db",
       },
       "devDependencies": {
         "@dv/config": "workspace:*",

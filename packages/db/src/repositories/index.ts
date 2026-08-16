@@ -1,6 +1,7 @@
 export * from "./ai-connections.js"
 export * from "./campaigns.js"
 export * from "./consents.js"
+export * from "./invites.js"
 export * from "./landing-pages.js"
 export * from "./leads.js"
 export * from "./memberships.js"

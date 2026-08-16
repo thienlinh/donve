@@ -1,2 +1,13 @@
-// placeholder: @dv/auth entrypoint, fill in when the module is implemented
-export const PLACEHOLDER = true
+export type { AuthConfig } from "./config.js"
+export { createAuth } from "./config.js"
+export { acceptInvite, createInvite } from "./invites.js"
+export type { Permission } from "./permissions.js"
+export {
+  accessControl,
+  adminRole,
+  can,
+  editorRole,
+  ownerRole,
+  PERMISSIONS,
+  salesRole,
+} from "./permissions.js"

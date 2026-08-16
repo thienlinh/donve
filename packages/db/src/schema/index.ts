@@ -1,5 +1,6 @@
 export * from "./ai.js"
 export * from "./analytics.js"
+export * from "./auth.js"
 export * from "./catalog.js"
 export * from "./core.js"
 export * from "./crm.js"
