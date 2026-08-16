@@ -4,13 +4,37 @@
   "main": "src/workers.ts",
   "compatibility_date": "2026-08-01",
   // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
-  // RESEND_API_KEY are secrets, set per environment via `wrangler secret put`
-  // — not committed here. BETTER_AUTH_URL / DASHBOARD_URL differ per
-  // environment (dev/staging/prod) so they're plain vars, overridden per env
-  // when the multi-environment wrangler config lands (Phase 0 prompt #10).
+  // RESEND_API_KEY are secrets, set per environment via `wrangler secret put
+  // <NAME> --env <env>` (staging/production) — not committed here, see
+  // docs/runbooks/ci-cd-setup.md. Top-level vars below are only the default
+  // used by bare `wrangler dev` (local CF Workers simulation); real deploys
+  // always pass --env and use the blocks under "env" instead.
   "vars": {
     "RUNTIME": "workers",
     "BETTER_AUTH_URL": "http://localhost:8787",
     "DASHBOARD_URL": "http://localhost:5173",
+  },
+  // Domains below are placeholders (donve.vn is used as working domain
+  // throughout docs/ but "Chốt tên miền nền tảng" is still an open backlog
+  // item) — update once the domain is locked and the CF custom domain is
+  // attached to each Worker (manual step, CF dashboard → Workers → Custom
+  // Domains, see ci-cd-setup.md).
+  "env": {
+    "staging": {
+      "name": "dv-api-staging",
+      "vars": {
+        "RUNTIME": "workers",
+        "BETTER_AUTH_URL": "https://api-staging.donve.vn",
+        "DASHBOARD_URL": "https://app-staging.donve.vn",
+      },
+    },
+    "production": {
+      "name": "dv-api",
+      "vars": {
+        "RUNTIME": "workers",
+        "BETTER_AUTH_URL": "https://api.donve.vn",
+        "DASHBOARD_URL": "https://app.donve.vn",
+      },
+    },
   },
 }

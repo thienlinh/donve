@@ -128,5 +128,5 @@ Build pipeline bắt buộc (không phụ thuộc AI "nhớ" làm đúng — pip
 
 - GitHub Actions: `turbo run lint typecheck test build` (Oxlint nhanh, tsgo typecheck); affected-only nhờ turbo cache (remote cache: R2-backed hoặc Vercel remote cache free).
 - Deploy: wrangler deploy (api CF + edge-router) trên merge main; dashboard → CF Pages; giai đoạn VPS: build image → registry → Dokploy webhook auto-deploy.
-- Environments: `dev` (local: miniflare/wrangler dev + Neon branch), `staging` (Neon branch — tính năng branch của Neon rất hợp), `prod`.
+- Environments: `dev` (local: docker-compose Postgres+Redis container trên máy dev, chạy qua `apps/api/src/bun.ts` — không phụ thuộc Neon/Upstash khi code hàng ngày, chi phí 0; dùng `wrangler dev`/miniflare riêng lẻ chỉ khi cần test path CF Workers cụ thể trước khi deploy, không phải flow dev mặc định), `staging` (Neon branch — tính năng branch của Neon rất hợp), `prod`.
 - Secrets: Wrangler secrets / Dokploy env; masterKey mã hoá BYOK tách riêng, rotate được (re-encrypt job).

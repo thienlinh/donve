@@ -31,9 +31,19 @@ export function can(role: MembershipRole, permission: Permission): boolean {
 // Better Auth organization-plugin access control — wired into `createAuth`'s
 // `organization({ ac, roles })` config (./config.ts). Every statement/role
 // grant below maps 1:1 to a row of the architecture.md §6 matrix.
+//
+// `org`/`member`/`invitation` actions aren't our own vocabulary — the org
+// plugin's own endpoint handlers call `hasPermission` against these exact
+// resource/action pairs internally (`/organization/update` checks
+// `{organization: ["update"]}`, `/remove-member` checks `{member: ["delete"]}`,
+// `/invite-member` checks `{invitation: ["create"]}`, etc. — see
+// better-auth's organization plugin route source). Omitting any of them
+// silently forbids that action for every role, including owner — this custom
+// `ac` fully replaces better-auth's own default statement, it doesn't extend it.
 const statement = {
-  org: ["billing", "delete", "aiKeys"],
-  member: ["manage"],
+  org: ["update", "billing", "delete", "aiKeys"],
+  member: ["create", "update", "delete"],
+  invitation: ["create", "cancel"],
   studio: ["publish"],
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],
@@ -44,8 +54,9 @@ const statement = {
 export const accessControl = createAccessControl(statement);
 
 export const ownerRole = accessControl.newRole({
-  org: ["billing", "delete", "aiKeys"],
-  member: ["manage"],
+  org: ["update", "billing", "delete", "aiKeys"],
+  member: ["create", "update", "delete"],
+  invitation: ["create", "cancel"],
   studio: ["publish"],
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],
@@ -54,7 +65,9 @@ export const ownerRole = accessControl.newRole({
 });
 
 export const adminRole = accessControl.newRole({
-  member: ["manage"],
+  org: ["update"],
+  member: ["create", "update", "delete"],
+  invitation: ["create", "cancel"],
   studio: ["publish"],
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],

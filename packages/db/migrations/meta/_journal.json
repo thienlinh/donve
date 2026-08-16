@@ -15,6 +15,20 @@
       "when": 1786847718439,
       "tag": "0001_force_row_level_security",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786879815853,
+      "tag": "0002_round_elektra",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786879950038,
+      "tag": "0003_redundant_gargoyle",
+      "breakpoints": true
     }
   ]
 }

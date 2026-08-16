@@ -35,6 +35,10 @@ export const memberships = pgTable(
       enum: ["owner", "admin", "editor", "sales"],
     }).notNull(),
     salesConfig: jsonb("sales_config").default({}),
+    // Better Auth's organization plugin (packages/auth/src/config.ts) writes
+    // `createdAt` on every member it creates (crud-org.mjs/crud-invites.mjs) —
+    // required for its own drizzleAdapter schema validation, not just audit trail.
+    ...timestamps,
   },
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
 );
@@ -44,7 +48,21 @@ export const invites = pgTable("invites", {
   orgId: text("org_id").notNull(),
   email: text("email").notNull(),
   role: text("role", { enum: ["owner", "admin", "editor", "sales"] }).notNull(),
-  token: text("token").notNull().unique(),
+  // Better Auth's organization plugin invite-member/accept-invitation/cancel-invitation
+  // endpoints own this table's shape too (same `modelName: "invites"` mapping) and
+  // require `status`/`inviterId` on every row it writes.
+  status: text("status", {
+    enum: ["pending", "accepted", "rejected", "canceled"],
+  })
+    .notNull()
+    .default("pending"),
+  inviterId: text("inviter_id"),
+  /**
+   * Only set by packages/auth's own createInvite/acceptInvite (dashboard invite
+   * links, `${appURL}/invites/:token`) — the organization plugin's own invite
+   * endpoints above address invitations by id and never populate this column.
+   */
+  token: text("token").unique(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

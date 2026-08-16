@@ -7,6 +7,7 @@
     "dev": "bun run --hot src/bun.ts",
     "dev:workers": "wrangler dev",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
@@ -21,8 +22,12 @@
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "@testcontainers/postgresql": "catalog:db",
     "bun-types": "catalog:",
+    "drizzle-orm": "catalog:db",
+    "postgres": "catalog:db",
     "typescript": "catalog:",
+    "vitest": "catalog:",
     "wrangler": "catalog:server"
   }
 }
