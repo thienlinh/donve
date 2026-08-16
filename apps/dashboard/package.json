@@ -13,14 +13,23 @@
   "dependencies": {
     "@dv/config": "workspace:*",
     "@dv/ui": "workspace:*",
+    "@hookform/resolvers": "catalog:react",
+    "@inlang/paraglide-js": "catalog:react",
+    "@tanstack/react-query": "catalog:data",
+    "@tanstack/react-router": "catalog:data",
+    "better-auth": "catalog:server",
     "lucide-react": "catalog:ui",
     "react": "catalog:react",
-    "react-dom": "catalog:react"
+    "react-dom": "catalog:react",
+    "react-hook-form": "catalog:react",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@babel/core": "catalog:react",
     "@rolldown/plugin-babel": "catalog:react",
     "@tailwindcss/vite": "catalog:react",
+    "@tanstack/react-router-devtools": "catalog:data",
+    "@tanstack/router-plugin": "catalog:data",
     "@types/babel__core": "catalog:react",
     "@types/node": "catalog:",
     "@types/react": "catalog:react",

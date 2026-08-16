@@ -1,0 +1,57 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "appName": "Donve",
+
+  "loginTitle": "Log in",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Password",
+  "loginSubmit": "Log in",
+  "loginForgotPassword": "Forgot password?",
+  "loginNoAccount": "Don't have an account?",
+  "loginSignupLink": "Sign up",
+  "loginError": "Incorrect email or password.",
+
+  "signupTitle": "Create an account",
+  "signupNameLabel": "Full name",
+  "signupEmailLabel": "Email",
+  "signupPasswordLabel": "Password",
+  "signupSubmit": "Sign up",
+  "signupHasAccount": "Already have an account?",
+  "signupLoginLink": "Log in",
+
+  "verifyEmailTitle": "Check your email",
+  "verifyEmailBody": "We sent a verification link to the email you just signed up with. Click it to activate your account.",
+
+  "verifiedTitle": "Email verified",
+  "verifiedBody": "Your email has been verified. You can log in now.",
+  "verifiedLoginLink": "Go to login",
+
+  "forgotPasswordTitle": "Forgot password",
+  "forgotPasswordBody": "Enter your email and we'll send you a password reset link.",
+  "forgotPasswordEmailLabel": "Email",
+  "forgotPasswordSubmit": "Send link",
+  "forgotPasswordSent": "If that email exists, a password reset link has been sent.",
+
+  "resetPasswordTitle": "Reset password",
+  "resetPasswordNewLabel": "New password",
+  "resetPasswordSubmit": "Reset password",
+  "resetPasswordSuccess": "Password reset successfully. You can log in with your new password.",
+  "resetPasswordInvalidLink": "This password reset link is invalid or has expired.",
+
+  "onboardingTitle": "Create your organization",
+  "onboardingBody": "Every Donve account belongs to at least one organization — this is where your landing pages, campaigns, and leads live.",
+  "onboardingOrgNameLabel": "Organization name",
+  "onboardingSubmit": "Create organization",
+
+  "orgSwitcherCreateOrg": "Create new organization",
+  "orgSwitcherNoOrg": "No organization yet",
+
+  "shellLandingsNav": "Landing Pages",
+  "shellSettingsNav": "Settings",
+  "shellLogout": "Log out",
+  "shellSignedInAs": "Signed in as {email}",
+
+  "commonLoading": "Loading...",
+  "commonBack": "Back",
+  "commonContinue": "Continue"
+}

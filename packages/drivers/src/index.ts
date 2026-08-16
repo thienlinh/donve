@@ -1,4 +1,5 @@
 export * as cache from "./cache/index.js"
+export * as email from "./email/index.js"
 export * as jobs from "./jobs/index.js"
 export * as payments from "./payments/index.js"
 export * as realtime from "./realtime/index.js"

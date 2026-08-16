@@ -4,6 +4,7 @@ import { orgIdSchema, ulidSchema } from "./common.js"
 
 export const emailTemplateValues = [
   "verify_email",
+  "reset_password",
   "invite",
   "lead_digest",
   "order_paid",

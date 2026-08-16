@@ -3,7 +3,14 @@
   "name": "dv-api",
   "main": "src/workers.ts",
   "compatibility_date": "2026-08-01",
-  // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN are secrets, set per environment
-  // via `wrangler secret put` — not committed here.
-  "vars": {},
+  // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
+  // RESEND_API_KEY are secrets, set per environment via `wrangler secret put`
+  // — not committed here. BETTER_AUTH_URL / DASHBOARD_URL differ per
+  // environment (dev/staging/prod) so they're plain vars, overridden per env
+  // when the multi-environment wrangler config lands (Phase 0 prompt #10).
+  "vars": {
+    "RUNTIME": "workers",
+    "BETTER_AUTH_URL": "http://localhost:8787",
+    "DASHBOARD_URL": "http://localhost:5173",
+  },
 }

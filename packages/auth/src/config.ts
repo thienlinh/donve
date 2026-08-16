@@ -1,5 +1,6 @@
 import type { Db } from "@dv/db"
 import { schema } from "@dv/db"
+import type { email } from "@dv/drivers"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { organization } from "better-auth/plugins"
@@ -27,6 +28,16 @@ export interface AuthConfig {
     google?: { clientId: string; clientSecret: string }
     facebook?: { clientId: string; clientSecret: string }
   }
+  /**
+   * FR-A-01/FR-I-02: Resend wiring for verify-email + reset-password. Optional
+   * so `createAuth` stays usable without an email provider (e.g. unit tests) —
+   * both hooks below are no-ops when omitted.
+   */
+  email?: {
+    sender: email.EmailSender
+    /** dashboard origin — verify/reset links redirect here after the backend handles the token. */
+    appURL: string
+  }
 }
 
 /**
@@ -47,6 +58,27 @@ export function createAuth(config: AuthConfig) {
     },
     emailAndPassword: {
       enabled: true,
+      requireEmailVerification: true,
+      sendResetPassword: async ({ user, url }) => {
+        if (!config.email) return
+        await config.email.sender.send({
+          to: user.email,
+          template: "reset_password",
+          props: { name: user.name || user.email, url },
+        })
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        if (!config.email) return
+        await config.email.sender.send({
+          to: user.email,
+          template: "verify_email",
+          props: { name: user.name || user.email, url },
+        })
+      },
     },
     socialProviders: config.socialProviders,
     database: drizzleAdapter(config.db, {

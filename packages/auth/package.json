@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules"
@@ -10,11 +13,13 @@
   "dependencies": {
     "@dv/contracts": "workspace:*",
     "@dv/db": "workspace:*",
+    "@dv/drivers": "workspace:*",
     "better-auth": "catalog:server",
     "ulid": "catalog:db"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "bun-types": "catalog:",
     "typescript": "catalog:"
   }
 }

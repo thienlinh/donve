@@ -36,7 +36,10 @@
         "@babel/core": "8.0.1",
         "@types/babel__core": "7.20.5",
         "@tailwindcss/vite": "4.3.3",
-        "tailwindcss": "4.3.3"
+        "tailwindcss": "4.3.3",
+        "react-hook-form": "7.85.0",
+        "@hookform/resolvers": "5.9.0",
+        "@inlang/paraglide-js": "2.24.1"
       },
       "ui": {
         "shadcn": "4.18.0",
@@ -52,7 +55,9 @@
       "data": {
         "@tanstack/react-router": "1.170.29",
         "@tanstack/react-query": "5.101.4",
-        "@tanstack/react-virtual": "3.14.9"
+        "@tanstack/react-virtual": "3.14.9",
+        "@tanstack/router-plugin": "1.168.32",
+        "@tanstack/react-router-devtools": "1.167.1"
       },
       "ai": {
         "@ai-sdk/react": "4.0.69",
@@ -65,7 +70,8 @@
         "@hono/zod-validator": "0.9.0",
         "better-auth": "1.6.29",
         "wrangler": "4.123.0",
-        "tsdown": "0.22.14"
+        "tsdown": "0.22.14",
+        "resend": "6.20.0"
       },
       "db": {
         "drizzle-orm": "0.45.2",

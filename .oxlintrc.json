@@ -193,7 +193,9 @@
     "react/react-in-jsx-scope": "off",
     "import/no-unassigned-import": "off",
     "react/jsx-no-constructed-context-values": "off",
-    "react-perf/jsx-no-new-object-as-prop": "off"
+    "react-perf/jsx-no-new-object-as-prop": "off",
+    "react-perf/jsx-no-new-function-as-prop": "off",
+    "react-perf/jsx-no-jsx-as-prop": "off"
   },
   "env": {
     "browser": true,

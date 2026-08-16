@@ -3,6 +3,8 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*"],
       "@dv/ui/*": ["../../packages/ui/src/*"]

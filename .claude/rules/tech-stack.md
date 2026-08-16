@@ -109,6 +109,14 @@ real IIFE bundle, not TS source.
   (`react-hooks/exhaustive-deps`, `react-doctor/no-effect-with-fresh-deps`),
   prefer inlining the function inside the effect/memo callback over disabling
   the rule — that resolves the conflict without losing the check.
+  `react-perf/jsx-no-new-function-as-prop` is off for the same React Compiler
+  reason (function identity memoization, not just object literals).
+  `react-perf/jsx-no-jsx-as-prop` is off because Base UI's composition API
+  (`@base-ui/react`, used throughout `packages/ui`'s shadcn "base-nova"
+  components) requires passing a JSX element via the `render` prop (e.g.
+  `<Button render={<Link to="/login" />}>`) — there's no non-JSX way to use
+  it, so the rule would fire on every Base UI composition, not just an
+  occasional case.
 
 ## React Compiler wiring (real API, not the doc's simplified example)
 

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "appName": "Donve",
+
+  "loginTitle": "Đăng nhập",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Mật khẩu",
+  "loginSubmit": "Đăng nhập",
+  "loginForgotPassword": "Quên mật khẩu?",
+  "loginNoAccount": "Chưa có tài khoản?",
+  "loginSignupLink": "Đăng ký",
+  "loginError": "Email hoặc mật khẩu không đúng.",
+
+  "signupTitle": "Tạo tài khoản",
+  "signupNameLabel": "Họ tên",
+  "signupEmailLabel": "Email",
+  "signupPasswordLabel": "Mật khẩu",
+  "signupSubmit": "Đăng ký",
+  "signupHasAccount": "Đã có tài khoản?",
+  "signupLoginLink": "Đăng nhập",
+
+  "verifyEmailTitle": "Kiểm tra email của bạn",
+  "verifyEmailBody": "Chúng tôi đã gửi một liên kết xác thực đến email bạn vừa đăng ký. Nhấn vào liên kết đó để kích hoạt tài khoản.",
+
+  "verifiedTitle": "Xác thực thành công",
+  "verifiedBody": "Email của bạn đã được xác thực. Bạn có thể đăng nhập ngay bây giờ.",
+  "verifiedLoginLink": "Đến trang đăng nhập",
+
+  "forgotPasswordTitle": "Quên mật khẩu",
+  "forgotPasswordBody": "Nhập email của bạn, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+  "forgotPasswordEmailLabel": "Email",
+  "forgotPasswordSubmit": "Gửi liên kết",
+  "forgotPasswordSent": "Nếu email tồn tại, một liên kết đặt lại mật khẩu đã được gửi.",
+
+  "resetPasswordTitle": "Đặt lại mật khẩu",
+  "resetPasswordNewLabel": "Mật khẩu mới",
+  "resetPasswordSubmit": "Đặt lại mật khẩu",
+  "resetPasswordSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.",
+  "resetPasswordInvalidLink": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+
+  "onboardingTitle": "Tạo tổ chức của bạn",
+  "onboardingBody": "Mỗi tài khoản Donve thuộc về ít nhất một tổ chức — đây là nơi chứa landing page, chiến dịch và lead của bạn.",
+  "onboardingOrgNameLabel": "Tên tổ chức",
+  "onboardingSubmit": "Tạo tổ chức",
+
+  "orgSwitcherCreateOrg": "Tạo tổ chức mới",
+  "orgSwitcherNoOrg": "Chưa có tổ chức",
+
+  "shellLandingsNav": "Landing Pages",
+  "shellSettingsNav": "Cài đặt",
+  "shellLogout": "Đăng xuất",
+  "shellSignedInAs": "Đăng nhập với {email}",
+
+  "commonLoading": "Đang tải...",
+  "commonBack": "Quay lại",
+  "commonContinue": "Tiếp tục"
+}

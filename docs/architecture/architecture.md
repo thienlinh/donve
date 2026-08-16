@@ -59,7 +59,8 @@
 │   ├── contracts/          # zod schemas + API types dùng chung FE/BE (single source)
 │   ├── drivers/            # interfaces + impl: jobs(qstash|bullmq), storage(r2|s3),
 │   │                       # cache(upstash|ioredis), realtime(sse-hub),
-│   │                       # payments(sepay|vnpay|momo|...), video(r2-raw|bunny-stream)
+│   │                       # payments(sepay|vnpay|momo|...), video(r2-raw|bunny-stream),
+│   │                       # email(resend) — single provider, no CF/VPS variance
 │   ├── ai-gateway/         # provider abstraction (anthropic|openai|openrouter), key vault
 │   ├── ui/                 # design system L1 (shadcn wrap, tokens)
 │   └── config/             # tsconfig, oxlint, oxfmt, tailwind preset
