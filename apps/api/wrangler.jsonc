@@ -3,6 +3,7 @@
   "name": "dv-api",
   "main": "src/workers.ts",
   "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
   // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
   // RESEND_API_KEY are secrets, set per environment via `wrangler secret put
   // <NAME> --env <env>` (staging/production) — not committed here, see
