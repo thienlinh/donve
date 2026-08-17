@@ -1,3 +1,5 @@
+import type { PlatformStaffRole } from "@dv/contracts";
+
 /** Env bindings — same shape read from `process.env` (Bun) or Workers bindings (CF). */
 export interface Bindings {
   UPSTASH_REDIS_URL: string;
@@ -17,6 +19,9 @@ export interface Variables {
   requestId: string;
   /** Set by auth middleware once session/org resolution lands; null until then. */
   orgId: string | null;
+  /** Set by `requirePlatformStaff` (platform-admin.md §4) — only present on `/platform/*` routes. */
+  platformStaffId: string;
+  platformStaffRole: PlatformStaffRole;
 }
 
 export interface AppEnv {

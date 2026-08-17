@@ -28,7 +28,12 @@ export function SignupForm() {
 
   const onSubmit = handleSubmit(async ({ name, email, password }) => {
     setServerError(null);
-    const { error } = await authClient.signUp.email({ name, email, password });
+    const { error } = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: `${window.location.origin}/`
+    });
     if (error) {
       setServerError(error.message ?? null);
       return;

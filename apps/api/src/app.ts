@@ -5,6 +5,8 @@ import { createAuthFromEnv } from "./lib/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { rateLimit } from "./middleware/rate-limit.js";
 import { requestContext } from "./middleware/request-context.js";
+import { requirePlatformStaff } from "./middleware/require-platform-staff.js";
+import { platformRoutes } from "./modules/platform/routes.js";
 import type { AppEnv } from "./types.js";
 
 /**
@@ -19,17 +21,19 @@ export function createApp() {
   // The dashboard SPA runs on a different origin in dev (Vite) and prod (CF
   // Pages) — only `/api/*` needs CORS, `/public/*`/`/webhooks/*` are called
   // server-to-server or from the published landing runtime, not the SPA.
-  app.use(
-    "/api/*",
-    cors({
-      origin: (_origin, c) => c.env.DASHBOARD_URL,
-      credentials: true
-    })
-  );
+  const dashboardCors = cors({
+    origin: (_origin, c) => c.env.DASHBOARD_URL,
+    credentials: true
+  });
+  app.use("/api/*", dashboardCors);
+  app.use("/platform/*", dashboardCors);
   // Public/unauthenticated surfaces (architecture.md §6) get IP-scoped limits;
   // authenticated routes get their own limiter once session middleware lands.
   app.use("/public/*", rateLimit({ windowSeconds: 60, max: 30 }));
   app.use("/webhooks/*", rateLimit({ windowSeconds: 60, max: 60 }));
+  // Separate gate from tenant auth entirely (platform-admin.md §4) — a valid tenant
+  // session is not enough, the user must also have a `platform_staff` row.
+  app.use("/platform/*", requirePlatformStaff);
 
   app.onError(errorHandler);
   app.notFound(notFoundHandler);
@@ -41,6 +45,8 @@ export function createApp() {
   app.on(["GET", "POST"], "/api/auth/*", (c) =>
     createAuthFromEnv(c.env).handler(c.req.raw)
   );
+
+  app.route("/platform", platformRoutes);
 
   return app;
 }

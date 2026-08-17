@@ -16,6 +16,11 @@ export const organizationsRepository = {
     return rows[0];
   },
 
+  /** Cross-tenant by definition — only for `/platform/*` routes (platform-admin.md §7). */
+  async listAll(db: Db) {
+    return db.raw.select().from(organizations);
+  },
+
   async findById(db: Db, orgId: string) {
     const rows = await db.raw
       .select()

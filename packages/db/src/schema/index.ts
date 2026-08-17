@@ -5,5 +5,6 @@ export * from "./catalog.js";
 export * from "./core.js";
 export * from "./crm.js";
 export * from "./email.js";
+export * from "./platform.js";
 export * from "./publishing.js";
 export * from "./studio.js";

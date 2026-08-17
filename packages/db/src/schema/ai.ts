@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
-import { orgIsolationPolicy } from "./rls.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 export const aiConnections = pgTable(
   "ai_connections",
@@ -29,7 +29,7 @@ export const aiConnections = pgTable(
       .default("active"),
     createdAt: timestamps.createdAt
   },
-  () => [orgIsolationPolicy()]
+  () => [orgIsolationPolicy(), platformReadPolicy()]
 ).enableRLS();
 
 export const aiUsage = pgTable(

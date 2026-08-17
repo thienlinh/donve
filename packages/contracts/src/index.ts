@@ -7,3 +7,4 @@ export * from "./crm.js";
 export * from "./ai.js";
 export * from "./email.js";
 export * from "./analytics.js";
+export * from "./platform.js";

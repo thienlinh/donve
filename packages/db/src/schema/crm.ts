@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
-import { orgIsolationPolicy } from "./rls.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 export const leads = pgTable(
   "leads",
@@ -35,7 +35,8 @@ export const leads = pgTable(
       .where(sql`deleted_at IS NULL`),
     index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
     index("ix_leads_assignee").on(t.orgId, t.assigneeId),
-    orgIsolationPolicy()
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
 ).enableRLS();
 
@@ -76,7 +77,11 @@ export const consents = pgTable(
     ip: text("ip"),
     createdAt: timestamps.createdAt
   },
-  (t) => [index("ix_consent_lead").on(t.leadId), orgIsolationPolicy()]
+  (t) => [
+    index("ix_consent_lead").on(t.leadId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
 ).enableRLS();
 
 export const orders = pgTable(
@@ -109,7 +114,8 @@ export const orders = pgTable(
   (t) => [
     uniqueIndex("uq_order_code").on(t.orgId, t.code),
     index("ix_orders_status").on(t.orgId, t.status, t.createdAt),
-    orgIsolationPolicy()
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
 ).enableRLS();
 
@@ -129,7 +135,8 @@ export const payments = pgTable(
   // idempotency
   (t) => [
     uniqueIndex("uq_payment_tx").on(t.provider, t.providerTxId),
-    orgIsolationPolicy()
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
 ).enableRLS();
 
@@ -152,7 +159,8 @@ export const paymentConnections = pgTable(
   },
   (t) => [
     uniqueIndex("uq_payment_conn_org").on(t.orgId, t.provider),
-    orgIsolationPolicy()
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
 ).enableRLS();
 
@@ -177,7 +185,11 @@ export const unmatchedTransactions = pgTable(
     resolvedAt: timestamp("resolved_at"),
     createdAt: timestamps.createdAt
   },
-  (t) => [index("ix_unmatched_org").on(t.orgId, t.status), orgIsolationPolicy()]
+  (t) => [
+    index("ix_unmatched_org").on(t.orgId, t.status),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
 ).enableRLS();
 
 // manual refund flow — the platform never holds funds, ops must transfer the refund themselves
@@ -204,5 +216,9 @@ export const refundRequests = pgTable(
     createdAt: timestamps.createdAt,
     completedAt: timestamp("completed_at")
   },
-  (t) => [index("ix_refund_org").on(t.orgId, t.status), orgIsolationPolicy()]
+  (t) => [
+    index("ix_refund_org").on(t.orgId, t.status),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
 ).enableRLS();

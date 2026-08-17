@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dv/config": "workspace:*",
+    "@dv/contracts": "workspace:*",
     "@dv/ui": "workspace:*",
     "@hookform/resolvers": "catalog:react",
     "@inlang/paraglide-js": "catalog:react",

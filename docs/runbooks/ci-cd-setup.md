@@ -75,3 +75,5 @@ bunx wrangler pages project create dv-dashboard --production-branch=main
 1. Push 1 commit nhỏ lên `main` → workflow `CI` phải xanh, workflow `Deploy Staging` tự chạy sau đó (xem tab Actions, phụ thuộc `workflow_run`) → API + Dashboard staging cập nhật.
 2. Kiểm tra `https://api-staging.donve.vn/api/auth/*` (hoặc URL `*.workers.dev` nếu chưa gán domain) trả response thật, không lỗi DB connection.
 3. Chạy `deploy-prod.yml` bằng tay (Actions tab → Deploy Production → Run workflow) → phải dừng chờ approve ở bước environment `prod` trước khi chạy job.
+
+> Migration DB (`drizzle-kit migrate`) đã tự chạy trong cả 2 workflow trên — không cần làm tay. Riêng cấp quyền `/platform` (platform-admin) thì **không** tự động — mỗi environment mới deploy xong phải tự chạy 1 lệnh CLI, xem `docs/architecture/platform-admin.md` §9.

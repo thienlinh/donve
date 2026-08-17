@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
-import { orgIsolationPolicy } from "./rls.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 export const landingPages = pgTable(
   "landing_pages",
@@ -110,6 +110,7 @@ export const chatMessages = pgTable(
   },
   (t) => [
     index("ix_msg_session").on(t.sessionId, t.createdAt),
-    orgIsolationPolicy()
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
 ).enableRLS();

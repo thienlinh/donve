@@ -8,138 +8,150 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as AuthenticatedRouteImport } from "./routes/_authenticated"
-import { Route as AuthenticatedLandingsRouteImport } from "./routes/_authenticated/landings"
-import { Route as AuthenticatedOnboardingRouteImport } from "./routes/_authenticated/onboarding"
-import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
-import { Route as IndexRouteImport } from "./routes/index"
-import { Route as LoginRouteImport } from "./routes/login"
-import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
-import { Route as SignupRouteImport } from "./routes/signup"
-import { Route as VerifiedRouteImport } from "./routes/verified"
-import { Route as VerifyEmailRouteImport } from "./routes/verify-email"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as VerifiedRouteImport } from './routes/verified'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as AuthenticatedLandingsRouteImport } from './routes/_authenticated/landings'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: "/_authenticated",
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: "/forgot-password",
-  path: "/forgot-password",
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: "/reset-password",
-  path: "/reset-password",
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifiedRoute = VerifiedRouteImport.update({
-  id: "/verified",
-  path: "/verified",
+  id: '/verified',
+  path: '/verified',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
-  id: "/verify-email",
-  path: "/verify-email",
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedLandingsRoute = AuthenticatedLandingsRouteImport.update({
-  id: "/landings",
-  path: "/landings",
+  id: '/landings',
+  path: '/landings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
-  id: "/onboarding",
-  path: "/onboarding",
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute
-  "/forgot-password": typeof ForgotPasswordRoute
-  "/login": typeof LoginRoute
-  "/reset-password": typeof ResetPasswordRoute
-  "/signup": typeof SignupRoute
-  "/verified": typeof VerifiedRoute
-  "/verify-email": typeof VerifyEmailRoute
-  "/landings": typeof AuthenticatedLandingsRoute
-  "/onboarding": typeof AuthenticatedOnboardingRoute
+  '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verified': typeof VerifiedRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/landings': typeof AuthenticatedLandingsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/platform': typeof AuthenticatedPlatformRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute
-  "/forgot-password": typeof ForgotPasswordRoute
-  "/login": typeof LoginRoute
-  "/reset-password": typeof ResetPasswordRoute
-  "/signup": typeof SignupRoute
-  "/verified": typeof VerifiedRoute
-  "/verify-email": typeof VerifyEmailRoute
-  "/landings": typeof AuthenticatedLandingsRoute
-  "/onboarding": typeof AuthenticatedOnboardingRoute
+  '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verified': typeof VerifiedRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/landings': typeof AuthenticatedLandingsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/platform': typeof AuthenticatedPlatformRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  "/": typeof IndexRoute
-  "/_authenticated": typeof AuthenticatedRouteWithChildren
-  "/forgot-password": typeof ForgotPasswordRoute
-  "/login": typeof LoginRoute
-  "/reset-password": typeof ResetPasswordRoute
-  "/signup": typeof SignupRoute
-  "/verified": typeof VerifiedRoute
-  "/verify-email": typeof VerifyEmailRoute
-  "/_authenticated/landings": typeof AuthenticatedLandingsRoute
-  "/_authenticated/onboarding": typeof AuthenticatedOnboardingRoute
+  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verified': typeof VerifiedRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/_authenticated/landings': typeof AuthenticatedLandingsRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/forgot-password"
-    | "/login"
-    | "/reset-password"
-    | "/signup"
-    | "/verified"
-    | "/verify-email"
-    | "/landings"
-    | "/onboarding"
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verified'
+    | '/verify-email'
+    | '/landings'
+    | '/onboarding'
+    | '/platform'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/forgot-password"
-    | "/login"
-    | "/reset-password"
-    | "/signup"
-    | "/verified"
-    | "/verify-email"
-    | "/landings"
-    | "/onboarding"
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verified'
+    | '/verify-email'
+    | '/landings'
+    | '/onboarding'
+    | '/platform'
   id:
-    | "__root__"
-    | "/"
-    | "/_authenticated"
-    | "/forgot-password"
-    | "/login"
-    | "/reset-password"
-    | "/signup"
-    | "/verified"
-    | "/verify-email"
-    | "/_authenticated/landings"
-    | "/_authenticated/onboarding"
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/verified'
+    | '/verify-email'
+    | '/_authenticated/landings'
+    | '/_authenticated/onboarding'
+    | '/_authenticated/platform'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,76 +165,83 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/"
-      path: "/"
-      fullPath: "/"
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/_authenticated": {
-      id: "/_authenticated"
-      path: ""
-      fullPath: "/"
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/forgot-password": {
-      id: "/forgot-password"
-      path: "/forgot-password"
-      fullPath: "/forgot-password"
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/login": {
-      id: "/login"
-      path: "/login"
-      fullPath: "/login"
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/reset-password": {
-      id: "/reset-password"
-      path: "/reset-password"
-      fullPath: "/reset-password"
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/signup": {
-      id: "/signup"
-      path: "/signup"
-      fullPath: "/signup"
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/verified": {
-      id: "/verified"
-      path: "/verified"
-      fullPath: "/verified"
+    '/verified': {
+      id: '/verified'
+      path: '/verified'
+      fullPath: '/verified'
       preLoaderRoute: typeof VerifiedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/verify-email": {
-      id: "/verify-email"
-      path: "/verify-email"
-      fullPath: "/verify-email"
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/_authenticated/landings": {
-      id: "/_authenticated/landings"
-      path: "/landings"
-      fullPath: "/landings"
+    '/_authenticated/landings': {
+      id: '/_authenticated/landings'
+      path: '/landings'
+      fullPath: '/landings'
       preLoaderRoute: typeof AuthenticatedLandingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    "/_authenticated/onboarding": {
-      id: "/_authenticated/onboarding"
-      path: "/onboarding"
-      fullPath: "/onboarding"
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
@@ -231,15 +250,17 @@ declare module "@tanstack/react-router" {
 interface AuthenticatedRouteChildren {
   AuthenticatedLandingsRoute: typeof AuthenticatedLandingsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLandingsRoute: AuthenticatedLandingsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren
+  AuthenticatedRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {

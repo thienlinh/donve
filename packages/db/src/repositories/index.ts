@@ -9,6 +9,7 @@ export * from "./orders.js";
 export * from "./organizations.js";
 export * from "./payment-connections.js";
 export * from "./payments.js";
+export * from "./platform-staff.js";
 export * from "./refund-requests.js";
 export * from "./scoped-repository.js";
 export * from "./unmatched-transactions.js";
