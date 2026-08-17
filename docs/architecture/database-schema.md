@@ -14,7 +14,7 @@ import {
   numeric,
   uniqueIndex,
   index,
-  pgEnum,
+  pgEnum
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -27,7 +27,7 @@ export const organizations = pgTable("organizations", {
   aiCreditBalance: integer("ai_credit_balance").notNull().default(0),
   settings: jsonb("settings").notNull().default({}), // brand tokens, pipeline stages, timezone
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
 export const memberships = pgTable(
@@ -39,9 +39,9 @@ export const memberships = pgTable(
       .references(() => organizations.id),
     userId: text("user_id").notNull(), // ref better-auth users
     role: text("role", {
-      enum: ["owner", "admin", "editor", "sales"],
+      enum: ["owner", "admin", "editor", "sales"]
     }).notNull(),
-    salesConfig: jsonb("sales_config").default({}), // { seeAllLeads: false }
+    salesConfig: jsonb("sales_config").default({}) // { seeAllLeads: false }
   },
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
 );
@@ -60,7 +60,7 @@ export const auditLogs = pgTable(
     targetType: text("target_type"),
     targetId: text("target_id"),
     meta: jsonb("meta").default({}),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_audit_org_time").on(t.orgId, t.createdAt)]
 );
@@ -74,7 +74,7 @@ export const products = pgTable(
     id: text("id").primaryKey(),
     orgId: text("org_id").notNull(),
     type: text("type", {
-      enum: ["course", "product", "service", "other"],
+      enum: ["course", "product", "service", "other"]
     }).notNull(),
     name: text("name").notNull(),
     price: numeric("price", { precision: 12, scale: 0 }).notNull().default("0"), // VND
@@ -83,7 +83,7 @@ export const products = pgTable(
     attributes: jsonb("attributes").default({}), // course: { zaloGroupUrl, activationGuide, startDate }
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
-    deletedAt: timestamp("deleted_at"),
+    deletedAt: timestamp("deleted_at")
   },
   (t) => [index("ix_products_org").on(t.orgId, t.type)]
 );
@@ -109,12 +109,12 @@ export const campaigns = pgTable(
        transferPrefix:"DV", sepayAuto:true, zaloGroupUrl, expireMinutes:1440 } */
     utmDefaults: jsonb("utm_defaults").default({}),
     ...timestamps,
-    deletedAt: timestamp("deleted_at"),
+    deletedAt: timestamp("deleted_at")
   },
   (t) => [
     uniqueIndex("uq_campaign_public_id")
       .on(t.publicId)
-      .where(sql`deleted_at IS NULL`),
+      .where(sql`deleted_at IS NULL`)
   ]
 );
 
@@ -123,7 +123,7 @@ export const campaignProducts = pgTable(
   {
     campaignId: text("campaign_id").notNull(),
     productId: text("product_id").notNull(),
-    orgId: text("org_id").notNull(),
+    orgId: text("org_id").notNull()
   },
   (t) => [uniqueIndex("uq_cp").on(t.campaignId, t.productId)]
 );
@@ -145,7 +145,7 @@ export const landingPages = pgTable(
       .notNull()
       .default("ai"),
     ...timestamps,
-    deletedAt: timestamp("deleted_at"),
+    deletedAt: timestamp("deleted_at")
   },
   (t) => [index("ix_lp_org").on(t.orgId, t.campaignId)]
 );
@@ -160,14 +160,14 @@ export const pageVersions = pgTable(
     htmlKey: text("html_key").notNull(), // R2: pages/<pageId>/v<seq>.html
     srcmapKey: text("srcmap_key").notNull(),
     origin: text("origin", {
-      enum: ["ai_patch", "ai_full", "manual", "import", "restore"],
+      enum: ["ai_patch", "ai_full", "manual", "import", "restore"]
     }).notNull(),
     patch: jsonb("patch"), // ops đã áp (audit/diff)
     chatMessageId: text("chat_message_id"), // liên kết ngược tới message AI đã sinh version này (nullable — manual/import/restore không có)
     label: text("label"),
     createdBy: text("created_by"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    prunedAt: timestamp("pruned_at"), // set khi job retention xoá htmlKey/srcmapKey khỏi R2 (infra-deployment-cost.md §2) — row Postgres vẫn giữ cho lịch sử/audit
+    prunedAt: timestamp("pruned_at") // set khi job retention xoá htmlKey/srcmapKey khỏi R2 (infra-deployment-cost.md §2) — row Postgres vẫn giữ cho lịch sử/audit
   },
   (t) => [uniqueIndex("uq_pv").on(t.landingPageId, t.seq)]
 );
@@ -182,13 +182,13 @@ export const pageAssets = pgTable("page_assets", {
   sizeBytes: integer("size_bytes").notNull(),
   variants: jsonb("variants").default({}), // webp/avif/resized keys
   source: text("source", {
-    enum: ["user_upload", "stock_licensed", "ai_generated"],
+    enum: ["user_upload", "stock_licensed", "ai_generated"]
   })
     .notNull()
     .default("user_upload"),
   license: jsonb("license").default({}), // { provider, attribution, sourceUrl } — bắt buộc khi source=stock_licensed
   unverifiedSource: boolean("unverified_source").notNull().default(false), // true khi import HTML kéo ảnh URL ngoài không rõ nguồn
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
 export const studioComments = pgTable("studio_comments", {
@@ -202,7 +202,7 @@ export const studioComments = pgTable("studio_comments", {
     .notNull()
     .default("queued"),
   createdBy: text("created_by"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
 export const chatSessions = pgTable("chat_sessions", {
@@ -217,7 +217,7 @@ export const chatMessages = pgTable(
     role: text("role", { enum: ["user", "assistant", "tool"] }).notNull(),
     content: jsonb("content").notNull(), // parts: text/image/comment-context/patch-summary
     tokenUsage: jsonb("token_usage"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_msg_session").on(t.sessionId, t.createdAt)]
 );
@@ -234,17 +234,17 @@ export const deployments = pgTable(
     pageVersionId: text("page_version_id").notNull(),
     hostname: text("hostname").notNull(), // yoga-6-tuan.donve.vn
     status: text("status", {
-      enum: ["building", "live", "superseded", "failed", "unpublished"],
+      enum: ["building", "live", "superseded", "failed", "unpublished"]
     }).notNull(),
     r2Prefix: text("r2_prefix").notNull(),
     meta: jsonb("meta").default({}), // lighthouse score, size
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [
     index("ix_deploy_host").on(t.hostname, t.status),
     uniqueIndex("uq_deploy_live_host")
       .on(t.hostname)
-      .where(sql`status = 'live'`), // chỉ 1 bản ghi "live" mỗi hostname
+      .where(sql`status = 'live'`) // chỉ 1 bản ghi "live" mỗi hostname
   ]
 );
 
@@ -264,7 +264,7 @@ export const publishOutbox = pgTable(
       .notNull()
       .default("pending"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    appliedAt: timestamp("applied_at"),
+    appliedAt: timestamp("applied_at")
   },
   (t) => [index("ix_outbox_status").on(t.status, t.createdAt)]
 );
@@ -287,14 +287,14 @@ export const leads = pgTable(
     stage: text("stage").notNull().default("new"), // theo pipeline org settings
     assigneeId: text("assignee_id"),
     ...timestamps,
-    deletedAt: timestamp("deleted_at"),
+    deletedAt: timestamp("deleted_at")
   },
   (t) => [
     uniqueIndex("uq_lead_phone")
       .on(t.orgId, t.phone)
       .where(sql`deleted_at IS NULL`), // dedupe FR-E-06
     index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
-    index("ix_leads_assignee").on(t.orgId, t.assigneeId),
+    index("ix_leads_assignee").on(t.orgId, t.assigneeId)
   ]
 );
 
@@ -308,7 +308,7 @@ export const leadActivities = pgTable(
     body: text("body"),
     meta: jsonb("meta").default({}),
     actorId: text("actor_id"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_act_lead").on(t.leadId, t.createdAt)]
 );
@@ -323,7 +323,7 @@ export const consents = pgTable(
     consentType: text("consent_type").notNull().default("data_collection"),
     policyVersion: text("policy_version").notNull(),
     ip: text("ip"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_consent_lead").on(t.leadId)]
 );
@@ -345,19 +345,19 @@ export const orders = pgTable(
         "paid",
         "fulfilled",
         "cancelled",
-        "refunded",
-      ],
+        "refunded"
+      ]
     })
       .notNull()
       .default("pending"),
     paidAt: timestamp("paid_at"),
     fulfilledAt: timestamp("fulfilled_at"),
     expiresAt: timestamp("expires_at"),
-    ...timestamps,
+    ...timestamps
   },
   (t) => [
     uniqueIndex("uq_order_code").on(t.orgId, t.code),
-    index("ix_orders_status").on(t.orgId, t.status, t.createdAt),
+    index("ix_orders_status").on(t.orgId, t.status, t.createdAt)
   ]
 );
 
@@ -372,7 +372,7 @@ export const payments = pgTable(
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     rawPayload: jsonb("raw_payload").notNull(),
     matchType: text("match_type", { enum: ["auto", "fuzzy", "manual"] }),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [uniqueIndex("uq_payment_tx").on(t.provider, t.providerTxId)]
 ); // idempotency
@@ -392,7 +392,7 @@ export const paymentConnections = pgTable(
     status: text("status", { enum: ["active", "invalid"] })
       .notNull()
       .default("active"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [uniqueIndex("uq_payment_conn_org").on(t.orgId, t.provider)]
 );
@@ -405,7 +405,7 @@ export const unmatchedTransactions = pgTable(
     providerTxId: text("provider_tx_id").notNull(),
     rawPayload: jsonb("raw_payload").notNull(),
     reason: text("reason", {
-      enum: ["no_candidate", "ambiguous", "already_paid"],
+      enum: ["no_candidate", "ambiguous", "already_paid"]
     }).notNull(),
     candidateOrderIds: jsonb("candidate_order_ids").default([]), // dùng khi reason=ambiguous, xếp hạng độ khớp ở tầng app
     status: text("status", { enum: ["pending", "resolved"] })
@@ -414,7 +414,7 @@ export const unmatchedTransactions = pgTable(
     resolvedOrderId: text("resolved_order_id"),
     resolvedBy: text("resolved_by"),
     resolvedAt: timestamp("resolved_at"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_unmatched_org").on(t.orgId, t.status)]
 );
@@ -428,19 +428,19 @@ export const refundRequests = pgTable(
     orderId: text("order_id").notNull(),
     paymentId: text("payment_id"),
     reason: text("reason", {
-      enum: ["customer_request", "duplicate_payment", "wrong_match", "other"],
+      enum: ["customer_request", "duplicate_payment", "wrong_match", "other"]
     }).notNull(),
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     remitterInfo: jsonb("remitter_info").default({}), // trích từ payments.rawPayload nếu SePay trả tên/tài khoản người chuyển
     status: text("status", {
-      enum: ["pending", "processing", "completed", "rejected"],
+      enum: ["pending", "processing", "completed", "rejected"]
     })
       .notNull()
       .default("pending"),
     evidenceKey: text("evidence_key"), // R2 key ảnh chứng từ hoàn tiền, tuỳ chọn
     createdBy: text("created_by"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    completedAt: timestamp("completed_at"),
+    completedAt: timestamp("completed_at")
   },
   (t) => [index("ix_refund_org").on(t.orgId, t.status)]
 );
@@ -452,7 +452,7 @@ export const aiConnections = pgTable("ai_connections", {
   id: text("id").primaryKey(),
   orgId: text("org_id").notNull(),
   provider: text("provider", {
-    enum: ["anthropic", "openai", "openrouter", "platform"],
+    enum: ["anthropic", "openai", "openrouter", "platform"]
   }).notNull(),
   encryptedKey: text("encrypted_key"), // null nếu provider=platform
   keyLast4: text("key_last4"),
@@ -461,7 +461,7 @@ export const aiConnections = pgTable("ai_connections", {
   status: text("status", { enum: ["active", "invalid"] })
     .notNull()
     .default("active"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
 export const aiUsage = pgTable(
@@ -476,7 +476,7 @@ export const aiUsage = pgTable(
     outputTokens: integer("output_tokens").notNull(),
     creditCost: integer("credit_cost").notNull().default(0),
     context: jsonb("context").default({}), // pageId, sessionId
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_usage_org_time").on(t.orgId, t.createdAt)]
 );
@@ -491,7 +491,7 @@ export const skills = pgTable(
     content: text("content").notNull(), // markdown
     version: integer("version").notNull().default(1),
     isActiveDefault: boolean("is_active_default").notNull().default(false),
-    ...timestamps,
+    ...timestamps
   },
   (t) => [uniqueIndex("uq_skill").on(t.orgId, t.slug)]
 );
@@ -513,11 +513,11 @@ export const emailLogs = pgTable(
     template: text("template").notNull(), // "verify_email"|"invite"|"lead_digest"|"order_paid"...
     resendId: text("resend_id"), // id trả về từ Resend, tra cứu bounce/delivery
     status: text("status", {
-      enum: ["queued", "sent", "delivered", "bounced", "failed"],
+      enum: ["queued", "sent", "delivered", "bounced", "failed"]
     })
       .notNull()
       .default("queued"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_email_org_time").on(t.orgId, t.createdAt)]
 );
@@ -535,7 +535,7 @@ export const events = pgTable(
     type: text("type").notNull(), // view|submit|order_created|paid_popup|zalo_click
     sessionHash: text("session_hash"), // hash(ip+ua+ngày) — không PII
     meta: jsonb("meta").default({}), // utm, referrer
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow()
   },
   (t) => [index("ix_events").on(t.orgId, t.campaignId, t.type, t.createdAt)]
 );

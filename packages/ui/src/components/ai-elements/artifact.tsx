@@ -9,7 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "#components/shadcn/tooltip";
 import { cn } from "#lib/utils";
 

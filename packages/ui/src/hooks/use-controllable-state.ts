@@ -9,7 +9,7 @@ interface UseControllableStateParams<T> {
 export function useControllableState<T>({
   prop,
   defaultProp,
-  onChange,
+  onChange
 }: UseControllableStateParams<T>): [T, (value: T | ((prev: T) => T)) => void] {
   const [internalValue, setInternalValue] = useState<T>(defaultProp as T);
   const isControlled = prop !== undefined;

@@ -143,7 +143,7 @@
       "typescript": "7.0.2",
       "oxlint": "1.78.0", // pin exact nhóm pre-1.0/format
       "oxfmt": "0.63.0",
-      "zod": "4.4.3",
+      "zod": "4.4.3"
     },
     "catalogs": {
       "react": {
@@ -158,40 +158,40 @@
         "@hookform/resolvers": "5.2.0",
         "recharts": "3.2.0",
         "react-colorful": "5.6.1",
-        "@inlang/paraglide-js": "2.0.0",
+        "@inlang/paraglide-js": "2.0.0"
       },
       "content": {
         "streamdown": "2.5.0",
         "libphonenumber-js": "1.12.0",
-        "qrcode": "1.5.4",
+        "qrcode": "1.5.4"
       },
       "data": {
         "@tanstack/react-router": "1.170.29",
-        "@tanstack/react-query": "5.101.4",
+        "@tanstack/react-query": "5.101.4"
       },
       "queue": {
         "@upstash/redis": "1.38.2",
         "@upstash/qstash": "2.11.3",
-        "@upstash/ratelimit": "2.0.6",
+        "@upstash/ratelimit": "2.0.6"
       },
       "ai": {
         "ai": "7.0.66",
         "@ai-sdk/react": "4.0.69",
         "@openrouter/ai-sdk-provider": "3.0.0",
         "@ai-sdk/anthropic": "4.0.39",
-        "@ai-sdk/openai": "4.0.42",
+        "@ai-sdk/openai": "4.0.42"
       },
       "server": {
         "hono": "4.13.2",
         "better-auth": "1.6.29",
         "tsdown": "0.22.14",
-        "resend": "6.1.2",
+        "resend": "6.1.2"
       },
       "db": {
-        "drizzle-orm": "0.45.2",
-      },
-    },
-  },
+        "drizzle-orm": "0.45.2"
+      }
+    }
+  }
 }
 ```
 
@@ -205,8 +205,8 @@
     "strict": true, // default của TS7, ghi tường minh
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true,
-  },
+    "skipLibCheck": true
+  }
 }
 ```
 
@@ -221,8 +221,8 @@
     "lint": "oxlint --type-aware .",
     "fmt": "oxfmt .",
     "test": "turbo run test",
-    "e2e": "playwright test",
-  },
+    "e2e": "playwright test"
+  }
 }
 ```
 
@@ -234,7 +234,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react({ babel: reactCompilerPreset() }), tailwindcss()],
-  build: { target: "baseline-widely-available" },
+  build: { target: "baseline-widely-available" }
 });
 ```
 

@@ -29,7 +29,7 @@ export async function createInvite(
     email,
     role,
     token: ulid(),
-    expiresAt: new Date(Date.now() + INVITE_TTL_MS),
+    expiresAt: new Date(Date.now() + INVITE_TTL_MS)
   });
   if (!invite) {
     throw new Error("invite insert returned no row");
@@ -42,8 +42,8 @@ export async function createInvite(
       props: {
         orgName: emailOptions.orgName,
         inviteUrl: `${emailOptions.appURL}/invites/${invite.token}`,
-        role,
-      },
+        role
+      }
     });
   }
 
@@ -65,6 +65,6 @@ export async function acceptInvite(
   if (!invite) return null;
   return membershipsRepository.insert(db, orgId, {
     userId,
-    role: invite.role,
+    role: invite.role
   });
 }

@@ -5,7 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
@@ -20,7 +20,7 @@ export const organizations = pgTable("organizations", {
     .default("free"),
   aiCreditBalance: integer("ai_credit_balance").notNull().default(0),
   settings: jsonb("settings").notNull().default({}),
-  ...timestamps,
+  ...timestamps
 });
 
 export const memberships = pgTable(
@@ -32,13 +32,13 @@ export const memberships = pgTable(
       .references(() => organizations.id),
     userId: text("user_id").notNull(),
     role: text("role", {
-      enum: ["owner", "admin", "editor", "sales"],
+      enum: ["owner", "admin", "editor", "sales"]
     }).notNull(),
     salesConfig: jsonb("sales_config").default({}),
     // Better Auth's organization plugin (packages/auth/src/config.ts) writes
     // `createdAt` on every member it creates (crud-org.mjs/crud-invites.mjs) —
     // required for its own drizzleAdapter schema validation, not just audit trail.
-    ...timestamps,
+    ...timestamps
   },
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
 );
@@ -52,7 +52,7 @@ export const invites = pgTable("invites", {
   // endpoints own this table's shape too (same `modelName: "invites"` mapping) and
   // require `status`/`inviterId` on every row it writes.
   status: text("status", {
-    enum: ["pending", "accepted", "rejected", "canceled"],
+    enum: ["pending", "accepted", "rejected", "canceled"]
   })
     .notNull()
     .default("pending"),
@@ -64,7 +64,7 @@ export const invites = pgTable("invites", {
    */
   token: text("token").unique(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
 export const auditLogs = pgTable(
@@ -77,7 +77,7 @@ export const auditLogs = pgTable(
     targetType: text("target_type"),
     targetId: text("target_id"),
     meta: jsonb("meta").default({}),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_audit_org_time").on(t.orgId, t.createdAt)]
 );

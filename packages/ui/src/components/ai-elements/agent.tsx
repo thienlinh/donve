@@ -9,7 +9,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
+  AccordionTrigger
 } from "#components/shadcn/accordion";
 import { Badge } from "#components/shadcn/badge";
 import { cn } from "#lib/utils";

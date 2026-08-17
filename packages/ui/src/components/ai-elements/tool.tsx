@@ -7,7 +7,7 @@ import {
   CircleIcon,
   ClockIcon,
   WrenchIcon,
-  XCircleIcon,
+  XCircleIcon
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
@@ -16,7 +16,7 @@ import { Badge } from "#components/shadcn/badge";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 
@@ -52,7 +52,7 @@ const statusLabels: Record<ToolPart["state"], string> = {
   "input-streaming": "Pending",
   "output-available": "Completed",
   "output-denied": "Denied",
-  "output-error": "Error",
+  "output-error": "Error"
 };
 
 const statusIcons: Record<ToolPart["state"], ReactNode> = {
@@ -62,7 +62,7 @@ const statusIcons: Record<ToolPart["state"], ReactNode> = {
   "input-streaming": <CircleIcon className="size-4" />,
   "output-available": <CheckCircleIcon className="size-4 text-green-600" />,
   "output-denied": <XCircleIcon className="size-4 text-orange-600" />,
-  "output-error": <XCircleIcon className="size-4 text-red-600" />,
+  "output-error": <XCircleIcon className="size-4 text-red-600" />
 };
 
 export const getStatusBadge = (status: ToolPart["state"]) => (

@@ -63,6 +63,6 @@ export function createOrgScopedRepository<TTable extends OrgScopedTable>(
           .returning()
       );
       return rows[0];
-    },
+    }
   };
 }

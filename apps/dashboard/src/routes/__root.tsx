@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { queryClient } from "@/lib/query-client";
 
 export const Route = createRootRoute({
-  component: RootComponent,
+  component: RootComponent
 });
 
 function RootComponent() {

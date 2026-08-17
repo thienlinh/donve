@@ -9,7 +9,7 @@ import { Separator } from "#components/shadcn/separator";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
+  TooltipTrigger
 } from "#components/shadcn/tooltip";
 import { cn } from "#lib/utils";
 

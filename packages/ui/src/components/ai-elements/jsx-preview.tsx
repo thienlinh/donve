@@ -10,7 +10,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 import type { TProps as JsxParserProps } from "react-jsx-parser";
 import JsxParser from "react-jsx-parser";
@@ -69,7 +69,7 @@ const matchJsxTag = (code: string) => {
     startIndex: match.index,
     tag: fullMatch,
     tagName,
-    type,
+    type
   };
 };
 
@@ -168,7 +168,7 @@ export const JSXPreview = memo(
         onErrorProp: onError,
         processedJsx,
         setError,
-        setLastGoodJsx,
+        setLastGoodJsx
       }),
       [
         bindings,
@@ -178,7 +178,7 @@ export const JSXPreview = memo(
         jsx,
         onError,
         processedJsx,
-        setError,
+        setError
       ]
     );
 
@@ -205,7 +205,7 @@ export const JSXPreviewContent = memo(
       bindings,
       setError,
       setLastGoodJsx,
-      onErrorProp,
+      onErrorProp
     } = useJSXPreview();
     const errorReportedRef = useRef<string | null>(null);
     const lastGoodJsxRef = useRef("");

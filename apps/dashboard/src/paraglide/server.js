@@ -123,7 +123,7 @@ export async function paraglideMiddleware(request, resolve, options) {
   const strategy = runtime.getStrategyForUrl(url.href);
   const decision = await runtime.shouldRedirect({
     request,
-    effectiveRequestUrl: url,
+    effectiveRequestUrl: url
   });
   const locale = decision.locale;
   // if the client makes a request to a URL that doesn't match
@@ -143,8 +143,8 @@ export async function paraglideMiddleware(request, resolve, options) {
       status: 307,
       headers: {
         Location: decision.redirectUrl.href,
-        ...headers,
-      },
+        ...headers
+      }
     });
     options?.onRedirect?.(response);
     return response;
@@ -203,7 +203,7 @@ export async function paraglideMiddleware(request, resolve, options) {
     return new Response(newBody, {
       status: response.status,
       statusText: response.statusText,
-      headers: newHeaders,
+      headers: newHeaders
     });
   }
   return response;
@@ -289,7 +289,7 @@ function createMockAsyncLocalStorage() {
       } finally {
         currentStore = undefined;
       }
-    },
+    }
   };
 }
 // Used in generated server.js when async local storage is disabled.

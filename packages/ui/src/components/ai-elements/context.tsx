@@ -9,7 +9,7 @@ import { Button } from "#components/shadcn/button";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
+  HoverCardTrigger
 } from "#components/shadcn/hover-card";
 import { Progress } from "#components/shadcn/progress";
 import { cn } from "#lib/utils";
@@ -110,7 +110,7 @@ export const ContextTrigger = ({ children, ...props }: ContextTriggerProps) => {
   const usedPercent = usedTokens / maxTokens;
   const renderedPercent = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
-    style: "percent",
+    style: "percent"
   }).format(usedPercent);
 
   return (
@@ -158,13 +158,13 @@ export const ContextContentHeader = ({
   const usedPercent = usedTokens / maxTokens;
   const displayPct = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
-    style: "percent",
+    style: "percent"
   }).format(usedPercent);
   const used = new Intl.NumberFormat("en-US", {
-    notation: "compact",
+    notation: "compact"
   }).format(usedTokens);
   const total = new Intl.NumberFormat("en-US", {
-    notation: "compact",
+    notation: "compact"
   }).format(maxTokens);
 
   return (
@@ -211,13 +211,13 @@ export const ContextContentFooter = ({
         modelId,
         usage: {
           input: usage?.inputTokens ?? 0,
-          output: usage?.outputTokens ?? 0,
-        },
+          output: usage?.outputTokens ?? 0
+        }
       }).costUSD?.totalUSD
     : undefined;
   const totalCost = new Intl.NumberFormat("en-US", {
     currency: "USD",
-    style: "currency",
+    style: "currency"
   }).format(costUSD ?? 0);
 
   return (
@@ -240,7 +240,7 @@ export const ContextContentFooter = ({
 
 const TokensWithCost = ({
   tokens,
-  costText,
+  costText
 }: {
   tokens?: number;
   costText?: string;
@@ -249,7 +249,7 @@ const TokensWithCost = ({
     {tokens === undefined
       ? "—"
       : new Intl.NumberFormat("en-US", {
-          notation: "compact",
+          notation: "compact"
         }).format(tokens)}
     {costText ? (
       <span className="ml-2 text-muted-foreground">• {costText}</span>
@@ -278,12 +278,12 @@ export const ContextInputUsage = ({
   const inputCost = modelId
     ? getUsage({
         modelId,
-        usage: { input: inputTokens, output: 0 },
+        usage: { input: inputTokens, output: 0 }
       }).costUSD?.totalUSD
     : undefined;
   const inputCostText = new Intl.NumberFormat("en-US", {
     currency: "USD",
-    style: "currency",
+    style: "currency"
   }).format(inputCost ?? 0);
 
   return (
@@ -318,12 +318,12 @@ export const ContextOutputUsage = ({
   const outputCost = modelId
     ? getUsage({
         modelId,
-        usage: { input: 0, output: outputTokens },
+        usage: { input: 0, output: outputTokens }
       }).costUSD?.totalUSD
     : undefined;
   const outputCostText = new Intl.NumberFormat("en-US", {
     currency: "USD",
-    style: "currency",
+    style: "currency"
   }).format(outputCost ?? 0);
 
   return (
@@ -358,12 +358,12 @@ export const ContextReasoningUsage = ({
   const reasoningCost = modelId
     ? getUsage({
         modelId,
-        usage: { reasoningTokens },
+        usage: { reasoningTokens }
       }).costUSD?.totalUSD
     : undefined;
   const reasoningCostText = new Intl.NumberFormat("en-US", {
     currency: "USD",
-    style: "currency",
+    style: "currency"
   }).format(reasoningCost ?? 0);
 
   return (
@@ -398,12 +398,12 @@ export const ContextCacheUsage = ({
   const cacheCost = modelId
     ? getUsage({
         modelId,
-        usage: { cacheReads: cacheTokens, input: 0, output: 0 },
+        usage: { cacheReads: cacheTokens, input: 0, output: 0 }
       }).costUSD?.totalUSD
     : undefined;
   const cacheCostText = new Intl.NumberFormat("en-US", {
     currency: "USD",
-    style: "currency",
+    style: "currency"
   }).format(cacheCost ?? 0);
 
   return (

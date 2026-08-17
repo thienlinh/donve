@@ -5,7 +5,7 @@ export type {
   JobsDriver,
   ScheduleJobInput,
   ScheduleJobResult,
-  VerifyDeliveryInput,
+  VerifyDeliveryInput
 } from "./types.js";
 export { JobDeliveryVerificationError } from "./types.js";
 

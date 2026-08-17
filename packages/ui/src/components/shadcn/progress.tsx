@@ -79,5 +79,5 @@ export {
   ProgressTrack,
   ProgressIndicator,
   ProgressLabel,
-  ProgressValue,
+  ProgressValue
 };

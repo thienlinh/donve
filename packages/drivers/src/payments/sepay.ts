@@ -7,7 +7,7 @@ import type {
   PaymentConnectionGuide,
   PaymentsDriver,
   VerifiedPaymentEvent,
-  VerifyWebhookInput,
+  VerifyWebhookInput
 } from "./types.js";
 import { PaymentWebhookVerificationError } from "./types.js";
 
@@ -15,7 +15,7 @@ const sepayWebhookPayloadSchema = z.object({
   id: z.union([z.string(), z.number()]),
   transferAmount: z.coerce.number(),
   content: z.string().default(""),
-  transactionDate: z.string(),
+  transactionDate: z.string()
 });
 
 export interface SepayDriverConfig {
@@ -63,7 +63,7 @@ export function createSepayPaymentsDriver(
         content: parsed.data.content,
         orderRef: null,
         occurredAt: new Date(parsed.data.transactionDate),
-        rawPayload: parsed.data,
+        rawPayload: parsed.data
       };
     },
 
@@ -72,7 +72,7 @@ export function createSepayPaymentsDriver(
     ): Promise<MatchTransactionResult> {
       return matchContentBasedTransaction({
         ...input,
-        prefix: config.transferPrefix,
+        prefix: config.transferPrefix
       });
     },
 
@@ -82,22 +82,22 @@ export function createSepayPaymentsDriver(
         steps: [
           {
             title: "Đăng ký tài khoản SePay",
-            body: "Truy cập sepay.vn, tạo tài khoản và liên kết tài khoản ngân hàng/ví muốn nhận thanh toán.",
+            body: "Truy cập sepay.vn, tạo tài khoản và liên kết tài khoản ngân hàng/ví muốn nhận thanh toán."
           },
           {
             title: "Lấy API Key webhook",
-            body: "Vào SePay > Cấu hình > Webhook, tạo API Key mới — đây là secret riêng chỉ tổ chức của bạn biết, không chia sẻ.",
+            body: "Vào SePay > Cấu hình > Webhook, tạo API Key mới — đây là secret riêng chỉ tổ chức của bạn biết, không chia sẻ."
           },
           {
             title: "Dán API Key vào nền tảng",
-            body: "Vào Cài đặt > Thanh toán > SePay trên dashboard, dán API Key cùng số tài khoản và mã ngân hàng (BIN).",
+            body: "Vào Cài đặt > Thanh toán > SePay trên dashboard, dán API Key cùng số tài khoản và mã ngân hàng (BIN)."
           },
           {
             title: "Kiểm tra kết nối",
-            body: 'Nhấn "Kiểm tra kết nối" để xác nhận webhook SePay hoạt động đúng trước khi bật tự động đối soát.',
-          },
-        ],
+            body: 'Nhấn "Kiểm tra kết nối" để xác nhận webhook SePay hoạt động đúng trước khi bật tự động đối soát.'
+          }
+        ]
       };
-    },
+    }
   };
 }

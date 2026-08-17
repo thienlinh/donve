@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/landings")({
       throw redirect({ to: "/onboarding" });
     }
   },
-  component: LandingsPage,
+  component: LandingsPage
 });
 
 /**

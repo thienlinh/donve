@@ -34,8 +34,8 @@ export const notFoundHandler: NotFoundHandler<AppEnv> = (c) => {
       error: {
         code: "not_found",
         message: "Route not found",
-        requestId: c.get("requestId"),
-      },
+        requestId: c.get("requestId")
+      }
     },
     404
   );

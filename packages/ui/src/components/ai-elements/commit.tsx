@@ -6,7 +6,7 @@ import {
   FileIcon,
   GitCommitIcon,
   MinusIcon,
-  PlusIcon,
+  PlusIcon
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,7 +16,7 @@ import { Button } from "#components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 
@@ -151,7 +151,7 @@ export type CommitTimestampProps = HTMLAttributes<HTMLTimeElement> & {
 };
 
 const relativeTimeFormat = new Intl.RelativeTimeFormat("en", {
-  numeric: "auto",
+  numeric: "auto"
 });
 
 const formatRelativeDate = (date: Date) => {
@@ -329,14 +329,14 @@ const fileStatusStyles = {
   added: "text-green-600 dark:text-green-400",
   deleted: "text-red-600 dark:text-red-400",
   modified: "text-yellow-600 dark:text-yellow-400",
-  renamed: "text-blue-600 dark:text-blue-400",
+  renamed: "text-blue-600 dark:text-blue-400"
 };
 
 const fileStatusLabels = {
   added: "A",
   deleted: "D",
   modified: "M",
-  renamed: "R",
+  renamed: "R"
 };
 
 export type CommitFileStatusProps = HTMLAttributes<HTMLSpanElement> & {

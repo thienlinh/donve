@@ -11,11 +11,11 @@ export const emailLogs = pgTable(
     template: text("template").notNull(),
     resendId: text("resend_id"),
     status: text("status", {
-      enum: ["queued", "sent", "delivered", "bounced", "failed"],
+      enum: ["queued", "sent", "delivered", "bounced", "failed"]
     })
       .notNull()
       .default("queued"),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_email_org_time").on(t.orgId, t.createdAt)]
 );

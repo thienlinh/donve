@@ -9,13 +9,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
+  CommandShortcut
 } from "#components/shadcn/command";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "#components/shadcn/dialog";
 import { cn } from "#lib/utils";
 

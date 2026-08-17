@@ -11,7 +11,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
-  ...timestamps,
+  ...timestamps
 });
 
 export const session = pgTable("session", {
@@ -23,7 +23,7 @@ export const session = pgTable("session", {
   userAgent: text("user_agent"),
   userId: text("user_id").notNull(),
   // Set by the organization plugin to track which org a session is scoped to.
-  activeOrganizationId: text("active_organization_id"),
+  activeOrganizationId: text("active_organization_id")
 });
 
 export const account = pgTable("account", {
@@ -38,7 +38,7 @@ export const account = pgTable("account", {
   refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
-  ...timestamps,
+  ...timestamps
 });
 
 export const verification = pgTable("verification", {
@@ -47,5 +47,5 @@ export const verification = pgTable("verification", {
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
+  updatedAt: timestamp("updated_at")
 });

@@ -167,5 +167,5 @@ export {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-  NavigationMenuPositioner,
+  NavigationMenuPositioner
 };

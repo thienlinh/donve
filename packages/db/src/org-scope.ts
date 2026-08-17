@@ -56,7 +56,7 @@ export async function withOrgScope<T>(
   // oxlint-disable-next-line no-unsafe-type-assertion
   const results: readonly unknown[] = await db.raw.batch([
     setOrgScope,
-    query,
+    query
   ] as Parameters<typeof db.raw.batch>[0]);
   // oxlint-disable-next-line no-unsafe-type-assertion -- same erased-shape reason as above.
   return results[1] as T;

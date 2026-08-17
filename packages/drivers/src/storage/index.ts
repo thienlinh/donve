@@ -2,7 +2,7 @@ export type {
   PutObjectInput,
   PutObjectResult,
   StorageDriver,
-  StoredObject,
+  StoredObject
 } from "./types.js";
 
 export type { R2BucketBinding } from "./r2.js";

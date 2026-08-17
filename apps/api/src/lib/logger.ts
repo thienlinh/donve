@@ -15,7 +15,7 @@ export function log(level: LogLevel, fields: LogFields): void {
   const line = JSON.stringify({
     level,
     time: new Date().toISOString(),
-    ...fields,
+    ...fields
   });
   if (level === "error") {
     console.error(line);

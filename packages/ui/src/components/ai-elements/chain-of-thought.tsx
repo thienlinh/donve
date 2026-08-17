@@ -9,7 +9,7 @@ import { Badge } from "#components/shadcn/badge";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { useControllableState } from "#hooks/use-controllable-state";
 import { cn } from "#lib/utils";
@@ -51,7 +51,7 @@ export const ChainOfThought = memo(
     const [isOpen, setIsOpen] = useControllableState({
       defaultProp: defaultOpen,
       onChange: onOpenChange,
-      prop: open,
+      prop: open
     });
 
     const chainOfThoughtContext = useMemo(
@@ -112,7 +112,7 @@ export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
 const stepStatusStyles = {
   active: "text-foreground",
   complete: "text-muted-foreground",
-  pending: "text-muted-foreground/50",
+  pending: "text-muted-foreground/50"
 };
 
 export const ChainOfThoughtStep = memo(

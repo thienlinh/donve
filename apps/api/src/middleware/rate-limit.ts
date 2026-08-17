@@ -21,7 +21,7 @@ export function rateLimit(opts: RateLimitOptions) {
   return createMiddleware<AppEnv>(async (c, next) => {
     const driver = cache.createUpstashCacheDriver({
       url: c.env.UPSTASH_REDIS_URL,
-      token: c.env.UPSTASH_REDIS_TOKEN,
+      token: c.env.UPSTASH_REDIS_TOKEN
     });
 
     const clientIp =

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   encodeOrderCode,
   extractOrderCodes,
-  isValidOrderCode,
+  isValidOrderCode
 } from "../src/payments/order-code.js";
 
 describe("encodeOrderCode / isValidOrderCode", () => {

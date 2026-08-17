@@ -8,7 +8,7 @@ import { Badge } from "#components/shadcn/badge";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 
@@ -42,7 +42,7 @@ interface SchemaDisplayContextType {
 
 const SchemaDisplayContext = createContext<SchemaDisplayContextType>({
   method: "GET",
-  path: "",
+  path: ""
 });
 
 const methodStyles: Record<HttpMethod, string> = {
@@ -51,7 +51,7 @@ const methodStyles: Record<HttpMethod, string> = {
   PATCH:
     "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   POST: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  PUT: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  PUT: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
 };
 
 export type SchemaDisplayHeaderProps = HTMLAttributes<HTMLDivElement>;
@@ -400,7 +400,7 @@ export const SchemaDisplay = ({
       parameters,
       path,
       requestBody,
-      responseBody,
+      responseBody
     }),
     [description, method, parameters, path, requestBody, responseBody]
   );

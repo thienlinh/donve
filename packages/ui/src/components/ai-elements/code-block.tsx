@@ -10,13 +10,13 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 import type {
   BundledLanguage,
   BundledTheme,
   HighlighterGeneric,
-  ThemedToken,
+  ThemedToken
 } from "shiki";
 import { createHighlighter } from "shiki";
 
@@ -26,7 +26,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "#components/shadcn/select";
 import { cn } from "#lib/utils";
 
@@ -54,8 +54,8 @@ const addKeysToTokens = (lines: ThemedToken[][]): KeyedLine[] =>
     key: `line-${lineIdx}`,
     tokens: line.map((token, tokenIdx) => ({
       key: `line-${lineIdx}-${tokenIdx}`,
-      token,
-    })),
+      token
+    }))
   }));
 
 // Token rendering component
@@ -68,7 +68,7 @@ const TokenSpan = ({ token }: { token: ThemedToken }) => (
       fontStyle: isItalic(token.fontStyle) ? "italic" : undefined,
       fontWeight: isBold(token.fontStyle) ? "bold" : undefined,
       textDecoration: isUnderline(token.fontStyle) ? "underline" : undefined,
-      ...token.htmlStyle,
+      ...token.htmlStyle
     }}
   >
     {token.content}
@@ -92,7 +92,7 @@ const LINE_NUMBER_CLASSES = cn(
 // Line rendering component
 const LineSpan = ({
   keyedLine,
-  showLineNumbers,
+  showLineNumbers
 }: {
   keyedLine: KeyedLine;
   showLineNumbers: boolean;
@@ -125,7 +125,7 @@ interface CodeBlockContextType {
 
 // Context
 const CodeBlockContext = createContext<CodeBlockContextType>({
-  code: "",
+  code: ""
 });
 
 // Highlighter cache (singleton per language)
@@ -156,7 +156,7 @@ const getHighlighter = (
 
   const highlighterPromise = createHighlighter({
     langs: [language],
-    themes: ["github-light", "github-dark"],
+    themes: ["github-light", "github-dark"]
   });
 
   highlighterCache.set(language, highlighterPromise);
@@ -173,10 +173,10 @@ const createRawTokens = (code: string): TokenizedCode => ({
       : [
           {
             color: "inherit",
-            content: line,
-          } as ThemedToken,
+            content: line
+          } as ThemedToken
         ]
-  ),
+  )
 });
 
 // Synchronous highlight with callback for async results
@@ -213,14 +213,14 @@ export const highlightCode = (
         lang: langToUse,
         themes: {
           dark: "github-dark",
-          light: "github-light",
-        },
+          light: "github-light"
+        }
       });
 
       const tokenized: TokenizedCode = {
         bg: result.bg ?? "transparent",
         fg: result.fg ?? "inherit",
-        tokens: result.tokens,
+        tokens: result.tokens
       };
 
       // Cache the result
@@ -248,7 +248,7 @@ const CodeBlockBody = memo(
   ({
     tokenized,
     showLineNumbers,
-    className,
+    className
   }: {
     tokenized: TokenizedCode;
     showLineNumbers: boolean;
@@ -257,7 +257,7 @@ const CodeBlockBody = memo(
     const preStyle = useMemo(
       () => ({
         backgroundColor: tokenized.bg,
-        color: tokenized.fg,
+        color: tokenized.fg
       }),
       [tokenized.bg, tokenized.fg]
     );
@@ -315,7 +315,7 @@ export const CodeBlockContainer = ({
     style={{
       containIntrinsicSize: "auto 200px",
       contentVisibility: "auto",
-      ...style,
+      ...style
     }}
     {...props}
   />
@@ -373,7 +373,7 @@ export const CodeBlockActions = ({
 export const CodeBlockContent = ({
   code,
   language,
-  showLineNumbers = false,
+  showLineNumbers = false
 }: {
   code: string;
   language: BundledLanguage;

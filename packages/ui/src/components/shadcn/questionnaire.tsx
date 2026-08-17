@@ -323,5 +323,5 @@ export {
   QuestionnaireProgress,
   QuestionnaireSkip,
   QuestionnaireSubmit,
-  QuestionnaireTitle,
+  QuestionnaireTitle
 };

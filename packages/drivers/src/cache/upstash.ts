@@ -36,6 +36,6 @@ export function createUpstashCacheDriver(
         await redis.expire(key, opts.ttlSeconds);
       }
       return value;
-    },
+    }
   };
 }

@@ -6,7 +6,7 @@ import {
   useStateMachineInput,
   useViewModel,
   useViewModelInstance,
-  useViewModelInstanceColor,
+  useViewModelInstanceColor
 } from "@rive-app/react-webgl2";
 import type { FC, ReactNode } from "react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
@@ -57,38 +57,38 @@ const sources = {
     dynamicColor: true,
     hasModel: true,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/command-2.0.riv",
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/command-2.0.riv"
   },
   glint: {
     dynamicColor: true,
     hasModel: true,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/glint-2.0.riv",
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/glint-2.0.riv"
   },
   halo: {
     dynamicColor: true,
     hasModel: true,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/halo-2.0.riv",
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/halo-2.0.riv"
   },
   mana: {
     dynamicColor: false,
     hasModel: true,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/mana-2.0.riv",
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/mana-2.0.riv"
   },
   obsidian: {
     dynamicColor: true,
     hasModel: true,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/obsidian-2.0.riv",
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/obsidian-2.0.riv"
   },
   opal: {
     dynamicColor: false,
     hasModel: false,
     source:
-      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/orb-1.2.riv",
-  },
+      "https://ejiidnob33g9ap1r.public.blob.vercel-storage.com/orb-1.2.riv"
+  }
 };
 
 const getCurrentTheme = (): "light" | "dark" => {
@@ -119,7 +119,7 @@ const useTheme = (enabled: boolean) => {
 
     observer.observe(document.documentElement, {
       attributeFilter: ["class"],
-      attributes: true,
+      attributes: true
     });
 
     // Watch for OS-level theme changes
@@ -156,7 +156,7 @@ const PersonaWithModel = memo(
     const viewModel = useViewModel(rive, { useDefault: true });
     const viewModelInstance = useViewModelInstance(viewModel, {
       rive,
-      useDefault: true,
+      useDefault: true
     });
     const viewModelInstanceColor = useViewModelInstanceColor(
       "color",
@@ -198,7 +198,7 @@ export const Persona: FC<PersonaProps> = memo(
     onPause,
     onPlay,
     onStop,
-    className,
+    className
   }) => {
     const source = sources[variant];
 
@@ -213,7 +213,7 @@ export const Persona: FC<PersonaProps> = memo(
       onPause,
       onPlay,
       onReady,
-      onStop,
+      onStop
     });
 
     useEffect(() => {
@@ -223,7 +223,7 @@ export const Persona: FC<PersonaProps> = memo(
         onPause,
         onPlay,
         onReady,
-        onStop,
+        onStop
       };
     }, [onLoad, onLoadError, onPause, onPlay, onReady, onStop]);
 
@@ -243,7 +243,7 @@ export const Persona: FC<PersonaProps> = memo(
           callbacksRef.current.onPlay?.(event)) as RiveParameters["onPlay"],
         onReady: () => callbacksRef.current.onReady?.(),
         onStop: ((event) =>
-          callbacksRef.current.onStop?.(event)) as RiveParameters["onStop"],
+          callbacksRef.current.onStop?.(event)) as RiveParameters["onStop"]
       }),
       []
     );
@@ -263,7 +263,7 @@ export const Persona: FC<PersonaProps> = memo(
             onRiveReady: stableCallbacks.onReady,
             onStop: stableCallbacks.onStop,
             src: source.source,
-            stateMachines: stateMachine,
+            stateMachines: stateMachine
           }
         : null
     );

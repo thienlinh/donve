@@ -7,7 +7,7 @@ import {
   InfoIcon,
   TriangleAlertIcon,
   OctagonXIcon,
-  Loader2Icon,
+  Loader2Icon
 } from "lucide-react";
 import * as React from "react";
 
@@ -225,5 +225,5 @@ export {
   ToastViewport,
   createToastManager,
   toast,
-  useToastManager,
+  useToastManager
 };

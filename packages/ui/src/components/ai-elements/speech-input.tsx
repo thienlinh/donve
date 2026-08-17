@@ -218,7 +218,7 @@ export const SpeechInput = ({
         streamRef.current = null;
 
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: "audio/webm"
         });
 
         if (audioBlob.size > 0 && onAudioRecordedRef.current) {
@@ -297,7 +297,7 @@ export const SpeechInput = ({
             key={index}
             style={{
               animationDelay: `${index * 0.3}s`,
-              animationDuration: "2s",
+              animationDuration: "2s"
             }}
           />
         ))}

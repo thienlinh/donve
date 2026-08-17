@@ -3,14 +3,14 @@
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronDownIcon,
+  ChevronDownIcon
 } from "lucide-react";
 import * as React from "react";
 import {
   DayPicker,
   getDefaultClassNames,
   type DayButton,
-  type Locale,
+  type Locale
 } from "react-day-picker";
 
 import { Button, buttonVariants } from "#components/shadcn/button";
@@ -45,7 +45,7 @@ function Calendar({
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString(locale?.code, { month: "short" }),
-        ...formatters,
+        ...formatters
       }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
@@ -135,7 +135,7 @@ function Calendar({
           defaultClassNames.disabled
         ),
         hidden: cn("invisible", defaultClassNames.hidden),
-        ...classNames,
+        ...classNames
       }}
       components={{
         Root: ({ className, rootRef, ...props }) => {
@@ -183,7 +183,7 @@ function Calendar({
             </td>
           );
         },
-        ...components,
+        ...components
       }}
       {...props}
     />

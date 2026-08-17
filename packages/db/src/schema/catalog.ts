@@ -7,7 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
@@ -18,7 +18,7 @@ export const products = pgTable(
     id: id(),
     orgId: text("org_id").notNull(),
     type: text("type", {
-      enum: ["course", "product", "service", "other"],
+      enum: ["course", "product", "service", "other"]
     }).notNull(),
     name: text("name").notNull(),
     price: numeric("price", { precision: 12, scale: 0 }).notNull().default("0"),
@@ -27,7 +27,7 @@ export const products = pgTable(
     attributes: jsonb("attributes").default({}),
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
-    deletedAt: deletedAt(),
+    deletedAt: deletedAt()
   },
   (t) => [index("ix_products_org").on(t.orgId, t.type)]
 );
@@ -48,12 +48,12 @@ export const campaigns = pgTable(
     paymentConfig: jsonb("payment_config").notNull().default({}),
     utmDefaults: jsonb("utm_defaults").default({}),
     ...timestamps,
-    deletedAt: deletedAt(),
+    deletedAt: deletedAt()
   },
   (t) => [
     uniqueIndex("uq_campaign_public_id")
       .on(t.publicId)
-      .where(sql`deleted_at IS NULL`),
+      .where(sql`deleted_at IS NULL`)
   ]
 );
 
@@ -62,7 +62,7 @@ export const campaignProducts = pgTable(
   {
     campaignId: text("campaign_id").notNull(),
     productId: text("product_id").notNull(),
-    orgId: text("org_id").notNull(),
+    orgId: text("org_id").notNull()
   },
   (t) => [uniqueIndex("uq_cp").on(t.campaignId, t.productId)]
 );

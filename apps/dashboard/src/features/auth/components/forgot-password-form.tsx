@@ -17,13 +17,13 @@ export function ForgotPasswordForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(forgotPasswordSchema) });
 
   const onSubmit = handleSubmit(async ({ email }) => {
     await authClient.requestPasswordReset({
       email,
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`
     });
     // Don't reveal whether the email exists — same message either way.
     setSent(true);

@@ -5,7 +5,7 @@ import { AuthCard } from "@/features/auth/components/auth-card";
 import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/verified")({
-  component: VerifiedPage,
+  component: VerifiedPage
 });
 
 function VerifiedPage() {

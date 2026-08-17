@@ -108,7 +108,7 @@ export interface ConfirmationAcceptedProps {
 }
 
 export const ConfirmationAccepted = ({
-  children,
+  children
 }: ConfirmationAcceptedProps) => {
   const { approval, state } = useConfirmation();
 
@@ -130,7 +130,7 @@ export interface ConfirmationRejectedProps {
 }
 
 export const ConfirmationRejected = ({
-  children,
+  children
 }: ConfirmationRejectedProps) => {
   const { approval, state } = useConfirmation();
 

@@ -9,7 +9,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "#components/shadcn/dialog";
 import { InputGroup, InputGroupAddon } from "#components/shadcn/input-group";
 import { cn } from "#lib/utils";
@@ -189,5 +189,5 @@ export {
   CommandGroup,
   CommandItem,
   CommandShortcut,
-  CommandSeparator,
+  CommandSeparator
 };

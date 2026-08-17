@@ -58,7 +58,7 @@ import {
   getTextDirection,
   setLocale,
   locales,
-  baseLocale,
+  baseLocale
 } from "./paraglide/runtime.js";
 
 getLocale(); // Current locale, e.g., "en"
@@ -83,7 +83,7 @@ Strategies can be combined. The order defines precedence:
 await compile({
   project: "./project.inlang",
   outdir: "./src/paraglide",
-  strategy: ["url", "cookie", "baseLocale"],
+  strategy: ["url", "cookie", "baseLocale"]
 });
 ```
 
@@ -149,7 +149,7 @@ import { ParaglideMessage } from "@inlang/paraglide-js-react"; // or -vue, -svel
   inputs={{ name: "Ada" }}
   markup={{
     b: ({ children }) => <b>{children}</b>,
-    icon: () => <span aria-hidden="true" className="icon-wave" />,
+    icon: () => <span aria-hidden="true" className="icon-wave" />
   }}
 />;
 ```

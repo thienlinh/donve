@@ -28,5 +28,5 @@ export const campaignsRepository = {
           .limit(1)
     );
     return rows[0];
-  },
+  }
 };

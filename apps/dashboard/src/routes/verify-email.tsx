@@ -4,7 +4,7 @@ import { AuthCard } from "@/features/auth/components/auth-card";
 import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/verify-email")({
-  component: VerifyEmailPage,
+  component: VerifyEmailPage
 });
 
 function VerifyEmailPage() {

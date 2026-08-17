@@ -7,7 +7,7 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupInput,
+  InputGroupInput
 } from "#components/shadcn/input-group";
 import { cn } from "#lib/utils";
 
@@ -294,5 +294,5 @@ export {
   ComboboxChipsInput,
   ComboboxTrigger,
   ComboboxValue,
-  useComboboxAnchor,
+  useComboboxAnchor
 };

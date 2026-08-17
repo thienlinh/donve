@@ -7,7 +7,7 @@ import type {
   JobsDriver,
   ScheduleJobInput,
   ScheduleJobResult,
-  VerifyDeliveryInput,
+  VerifyDeliveryInput
 } from "./types.js";
 import { JobDeliveryVerificationError } from "./types.js";
 
@@ -40,7 +40,7 @@ export function createQStashJobsDriver(
   const client = new Client({ token: config.token });
   const receiver = new Receiver({
     currentSigningKey: config.currentSigningKey,
-    nextSigningKey: config.nextSigningKey,
+    nextSigningKey: config.nextSigningKey
   });
 
   return {
@@ -51,7 +51,7 @@ export function createQStashJobsDriver(
         url: `${config.deliveryBaseUrl}/${input.queue}`,
         body: input.payload,
         delay: input.delaySeconds,
-        deduplicationId: input.dedupeId,
+        deduplicationId: input.dedupeId
       });
       return { jobId: result.messageId };
     },
@@ -63,7 +63,7 @@ export function createQStashJobsDriver(
         destination: `${config.deliveryBaseUrl}/${input.queue}`,
         body: JSON.stringify(input.payload),
         cron: input.cron,
-        scheduleId: input.scheduleId,
+        scheduleId: input.scheduleId
       });
       return { scheduleId: result.scheduleId };
     },
@@ -81,7 +81,7 @@ export function createQStashJobsDriver(
 
       const isValid = await receiver.verify({
         signature,
-        body: input.rawBody,
+        body: input.rawBody
       });
       if (!isValid) {
         throw new JobDeliveryVerificationError("invalid QStash signature");
@@ -95,8 +95,8 @@ export function createQStashJobsDriver(
         jobId: headers["upstash-message-id"] ?? "",
         attempt: Number(headers["upstash-retried"] ?? "0") + 1,
         // oxlint-disable-next-line no-unsafe-type-assertion -- no per-queue schema here; the caller's queue handler validates T.
-        payload: JSON.parse(input.rawBody) as T,
+        payload: JSON.parse(input.rawBody) as T
       };
-    },
+    }
   };
 }

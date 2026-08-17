@@ -82,30 +82,30 @@ System prompt lắp ráp theo thứ tự (cache prefix được với Anthropic 
       {
         "op": "setStyle",
         "id": "cc-2",
-        "styles": { "color": "#ffe6b8", "fontSize": "196px" },
+        "styles": { "color": "#ffe6b8", "fontSize": "196px" }
       },
       {
         "op": "setAttr",
         "id": "cc-9",
         "attr": "alt",
-        "value": "Quầy sate nướng ban đêm",
+        "value": "Quầy sate nướng ban đêm"
       },
       {
         "op": "replaceOuter",
         "id": "cc-5",
-        "html": "<section data-cc=\"cc-5\">...</section>",
+        "html": "<section data-cc=\"cc-5\">...</section>"
       },
       {
         "op": "insertAfter",
         "id": "cc-5",
         "html": "<div>...</div>",
-        "layerName": "Testimonials",
+        "layerName": "Testimonials"
       },
       { "op": "remove", "id": "cc-7" },
-      { "op": "renameLayer", "id": "cc-3", "name": "Hero title" },
+      { "op": "renameLayer", "id": "cc-3", "name": "Hero title" }
     ],
-    "summary": "Tăng contrast tiêu đề, thêm section testimonial",
-  },
+    "summary": "Tăng contrast tiêu đề, thêm section testimonial"
+  }
 }
 ```
 

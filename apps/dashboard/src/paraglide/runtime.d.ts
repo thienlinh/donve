@@ -931,7 +931,7 @@ export type MessageMarkupSchema = Record<string, MessageMarkupTag>;
 export type MessageMetadata<
   Inputs,
   Options,
-  Markup extends MessageMarkupSchema = MessageMarkupSchema,
+  Markup extends MessageMarkupSchema = MessageMarkupSchema
 > = {
   readonly __paraglide?: {
     inputs: Inputs;

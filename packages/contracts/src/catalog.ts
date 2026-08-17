@@ -6,14 +6,14 @@ import {
   softDeleteSchema,
   timestampsSchema,
   ulidSchema,
-  utmSchema,
+  utmSchema
 } from "./common.js";
 
 export const productTypeValues = [
   "course",
   "product",
   "service",
-  "other",
+  "other"
 ] as const;
 export const productTypeSchema = z.enum(productTypeValues);
 export type ProductType = z.infer<typeof productTypeSchema>;
@@ -29,7 +29,7 @@ export const productSchema = z.object({
   attributes: jsonRecordSchema.default({}),
   isActive: z.boolean().default(true),
   ...timestampsSchema.shape,
-  ...softDeleteSchema.shape,
+  ...softDeleteSchema.shape
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -37,7 +37,7 @@ export const campaignStatusValues = [
   "draft",
   "active",
   "paused",
-  "ended",
+  "ended"
 ] as const;
 export const campaignStatusSchema = z.enum(campaignStatusValues);
 export type CampaignStatus = z.infer<typeof campaignStatusSchema>;
@@ -48,13 +48,13 @@ const campaignFormFieldSchema = z
     label: z.string().optional(),
     type: z.string().optional(),
     required: z.boolean().optional(),
-    options: z.array(z.string()).optional(),
+    options: z.array(z.string()).optional()
   })
   .catchall(z.unknown());
 
 const campaignPopupSchema = z.object({
   title: z.string(),
-  body: z.string(),
+  body: z.string()
 });
 
 /** campaigns.formConfig — lead-capture form fields + post-submit popup copy. */
@@ -65,9 +65,9 @@ export const campaignFormConfigSchema = z
       .object({
         registered: campaignPopupSchema.optional(),
         paid: campaignPopupSchema.optional(),
-        manualPending: campaignPopupSchema.optional(),
+        manualPending: campaignPopupSchema.optional()
       })
-      .default({}),
+      .default({})
   })
   .default({ fields: [], popups: {} });
 export type CampaignFormConfig = z.infer<typeof campaignFormConfigSchema>;
@@ -84,7 +84,7 @@ export const campaignPaymentConfigSchema = z
     transferPrefix: z.string().optional(),
     sepayAuto: z.boolean().optional(),
     zaloGroupUrl: z.string().optional(),
-    expireMinutes: z.number().int().positive().optional(),
+    expireMinutes: z.number().int().positive().optional()
   })
   .default({});
 export type CampaignPaymentConfig = z.infer<typeof campaignPaymentConfigSchema>;
@@ -101,13 +101,13 @@ export const campaignSchema = z.object({
   paymentConfig: campaignPaymentConfigSchema,
   utmDefaults: utmSchema.default({}),
   ...timestampsSchema.shape,
-  ...softDeleteSchema.shape,
+  ...softDeleteSchema.shape
 });
 export type Campaign = z.infer<typeof campaignSchema>;
 
 export const campaignProductSchema = z.object({
   campaignId: ulidSchema,
   productId: ulidSchema,
-  orgId: orgIdSchema,
+  orgId: orgIdSchema
 });
 export type CampaignProduct = z.infer<typeof campaignProductSchema>;

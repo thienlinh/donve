@@ -9,7 +9,7 @@ import {
   PlayIcon,
   TransgenderIcon,
   VenusAndMarsIcon,
-  VenusIcon,
+  VenusIcon
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, useCallback, useContext, useMemo } from "react";
@@ -24,13 +24,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
+  CommandShortcut
 } from "#components/shadcn/command";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "#components/shadcn/dialog";
 import { Spinner } from "#components/shadcn/spinner";
 import { useControllableState } from "#hooks/use-controllable-state";
@@ -76,13 +76,13 @@ export const VoiceSelector = ({
   const [value, setValue] = useControllableState({
     defaultProp: defaultValue,
     onChange: onValueChange,
-    prop: valueProp,
+    prop: valueProp
   });
 
   const [open, setOpen] = useControllableState({
     defaultProp: defaultOpen,
     onChange: (value: boolean) => onOpenChange?.(value, {} as never),
-    prop: openProp,
+    prop: openProp
   });
 
   const voiceSelectorContext = useMemo<VoiceSelectorContextValue>(

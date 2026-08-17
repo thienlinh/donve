@@ -6,7 +6,7 @@ import {
   softDeleteSchema,
   timestampsSchema,
   ulidSchema,
-  utmSchema,
+  utmSchema
 } from "./common.js";
 
 export const leadSchema = z.object({
@@ -24,7 +24,7 @@ export const leadSchema = z.object({
   stage: z.string().default("new"),
   assigneeId: ulidSchema.nullable(),
   ...timestampsSchema.shape,
-  ...softDeleteSchema.shape,
+  ...softDeleteSchema.shape
 });
 export type Lead = z.infer<typeof leadSchema>;
 
@@ -35,7 +35,7 @@ export const leadActivityTypeValues = [
   "order_created",
   "payment",
   "resubmit",
-  "system",
+  "system"
 ] as const;
 export const leadActivityTypeSchema = z.enum(leadActivityTypeValues);
 export type LeadActivityType = z.infer<typeof leadActivityTypeSchema>;
@@ -48,7 +48,7 @@ export const leadActivitySchema = z.object({
   body: z.string().nullable(),
   meta: jsonRecordSchema.default({}),
   actorId: ulidSchema.nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type LeadActivity = z.infer<typeof leadActivitySchema>;
 
@@ -60,7 +60,7 @@ export const consentSchema = z.object({
   consentType: z.string().default("data_collection"),
   policyVersion: z.string(),
   ip: z.string().nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type Consent = z.infer<typeof consentSchema>;
 
@@ -70,7 +70,7 @@ export const orderStatusValues = [
   "paid",
   "fulfilled",
   "cancelled",
-  "refunded",
+  "refunded"
 ] as const;
 export const orderStatusSchema = z.enum(orderStatusValues);
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
@@ -88,7 +88,7 @@ export const orderSchema = z.object({
   paidAt: z.coerce.date().nullable(),
   fulfilledAt: z.coerce.date().nullable(),
   expiresAt: z.coerce.date().nullable(),
-  ...timestampsSchema.shape,
+  ...timestampsSchema.shape
 });
 export type Order = z.infer<typeof orderSchema>;
 
@@ -106,7 +106,7 @@ export const paymentSchema = z.object({
   /** raw webhook payload, shape is provider-specific and untyped here. */
   rawPayload: jsonRecordSchema,
   matchType: paymentMatchTypeSchema.nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type Payment = z.infer<typeof paymentSchema>;
 
@@ -128,14 +128,14 @@ export const paymentConnectionSchema = z.object({
   accountNumber: z.string(),
   accountName: z.string(),
   status: paymentConnectionStatusSchema.default("active"),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type PaymentConnection = z.infer<typeof paymentConnectionSchema>;
 
 export const unmatchedTransactionReasonValues = [
   "no_candidate",
   "ambiguous",
-  "already_paid",
+  "already_paid"
 ] as const;
 export const unmatchedTransactionReasonSchema = z.enum(
   unmatchedTransactionReasonValues
@@ -146,7 +146,7 @@ export type UnmatchedTransactionReason = z.infer<
 
 export const unmatchedTransactionStatusValues = [
   "pending",
-  "resolved",
+  "resolved"
 ] as const;
 export const unmatchedTransactionStatusSchema = z.enum(
   unmatchedTransactionStatusValues
@@ -167,7 +167,7 @@ export const unmatchedTransactionSchema = z.object({
   resolvedOrderId: ulidSchema.nullable(),
   resolvedBy: ulidSchema.nullable(),
   resolvedAt: z.coerce.date().nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type UnmatchedTransaction = z.infer<typeof unmatchedTransactionSchema>;
 
@@ -175,7 +175,7 @@ export const refundReasonValues = [
   "customer_request",
   "duplicate_payment",
   "wrong_match",
-  "other",
+  "other"
 ] as const;
 export const refundReasonSchema = z.enum(refundReasonValues);
 export type RefundReason = z.infer<typeof refundReasonSchema>;
@@ -184,7 +184,7 @@ export const refundStatusValues = [
   "pending",
   "processing",
   "completed",
-  "rejected",
+  "rejected"
 ] as const;
 export const refundStatusSchema = z.enum(refundStatusValues);
 export type RefundStatus = z.infer<typeof refundStatusSchema>;
@@ -193,7 +193,7 @@ export type RefundStatus = z.infer<typeof refundStatusSchema>;
 export const remitterInfoSchema = z
   .object({
     name: z.string().optional(),
-    accountNumber: z.string().optional(),
+    accountNumber: z.string().optional()
   })
   .catchall(z.unknown())
   .default({});
@@ -212,6 +212,6 @@ export const refundRequestSchema = z.object({
   evidenceKey: z.string().nullable(),
   createdBy: ulidSchema.nullable(),
   createdAt: z.coerce.date(),
-  completedAt: z.coerce.date().nullable(),
+  completedAt: z.coerce.date().nullable()
 });
 export type RefundRequest = z.infer<typeof refundRequestSchema>;

@@ -11,7 +11,7 @@ import {
   adminRole,
   editorRole,
   ownerRole,
-  salesRole,
+  salesRole
 } from "./permissions.js";
 
 export interface AuthConfig {
@@ -53,8 +53,8 @@ export function createAuth(config: AuthConfig) {
     trustedOrigins: config.trustedOrigins,
     advanced: {
       database: {
-        generateId: () => ulid(),
-      },
+        generateId: () => ulid()
+      }
     },
     emailAndPassword: {
       enabled: true,
@@ -64,9 +64,9 @@ export function createAuth(config: AuthConfig) {
         await config.email.sender.send({
           to: user.email,
           template: "reset_password",
-          props: { name: user.name || user.email, url },
+          props: { name: user.name || user.email, url }
         });
-      },
+      }
     },
     emailVerification: {
       sendOnSignUp: true,
@@ -76,9 +76,9 @@ export function createAuth(config: AuthConfig) {
         await config.email.sender.send({
           to: user.email,
           template: "verify_email",
-          props: { name: user.name || user.email, url },
+          props: { name: user.name || user.email, url }
         });
-      },
+      }
     },
     socialProviders: config.socialProviders,
     database: drizzleAdapter(config.db, {
@@ -90,8 +90,8 @@ export function createAuth(config: AuthConfig) {
         verification: schema.verification,
         organizations: schema.organizations,
         memberships: schema.memberships,
-        invites: schema.invites,
-      },
+        invites: schema.invites
+      }
     }),
     plugins: [
       organization({
@@ -100,7 +100,7 @@ export function createAuth(config: AuthConfig) {
           owner: ownerRole,
           admin: adminRole,
           editor: editorRole,
-          sales: salesRole,
+          sales: salesRole
         },
         // Point the org plugin at the existing hand-rolled tables
         // (packages/db/src/schema/core.ts) instead of generating its own
@@ -108,15 +108,15 @@ export function createAuth(config: AuthConfig) {
         schema: {
           organization: {
             modelName: "organizations",
-            fields: { name: "name", slug: "slug" },
+            fields: { name: "name", slug: "slug" }
           },
           member: {
             modelName: "memberships",
             fields: {
               organizationId: "orgId",
               userId: "userId",
-              role: "role",
-            },
+              role: "role"
+            }
           },
           invitation: {
             modelName: "invites",
@@ -124,11 +124,11 @@ export function createAuth(config: AuthConfig) {
               organizationId: "orgId",
               email: "email",
               role: "role",
-              expiresAt: "expiresAt",
-            },
-          },
-        },
-      }),
-    ],
+              expiresAt: "expiresAt"
+            }
+          }
+        }
+      })
+    ]
   });
 }

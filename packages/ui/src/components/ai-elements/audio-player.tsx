@@ -11,7 +11,7 @@ import {
   MediaSeekForwardButton,
   MediaTimeDisplay,
   MediaTimeRange,
-  MediaVolumeRange,
+  MediaVolumeRange
 } from "media-chrome/react";
 import type { ComponentProps, CSSProperties } from "react";
 
@@ -54,7 +54,7 @@ export const AudioPlayer = ({
         "--media-tooltip-arrow-display": "none",
         "--media-tooltip-background": "var(--color-background)",
         "--media-tooltip-border-radius": "var(--radius-md)",
-        ...style,
+        ...style
       } as CSSProperties
     }
     {...props}

@@ -4,7 +4,7 @@ import {
   ChevronRightIcon,
   FileIcon,
   FolderIcon,
-  FolderOpenIcon,
+  FolderOpenIcon
 } from "lucide-react";
 import type { HTMLAttributes, ReactNode } from "react";
 import {
@@ -12,13 +12,13 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
+  useState
 } from "react";
 
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 
@@ -36,7 +36,7 @@ const noop = () => {};
 const FileTreeContext = createContext<FileTreeContextType>({
   // oxlint-disable-next-line eslint-plugin-unicorn(no-new-builtin)
   expandedPaths: new Set(),
-  togglePath: noop,
+  togglePath: noop
 });
 
 export type FileTreeProps = Omit<HTMLAttributes<HTMLDivElement>, "onSelect"> & {
@@ -128,7 +128,7 @@ interface FileTreeFolderContextType {
 const FileTreeFolderContext = createContext<FileTreeFolderContextType>({
   isExpanded: false,
   name: "",
-  path: "",
+  path: ""
 });
 
 export type FileTreeFolderProps = HTMLAttributes<HTMLDivElement> & {
@@ -222,7 +222,7 @@ interface FileTreeFileContextType {
 
 const FileTreeFileContext = createContext<FileTreeFileContextType>({
   name: "",
-  path: "",
+  path: ""
 });
 
 export type FileTreeFileProps = HTMLAttributes<HTMLDivElement> & {

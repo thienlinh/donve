@@ -4,7 +4,7 @@ import {
   orgIdSchema,
   softDeleteSchema,
   timestampsSchema,
-  ulidSchema,
+  ulidSchema
 } from "./common.js";
 
 export const landingSourceValues = ["ai", "import"] as const;
@@ -21,7 +21,7 @@ export const landingPageSchema = z.object({
   chatSessionId: ulidSchema.nullable(),
   source: landingSourceSchema.default("ai"),
   ...timestampsSchema.shape,
-  ...softDeleteSchema.shape,
+  ...softDeleteSchema.shape
 });
 export type LandingPage = z.infer<typeof landingPageSchema>;
 
@@ -30,7 +30,7 @@ export const pageVersionOriginValues = [
   "ai_full",
   "manual",
   "import",
-  "restore",
+  "restore"
 ] as const;
 export const pageVersionOriginSchema = z.enum(pageVersionOriginValues);
 export type PageVersionOrigin = z.infer<typeof pageVersionOriginSchema>;
@@ -50,14 +50,14 @@ export const pageVersionSchema = z.object({
   createdBy: ulidSchema.nullable(),
   createdAt: z.coerce.date(),
   /** set once the retention job prunes htmlKey/srcmapKey from R2 (row kept for audit history). */
-  prunedAt: z.coerce.date().nullable(),
+  prunedAt: z.coerce.date().nullable()
 });
 export type PageVersion = z.infer<typeof pageVersionSchema>;
 
 export const pageAssetSourceValues = [
   "user_upload",
   "stock_licensed",
-  "ai_generated",
+  "ai_generated"
 ] as const;
 export const pageAssetSourceSchema = z.enum(pageAssetSourceValues);
 export type PageAssetSource = z.infer<typeof pageAssetSourceSchema>;
@@ -67,7 +67,7 @@ export const pageAssetLicenseSchema = z
   .object({
     provider: z.string().optional(),
     attribution: z.string().optional(),
-    sourceUrl: z.string().optional(),
+    sourceUrl: z.string().optional()
   })
   .default({});
 export type PageAssetLicense = z.infer<typeof pageAssetLicenseSchema>;
@@ -86,14 +86,14 @@ export const pageAssetSchema = z.object({
   license: pageAssetLicenseSchema,
   /** true when imported HTML pulled an external image URL of unknown provenance. */
   unverifiedSource: z.boolean().default(false),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type PageAsset = z.infer<typeof pageAssetSchema>;
 
 export const studioCommentStatusValues = [
   "queued",
   "sent",
-  "resolved",
+  "resolved"
 ] as const;
 export const studioCommentStatusSchema = z.enum(studioCommentStatusValues);
 export type StudioCommentStatus = z.infer<typeof studioCommentStatusSchema>;
@@ -107,7 +107,7 @@ export const studioCommentSchema = z.object({
   screenshotKey: z.string().nullable(),
   status: studioCommentStatusSchema.default("queued"),
   createdBy: ulidSchema.nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type StudioComment = z.infer<typeof studioCommentSchema>;
 
@@ -116,7 +116,7 @@ export const chatSessionSchema = z.object({
   orgId: orgIdSchema,
   landingPageId: ulidSchema,
   title: z.string().nullable(),
-  ...timestampsSchema.shape,
+  ...timestampsSchema.shape
 });
 export type ChatSession = z.infer<typeof chatSessionSchema>;
 
@@ -130,20 +130,20 @@ const chatContentPartSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("comment-context"),
     commentId: ulidSchema,
-    srcmapId: z.string(),
+    srcmapId: z.string()
   }),
   z.object({
     type: z.literal("patch-summary"),
     pageVersionId: ulidSchema,
-    summary: z.string(),
-  }),
+    summary: z.string()
+  })
 ]);
 export type ChatContentPart = z.infer<typeof chatContentPartSchema>;
 
 export const chatMessageTokenUsageSchema = z
   .object({
     inputTokens: z.number().int().nonnegative().optional(),
-    outputTokens: z.number().int().nonnegative().optional(),
+    outputTokens: z.number().int().nonnegative().optional()
   })
   .nullable();
 
@@ -154,6 +154,6 @@ export const chatMessageSchema = z.object({
   role: chatRoleSchema,
   content: z.array(chatContentPartSchema),
   tokenUsage: chatMessageTokenUsageSchema,
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type ChatMessage = z.infer<typeof chatMessageSchema>;

@@ -19,7 +19,7 @@ export const PERMISSIONS = {
   crmWrite: ["owner", "admin"],
   crmRead: ["owner", "admin", "editor", "sales"],
   confirmPayment: ["owner", "admin", "sales"],
-  promptSkillsTenant: ["owner", "admin", "editor"],
+  promptSkillsTenant: ["owner", "admin", "editor"]
 } as const satisfies Record<string, readonly MembershipRole[]>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -48,7 +48,7 @@ const statement = {
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],
   payment: ["confirm"],
-  promptSkills: ["manage"],
+  promptSkills: ["manage"]
 } as const;
 
 export const accessControl = createAccessControl(statement);
@@ -61,7 +61,7 @@ export const ownerRole = accessControl.newRole({
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],
   payment: ["confirm"],
-  promptSkills: ["manage"],
+  promptSkills: ["manage"]
 });
 
 export const adminRole = accessControl.newRole({
@@ -72,18 +72,18 @@ export const adminRole = accessControl.newRole({
   campaign: ["create", "update", "delete", "view"],
   crm: ["write", "view"],
   payment: ["confirm"],
-  promptSkills: ["manage"],
+  promptSkills: ["manage"]
 });
 
 export const editorRole = accessControl.newRole({
   studio: ["publish"],
   campaign: ["create", "update", "delete", "view"],
   crm: ["view"],
-  promptSkills: ["manage"],
+  promptSkills: ["manage"]
 });
 
 export const salesRole = accessControl.newRole({
   campaign: ["view"],
   crm: ["write", "view"],
-  payment: ["confirm"],
+  payment: ["confirm"]
 });

@@ -2,7 +2,7 @@ import type {
   PutObjectInput,
   PutObjectResult,
   StorageDriver,
-  StoredObject,
+  StoredObject
 } from "./types.js";
 
 /**
@@ -31,7 +31,7 @@ export function createR2StorageDriver(bucket: R2BucketBinding): StorageDriver {
       const result = await bucket.put(input.key, input.body, {
         httpMetadata: input.contentType
           ? { contentType: input.contentType }
-          : undefined,
+          : undefined
       });
       return { key: input.key, size: result?.size ?? 0 };
     },
@@ -43,12 +43,12 @@ export function createR2StorageDriver(bucket: R2BucketBinding): StorageDriver {
         key,
         body: object.body,
         contentType: object.httpMetadata?.contentType ?? null,
-        size: object.size,
+        size: object.size
       };
     },
 
     async delete(key: string): Promise<void> {
       await bucket.delete(key);
-    },
+    }
   };
 }

@@ -8,7 +8,7 @@ import {
   Music2Icon,
   PaperclipIcon,
   VideoIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import { createContext, useCallback, useContext, useMemo } from "react";
@@ -17,7 +17,7 @@ import { Button } from "#components/shadcn/button";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
+  HoverCardTrigger
 } from "#components/shadcn/hover-card";
 import { cn } from "#lib/utils";
 
@@ -45,7 +45,7 @@ const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
   image: ImageIcon,
   source: GlobeIcon,
   unknown: PaperclipIcon,
-  video: VideoIcon,
+  video: VideoIcon
 };
 
 // ============================================================================
@@ -210,11 +210,11 @@ export const Attachment = ({
             "flex h-8 cursor-pointer items-center gap-1.5 select-none",
             "rounded-md border border-border px-1.5",
             "text-sm font-medium transition-all",
-            "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+            "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
           ],
           variant === "list" && [
             "flex w-full items-center gap-3 rounded-lg border p-3",
-            "hover:bg-accent/50",
+            "hover:bg-accent/50"
           ],
           className
         )}
@@ -345,12 +345,12 @@ export const AttachmentRemove = ({
           "bg-background/80 backdrop-blur-sm",
           "opacity-0 transition-opacity group-hover:opacity-100",
           "hover:bg-background",
-          "[&>svg]:size-3",
+          "[&>svg]:size-3"
         ],
         variant === "inline" && [
           "size-5 rounded p-0",
           "opacity-0 transition-opacity group-hover:opacity-100",
-          "[&>svg]:size-2.5",
+          "[&>svg]:size-2.5"
         ],
         variant === "list" && ["size-8 shrink-0 rounded p-0", "[&>svg]:size-4"],
         className

@@ -1,6 +1,6 @@
 import {
   PostgreSqlContainer,
-  type StartedPostgreSqlContainer,
+  type StartedPostgreSqlContainer
 } from "@testcontainers/postgresql";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -84,7 +84,7 @@ beforeAll(async () => {
     .insert(organizations)
     .values([
       { name: "Org A", slug: "org-a" },
-      { name: "Org B", slug: "org-b" },
+      { name: "Org B", slug: "org-b" }
     ])
     .returning();
   const [seededA, seededB] = seededOrgs;
@@ -107,7 +107,7 @@ describe("withOrgScope + RLS org isolation, exercised through the repository lay
     const lead = await leadsRepository.insert(appDb, orgA.id, {
       campaignId: "camp_a",
       fullName: "Nguyen Van A",
-      phone: "+84900000001",
+      phone: "+84900000001"
     });
     expect(lead?.orgId).toBe(orgA.id);
 
@@ -123,7 +123,7 @@ describe("withOrgScope + RLS org isolation, exercised through the repository lay
       code: "DVTEST1",
       leadId: "lead_a",
       campaignId: "camp_a",
-      amount: "100000",
+      amount: "100000"
     });
 
     const asOrgB = await ordersRepository.list(appDb, orgB.id);

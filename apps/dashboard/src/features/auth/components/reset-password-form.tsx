@@ -18,7 +18,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(resetPasswordSchema) });
 
   const onSubmit = handleSubmit(async ({ newPassword }) => {

@@ -5,7 +5,7 @@ export type {
   ResetPasswordProps,
   SendEmailInput,
   SendEmailResult,
-  VerifyEmailProps,
+  VerifyEmailProps
 } from "./types.js";
 
 export type { ResendEmailSenderConfig } from "./resend.js";

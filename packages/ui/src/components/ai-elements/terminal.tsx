@@ -10,7 +10,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import { Button } from "#components/shadcn/button";
@@ -26,7 +26,7 @@ interface TerminalContextType {
 const TerminalContext = createContext<TerminalContextType>({
   autoScroll: true,
   isStreaming: false,
-  output: "",
+  output: ""
 });
 
 export type TerminalHeaderProps = HTMLAttributes<HTMLDivElement>;

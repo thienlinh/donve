@@ -10,5 +10,5 @@ export {
   editorRole,
   ownerRole,
   PERMISSIONS,
-  salesRole,
+  salesRole
 } from "./permissions.js";

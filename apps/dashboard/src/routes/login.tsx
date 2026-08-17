@@ -5,7 +5,7 @@ import { LoginForm } from "@/features/auth/components/login-form";
 import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/login")({
-  component: LoginPage,
+  component: LoginPage
 });
 
 function LoginPage() {

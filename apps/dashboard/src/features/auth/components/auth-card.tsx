@@ -3,14 +3,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@dv/ui/components/shadcn/card";
 import type { ReactNode } from "react";
 
 export function AuthCard({
   title,
   description,
-  children,
+  children
 }: {
   title: string;
   description?: string;

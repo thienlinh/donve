@@ -7,7 +7,7 @@ export const eventTypeValues = [
   "submit",
   "order_created",
   "paid_popup",
-  "zalo_click",
+  "zalo_click"
 ] as const;
 export const eventTypeSchema = z.enum(eventTypeValues);
 export type EventType = z.infer<typeof eventTypeSchema>;
@@ -16,7 +16,7 @@ export type EventType = z.infer<typeof eventTypeSchema>;
 export const eventMetaSchema = z
   .object({
     utm: z.record(z.string(), z.string()).optional(),
-    referrer: z.string().optional(),
+    referrer: z.string().optional()
   })
   .catchall(z.unknown())
   .default({});
@@ -32,6 +32,6 @@ export const eventSchema = z.object({
   /** hash(ip+ua+day) — no PII. */
   sessionHash: z.string().nullable(),
   meta: eventMetaSchema,
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type Event = z.infer<typeof eventSchema>;

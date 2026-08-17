@@ -10,5 +10,5 @@ export const orgIsolationPolicy = () =>
   pgPolicy("org_isolation", {
     for: "all",
     using: sql`org_id = current_setting('app.current_org', true)`,
-    withCheck: sql`org_id = current_setting('app.current_org', true)`,
+    withCheck: sql`org_id = current_setting('app.current_org', true)`
   });

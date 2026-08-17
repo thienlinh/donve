@@ -48,7 +48,7 @@ export const Transcription = ({
   const [currentTime, setCurrentTime] = useControllableState({
     defaultProp: 0,
     onChange: onSeek,
-    prop: externalCurrentTime,
+    prop: externalCurrentTime
   });
 
   const contextValue = useMemo(

@@ -4,7 +4,7 @@ import { matchContentBasedTransaction } from "../src/payments/content-based-matc
 import { encodeOrderCode } from "../src/payments/order-code.js";
 import type {
   OrderMatchCandidate,
-  VerifiedPaymentEvent,
+  VerifiedPaymentEvent
 } from "../src/payments/types.js";
 
 const PREFIX = "DV";
@@ -21,7 +21,7 @@ function event(
     orderRef: null,
     occurredAt: NOW,
     rawPayload: {},
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -34,7 +34,7 @@ function candidate(
     amount: 100_000,
     status: "pending",
     expiresAt: null,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -46,13 +46,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: `chuyen tien DV${code}` }),
       prefix: PREFIX,
-      findOrderCandidates: (extracted) => (extracted === code ? [order] : []),
+      findOrderCandidates: (extracted) => (extracted === code ? [order] : [])
     });
 
     expect(result).toEqual({
       outcome: "matched",
       orderId: "order-1",
-      matchType: "auto",
+      matchType: "auto"
     });
   });
 
@@ -64,13 +64,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: `DV${mangled}` }),
       prefix: PREFIX,
-      findOrderCandidates: (extracted) => (extracted === code ? [order] : []),
+      findOrderCandidates: (extracted) => (extracted === code ? [order] : [])
     });
 
     expect(result).toEqual({
       outcome: "matched",
       orderId: "order-1",
-      matchType: "fuzzy",
+      matchType: "fuzzy"
     });
   });
 
@@ -78,13 +78,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: "chuyen tien 500k" }),
       prefix: PREFIX,
-      findOrderCandidates: () => [],
+      findOrderCandidates: () => []
     });
 
     expect(result).toEqual({
       outcome: "unmatched",
       reason: "no_candidate",
-      candidateOrderIds: [],
+      candidateOrderIds: []
     });
   });
 
@@ -96,13 +96,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: `DV${code}` }),
       prefix: PREFIX,
-      findOrderCandidates: () => [orderA, orderB],
+      findOrderCandidates: () => [orderA, orderB]
     });
 
     expect(result).toEqual({
       outcome: "unmatched",
       reason: "ambiguous",
-      candidateOrderIds: ["order-a", "order-b"],
+      candidateOrderIds: ["order-a", "order-b"]
     });
   });
 
@@ -113,13 +113,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: `DV${code}` }),
       prefix: PREFIX,
-      findOrderCandidates: () => [order],
+      findOrderCandidates: () => [order]
     });
 
     expect(result).toEqual({
       outcome: "unmatched",
       reason: "already_paid",
-      candidateOrderIds: ["order-1"],
+      candidateOrderIds: ["order-1"]
     });
   });
 
@@ -130,13 +130,13 @@ describe("matchContentBasedTransaction", () => {
     const result = await matchContentBasedTransaction({
       event: event({ content: `DV${code}`, amount: 100_000 }),
       prefix: PREFIX,
-      findOrderCandidates: () => [order],
+      findOrderCandidates: () => [order]
     });
 
     expect(result).toEqual({
       outcome: "unmatched",
       reason: "no_candidate",
-      candidateOrderIds: [],
+      candidateOrderIds: []
     });
   });
 
@@ -145,19 +145,19 @@ describe("matchContentBasedTransaction", () => {
     const order = candidate({
       id: "order-1",
       code,
-      expiresAt: new Date("2026-08-15T00:00:00Z"),
+      expiresAt: new Date("2026-08-15T00:00:00Z")
     });
 
     const result = await matchContentBasedTransaction({
       event: event({ content: `DV${code}` }),
       prefix: PREFIX,
-      findOrderCandidates: () => [order],
+      findOrderCandidates: () => [order]
     });
 
     expect(result).toEqual({
       outcome: "unmatched",
       reason: "no_candidate",
-      candidateOrderIds: [],
+      candidateOrderIds: []
     });
   });
 });

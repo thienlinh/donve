@@ -24,5 +24,5 @@ export const membershipsRepository = {
           .limit(1)
     );
     return rows[0];
-  },
+  }
 };

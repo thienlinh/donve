@@ -28,5 +28,5 @@ export const invitesRepository = {
           .limit(1)
     );
     return rows[0];
-  },
+  }
 };

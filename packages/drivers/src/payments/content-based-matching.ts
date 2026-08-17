@@ -3,7 +3,7 @@ import type {
   MatchTransactionInput,
   MatchTransactionResult,
   OrderMatchCandidate,
-  VerifiedPaymentEvent,
+  VerifiedPaymentEvent
 } from "./types.js";
 
 async function resolveCandidates(
@@ -43,14 +43,14 @@ export async function matchContentBasedTransaction(
     return {
       outcome: "unmatched",
       reason: "no_candidate",
-      candidateOrderIds: [],
+      candidateOrderIds: []
     };
   }
 
   const { exact, corrected } = extractOrderCodes(event.content, prefix);
   const passes: Array<{ codes: string[]; matchType: "auto" | "fuzzy" }> = [
     { codes: exact, matchType: "auto" },
-    { codes: corrected, matchType: "fuzzy" },
+    { codes: corrected, matchType: "fuzzy" }
   ];
 
   for (const pass of passes) {
@@ -65,14 +65,14 @@ export async function matchContentBasedTransaction(
       return {
         outcome: "matched",
         orderId: onlyEligible.id,
-        matchType: pass.matchType,
+        matchType: pass.matchType
       };
     }
     if (eligible.length > 1) {
       return {
         outcome: "unmatched",
         reason: "ambiguous",
-        candidateOrderIds: eligible.map((candidate) => candidate.id),
+        candidateOrderIds: eligible.map((candidate) => candidate.id)
       };
     }
 
@@ -84,7 +84,7 @@ export async function matchContentBasedTransaction(
       return {
         outcome: "unmatched",
         reason: "already_paid",
-        candidateOrderIds: alreadySettled.map((candidate) => candidate.id),
+        candidateOrderIds: alreadySettled.map((candidate) => candidate.id)
       };
     }
   }
@@ -92,6 +92,6 @@ export async function matchContentBasedTransaction(
   return {
     outcome: "unmatched",
     reason: "no_candidate",
-    candidateOrderIds: [],
+    candidateOrderIds: []
   };
 }

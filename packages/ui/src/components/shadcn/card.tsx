@@ -99,5 +99,5 @@ export {
   CardTitle,
   CardAction,
   CardDescription,
-  CardContent,
+  CardContent
 };

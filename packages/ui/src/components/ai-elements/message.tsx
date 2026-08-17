@@ -14,9 +14,9 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useState
 } from "react";
-import { Streamdown } from "streamdown";
+import { Streamdown, type PluginConfig } from "streamdown";
 
 import { Button } from "#components/shadcn/button";
 import { ButtonGroup, ButtonGroupText } from "#components/shadcn/button-group";
@@ -24,7 +24,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "#components/shadcn/tooltip";
 import { cn } from "#lib/utils";
 
@@ -177,7 +177,7 @@ export const MessageBranch = ({
       goToNext,
       goToPrevious,
       setBranches,
-      totalBranches: branches.length,
+      totalBranches: branches.length
     }),
     [branches, currentBranch, goToNext, goToPrevious]
   );
@@ -319,7 +319,7 @@ export const MessageBranchPage = ({
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+const streamdownPlugins = { cjk, code, math, mermaid } as PluginConfig;
 
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (

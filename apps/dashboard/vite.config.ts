@@ -26,13 +26,13 @@ export default defineConfig({
       // `src/paraglide` is committed (see repo note in that dir) so `tsc`
       // can resolve it without a `vite build` bootstrap step first — the
       // default self-gitignore would fight that.
-      emitGitIgnore: false,
-    }),
+      emitGitIgnore: false
+    })
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
+      "@": path.resolve(import.meta.dirname, "./src")
+    }
   },
-  build: { target: "baseline-widely-available" },
+  build: { target: "baseline-widely-available" }
 });

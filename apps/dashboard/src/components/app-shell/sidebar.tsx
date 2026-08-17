@@ -4,7 +4,7 @@ import { LayoutTemplate } from "lucide-react";
 import * as m from "@/paraglide/messages.js";
 
 const navItems = [
-  { to: "/landings", label: () => m.shellLandingsNav(), icon: LayoutTemplate },
+  { to: "/landings", label: () => m.shellLandingsNav(), icon: LayoutTemplate }
   // "/settings" isn't built yet — Phase 1+ fills this in (studio/CRM land first).
 ];
 

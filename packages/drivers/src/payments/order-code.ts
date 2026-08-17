@@ -12,7 +12,7 @@ const CONFUSABLES: Record<string, string> = {
   I: "1",
   L: "1",
   S: "5",
-  B: "8",
+  B: "8"
 };
 
 function charValue(char: string): number {

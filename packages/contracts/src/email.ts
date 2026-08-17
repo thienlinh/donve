@@ -7,7 +7,7 @@ export const emailTemplateValues = [
   "reset_password",
   "invite",
   "lead_digest",
-  "order_paid",
+  "order_paid"
 ] as const;
 export const emailTemplateSchema = z.enum(emailTemplateValues);
 export type EmailTemplate = z.infer<typeof emailTemplateSchema>;
@@ -17,7 +17,7 @@ export const emailStatusValues = [
   "sent",
   "delivered",
   "bounced",
-  "failed",
+  "failed"
 ] as const;
 export const emailStatusSchema = z.enum(emailStatusValues);
 export type EmailStatus = z.infer<typeof emailStatusSchema>;
@@ -32,6 +32,6 @@ export const emailLogSchema = z.object({
   /** Resend's own id, used to look up bounce/delivery status. */
   resendId: z.string().nullable(),
   status: emailStatusSchema.default("queued"),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type EmailLog = z.infer<typeof emailLogSchema>;

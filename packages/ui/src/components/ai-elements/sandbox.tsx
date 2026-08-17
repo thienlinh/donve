@@ -7,13 +7,13 @@ import type { ComponentProps } from "react";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
+  TabsTrigger
 } from "#components/shadcn/tabs";
 import { cn } from "#lib/utils";
 

@@ -7,7 +7,7 @@ import { Button } from "#components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { ScrollArea } from "#components/shadcn/scroll-area";
 import { cn } from "#lib/utils";

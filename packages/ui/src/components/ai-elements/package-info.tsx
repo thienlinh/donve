@@ -17,7 +17,7 @@ interface PackageInfoContextType {
 }
 
 const PackageInfoContext = createContext<PackageInfoContextType>({
-  name: "",
+  name: ""
 });
 
 export type PackageInfoHeaderProps = HTMLAttributes<HTMLDivElement>;
@@ -58,7 +58,7 @@ const changeTypeStyles: Record<ChangeType, string> = {
   minor:
     "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   patch: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  removed: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
+  removed: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
 };
 
 const changeTypeIcons: Record<ChangeType, React.ReactNode> = {
@@ -66,7 +66,7 @@ const changeTypeIcons: Record<ChangeType, React.ReactNode> = {
   major: <ArrowRightIcon className="size-3" />,
   minor: <ArrowRightIcon className="size-3" />,
   patch: <ArrowRightIcon className="size-3" />,
-  removed: <MinusIcon className="size-3" />,
+  removed: <MinusIcon className="size-3" />
 };
 
 export type PackageInfoChangeTypeProps = HTMLAttributes<HTMLDivElement>;

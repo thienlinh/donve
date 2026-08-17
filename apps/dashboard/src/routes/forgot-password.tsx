@@ -5,7 +5,7 @@ import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-f
 import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/forgot-password")({
-  component: ForgotPasswordPage,
+  component: ForgotPasswordPage
 });
 
 function ForgotPasswordPage() {

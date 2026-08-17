@@ -6,7 +6,7 @@ import type { ComponentProps } from "react";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 

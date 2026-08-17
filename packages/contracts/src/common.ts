@@ -10,12 +10,12 @@ export const orgIdSchema = ulidSchema;
 
 export const timestampsSchema = z.object({
   createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  updatedAt: z.coerce.date()
 });
 
 /** Soft-delete marker used by leads/landingPages/campaigns/products. */
 export const softDeleteSchema = z.object({
-  deletedAt: z.coerce.date().nullable(),
+  deletedAt: z.coerce.date().nullable()
 });
 
 /** Freeform JSONB bag — used where the doc doesn't pin down a concrete shape. */

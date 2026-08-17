@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "#components/shadcn/card";
 import { cn } from "#lib/utils";
 

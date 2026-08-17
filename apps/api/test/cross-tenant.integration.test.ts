@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { schema } from "@dv/db";
 import {
   PostgreSqlContainer,
-  type StartedPostgreSqlContainer,
+  type StartedPostgreSqlContainer
 } from "@testcontainers/postgresql";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -69,7 +69,7 @@ beforeAll(async () => {
     // separators break `fs.existsSync` on Windows.
     migrationsFolder: fileURLToPath(
       new URL("../../../packages/db/migrations", import.meta.url)
-    ).replaceAll("\\", "/"),
+    ).replaceAll("\\", "/")
   });
 
   bindings = {
@@ -80,7 +80,7 @@ beforeAll(async () => {
     BETTER_AUTH_URL: "http://localhost:3000",
     DASHBOARD_URL: "http://localhost:5173",
     RESEND_API_KEY: "test-key",
-    RUNTIME: "bun",
+    RUNTIME: "bun"
   };
 
   // Only Resend's own send call goes over the network during these tests —
@@ -95,7 +95,7 @@ beforeAll(async () => {
     if (url.startsWith("https://api.resend.com")) {
       return new Response(JSON.stringify({ id: "test-email-id" }), {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json" }
       });
     }
     return originalFetch(input, init);
@@ -121,7 +121,7 @@ async function req(path: string, init: RequestInit = {}) {
 async function signUpAndSignIn(email: string, password: string, name: string) {
   const signUpRes = await req("/api/auth/sign-up/email", {
     method: "POST",
-    body: JSON.stringify({ email, password, name }),
+    body: JSON.stringify({ email, password, name })
   });
   if (!signUpRes.ok) {
     throw new Error(
@@ -136,7 +136,7 @@ async function signUpAndSignIn(email: string, password: string, name: string) {
 
   const signInRes = await req("/api/auth/sign-in/email", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password })
   });
   if (!signInRes.ok) {
     throw new Error(
@@ -177,14 +177,14 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
 
     const createA = await authed(cookieA, "/api/auth/organization/create", {
       method: "POST",
-      body: JSON.stringify({ name: "Org A", slug: "org-a-xtenant" }),
+      body: JSON.stringify({ name: "Org A", slug: "org-a-xtenant" })
     });
     expect(createA.status).toBe(200);
     orgA = (await createA.json()) as Organization;
 
     const createB = await authed(cookieB, "/api/auth/organization/create", {
       method: "POST",
-      body: JSON.stringify({ name: "Org B", slug: "org-b-xtenant" }),
+      body: JSON.stringify({ name: "Org B", slug: "org-b-xtenant" })
     });
     expect(createB.status).toBe(200);
     orgB = (await createB.json()) as Organization;
@@ -203,8 +203,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       method: "POST",
       body: JSON.stringify({
         organizationId: orgB.id,
-        data: { name: "Pwned by org A" },
-      }),
+        data: { name: "Pwned by org A" }
+      })
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -220,7 +220,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
   it("blocks deleting org B while acting as org A, and org B still exists afterward", async () => {
     const res = await authed(cookieA, "/api/auth/organization/delete", {
       method: "POST",
-      body: JSON.stringify({ organizationId: orgB.id }),
+      body: JSON.stringify({ organizationId: orgB.id })
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -235,7 +235,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
   it("blocks setting org B active while acting as org A (403), and never leaves org B active", async () => {
     const res = await authed(cookieA, "/api/auth/organization/set-active", {
       method: "POST",
-      body: JSON.stringify({ organizationId: orgB.id }),
+      body: JSON.stringify({ organizationId: orgB.id })
     });
     expect(res.status).toBe(403);
 
@@ -251,7 +251,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
 
     await authed(cookieA, "/api/auth/organization/set-active", {
       method: "POST",
-      body: JSON.stringify({ organizationId: orgA.id }),
+      body: JSON.stringify({ organizationId: orgA.id })
     });
   });
 
@@ -269,8 +269,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       body: JSON.stringify({
         organizationId: orgB.id,
         email: "victim@donve.test",
-        role: "editor",
-      }),
+        role: "editor"
+      })
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -290,8 +290,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       method: "POST",
       body: JSON.stringify({
         memberIdOrEmail: ownerBMembership.id,
-        organizationId: orgA.id,
-      }),
+        organizationId: orgA.id
+      })
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -320,8 +320,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       method: "POST",
       body: JSON.stringify({
         memberIdOrEmail: ownerBMembership.id,
-        organizationId: orgB.id,
-      }),
+        organizationId: orgB.id
+      })
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -345,8 +345,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
         body: JSON.stringify({
           memberId: ownerBMembership.id,
           role: "sales",
-          organizationId: orgA.id,
-        }),
+          organizationId: orgA.id
+        })
       }
     );
     expect(res.status).toBeGreaterThanOrEqual(400);
@@ -372,8 +372,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
         body: JSON.stringify({
           organizationId: orgB.id,
           email: "recipient-b@donve.test",
-          role: "editor",
-        }),
+          role: "editor"
+        })
       }
     );
     expect(inviteRes.status).toBe(200);
@@ -384,7 +384,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       "/api/auth/organization/cancel-invitation",
       {
         method: "POST",
-        body: JSON.stringify({ invitationId: invitation.id }),
+        body: JSON.stringify({ invitationId: invitation.id })
       }
     );
     expect(res.status).toBeGreaterThanOrEqual(400);
@@ -400,8 +400,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
         body: JSON.stringify({
           organizationId: orgB.id,
           email: "another-recipient@donve.test",
-          role: "editor",
-        }),
+          role: "editor"
+        })
       }
     );
     expect(inviteRes.status).toBe(200);
@@ -423,8 +423,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
         body: JSON.stringify({
           organizationId: orgB.id,
           email: "someone-else@donve.test",
-          role: "editor",
-        }),
+          role: "editor"
+        })
       }
     );
     expect(inviteRes.status).toBe(200);
@@ -443,7 +443,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       "/api/auth/organization/accept-invitation",
       {
         method: "POST",
-        body: JSON.stringify({ invitationId: invitation.id }),
+        body: JSON.stringify({ invitationId: invitation.id })
       }
     );
     expect(acceptRes.status).toBe(403);
@@ -467,8 +467,8 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
         body: JSON.stringify({
           organizationId: orgB.id,
           email: "yet-another@donve.test",
-          role: "editor",
-        }),
+          role: "editor"
+        })
       }
     );
     expect(inviteRes.status).toBe(200);
@@ -479,7 +479,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
       "/api/auth/organization/reject-invitation",
       {
         method: "POST",
-        body: JSON.stringify({ invitationId: invitation.id }),
+        body: JSON.stringify({ invitationId: invitation.id })
       }
     );
     expect(rejectRes.status).toBe(403);

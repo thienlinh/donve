@@ -25,6 +25,6 @@ export const requestContext = createMiddleware<AppEnv>(async (c, next) => {
     method: c.req.method,
     path: c.req.path,
     status: c.res.status,
-    durationMs,
+    durationMs
   });
 });

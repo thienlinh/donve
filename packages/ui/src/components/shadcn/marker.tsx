@@ -13,9 +13,9 @@ const markerVariants = cva(
         default: "",
         separator:
           "before:me-1 before:h-px before:min-w-0 before:flex-1 before:bg-border after:ms-1 after:h-px after:min-w-0 after:flex-1 after:bg-border",
-        border: "border-b border-border pb-2",
-      },
-    },
+        border: "border-b border-border pb-2"
+      }
+    }
   }
 );
 
@@ -29,15 +29,15 @@ function Marker({
     defaultTagName: "div",
     props: mergeProps<"div">(
       {
-        className: cn(markerVariants({ variant, className })),
+        className: cn(markerVariants({ variant, className }))
       },
       props
     ),
     render,
     state: {
       slot: "marker",
-      variant,
-    },
+      variant
+    }
   });
 }
 

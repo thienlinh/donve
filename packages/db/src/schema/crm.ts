@@ -6,7 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
@@ -27,7 +27,7 @@ export const leads = pgTable(
     stage: text("stage").notNull().default("new"),
     assigneeId: text("assignee_id"),
     ...timestamps,
-    deletedAt: deletedAt(),
+    deletedAt: deletedAt()
   },
   (t) => [
     uniqueIndex("uq_lead_phone")
@@ -35,7 +35,7 @@ export const leads = pgTable(
       .where(sql`deleted_at IS NULL`),
     index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
     index("ix_leads_assignee").on(t.orgId, t.assigneeId),
-    orgIsolationPolicy(),
+    orgIsolationPolicy()
   ]
 ).enableRLS();
 
@@ -53,13 +53,13 @@ export const leadActivities = pgTable(
         "order_created",
         "payment",
         "resubmit",
-        "system",
-      ],
+        "system"
+      ]
     }).notNull(),
     body: text("body"),
     meta: jsonb("meta").default({}),
     actorId: text("actor_id"),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_act_lead").on(t.leadId, t.createdAt)]
 );
@@ -74,7 +74,7 @@ export const consents = pgTable(
     consentType: text("consent_type").notNull().default("data_collection"),
     policyVersion: text("policy_version").notNull(),
     ip: text("ip"),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_consent_lead").on(t.leadId), orgIsolationPolicy()]
 ).enableRLS();
@@ -96,20 +96,20 @@ export const orders = pgTable(
         "paid",
         "fulfilled",
         "cancelled",
-        "refunded",
-      ],
+        "refunded"
+      ]
     })
       .notNull()
       .default("pending"),
     paidAt: timestamp("paid_at"),
     fulfilledAt: timestamp("fulfilled_at"),
     expiresAt: timestamp("expires_at"),
-    ...timestamps,
+    ...timestamps
   },
   (t) => [
     uniqueIndex("uq_order_code").on(t.orgId, t.code),
     index("ix_orders_status").on(t.orgId, t.status, t.createdAt),
-    orgIsolationPolicy(),
+    orgIsolationPolicy()
   ]
 ).enableRLS();
 
@@ -124,12 +124,12 @@ export const payments = pgTable(
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     rawPayload: jsonb("raw_payload").notNull(),
     matchType: text("match_type", { enum: ["auto", "fuzzy", "manual"] }),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   // idempotency
   (t) => [
     uniqueIndex("uq_payment_tx").on(t.provider, t.providerTxId),
-    orgIsolationPolicy(),
+    orgIsolationPolicy()
   ]
 ).enableRLS();
 
@@ -148,11 +148,11 @@ export const paymentConnections = pgTable(
     status: text("status", { enum: ["active", "invalid"] })
       .notNull()
       .default("active"),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [
     uniqueIndex("uq_payment_conn_org").on(t.orgId, t.provider),
-    orgIsolationPolicy(),
+    orgIsolationPolicy()
   ]
 ).enableRLS();
 
@@ -165,7 +165,7 @@ export const unmatchedTransactions = pgTable(
     providerTxId: text("provider_tx_id").notNull(),
     rawPayload: jsonb("raw_payload").notNull(),
     reason: text("reason", {
-      enum: ["no_candidate", "ambiguous", "already_paid"],
+      enum: ["no_candidate", "ambiguous", "already_paid"]
     }).notNull(),
     // used when reason=ambiguous, ranked by match confidence at the app layer
     candidateOrderIds: jsonb("candidate_order_ids").default([]),
@@ -175,7 +175,7 @@ export const unmatchedTransactions = pgTable(
     resolvedOrderId: text("resolved_order_id"),
     resolvedBy: text("resolved_by"),
     resolvedAt: timestamp("resolved_at"),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_unmatched_org").on(t.orgId, t.status), orgIsolationPolicy()]
 ).enableRLS();
@@ -189,20 +189,20 @@ export const refundRequests = pgTable(
     orderId: text("order_id").notNull(),
     paymentId: text("payment_id"),
     reason: text("reason", {
-      enum: ["customer_request", "duplicate_payment", "wrong_match", "other"],
+      enum: ["customer_request", "duplicate_payment", "wrong_match", "other"]
     }).notNull(),
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     // pulled from payments.rawPayload when SePay reports the remitter's name/account
     remitterInfo: jsonb("remitter_info").default({}),
     status: text("status", {
-      enum: ["pending", "processing", "completed", "rejected"],
+      enum: ["pending", "processing", "completed", "rejected"]
     })
       .notNull()
       .default("pending"),
     evidenceKey: text("evidence_key"),
     createdBy: text("created_by"),
     createdAt: timestamps.createdAt,
-    completedAt: timestamp("completed_at"),
+    completedAt: timestamp("completed_at")
   },
   (t) => [index("ix_refund_org").on(t.orgId, t.status), orgIsolationPolicy()]
 ).enableRLS();

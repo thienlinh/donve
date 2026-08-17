@@ -1,7 +1,7 @@
 import type {
   InviteEmailProps,
   ResetPasswordProps,
-  VerifyEmailProps,
+  VerifyEmailProps
 } from "./types.js";
 
 /** FR-I-01 v1: plain HTML string per template, not React Email. */
@@ -35,7 +35,7 @@ export function renderVerifyEmail(props: VerifyEmailProps): {
       `<p>Chào ${props.name},</p>
        <p>Nhấn nút bên dưới để xác thực email và hoàn tất đăng ký tài khoản Donve.</p>
        ${button(props.url, "Xác thực email")}`
-    ),
+    )
   };
 }
 
@@ -50,7 +50,7 @@ export function renderResetPassword(props: ResetPasswordProps): {
       `<p>Chào ${props.name},</p>
        <p>Nhấn nút bên dưới để đặt lại mật khẩu. Nếu bạn không yêu cầu việc này, hãy bỏ qua email này.</p>
        ${button(props.url, "Đặt lại mật khẩu")}`
-    ),
+    )
   };
 }
 
@@ -65,6 +65,6 @@ export function renderInviteEmail(props: InviteEmailProps): {
       `<p>Bạn được mời tham gia <strong>${props.orgName}</strong> với vai trò <strong>${props.role}</strong>.</p>
        ${button(props.inviteUrl, "Chấp nhận lời mời")}
        <p style="color:#71717a;font-size:12px;">Lời mời hết hạn sau 7 ngày.</p>`
-    ),
+    )
   };
 }

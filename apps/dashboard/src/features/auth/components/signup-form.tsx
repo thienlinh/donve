@@ -14,7 +14,7 @@ import { authClient } from "../auth-client";
 const signupSchema = z.object({
   name: z.string().min(1),
   email: z.email(),
-  password: z.string().min(8),
+  password: z.string().min(8)
 });
 
 export function SignupForm() {
@@ -23,7 +23,7 @@ export function SignupForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(signupSchema) });
 
   const onSubmit = handleSubmit(async ({ name, email, password }) => {

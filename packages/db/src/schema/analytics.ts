@@ -13,7 +13,7 @@ export const events = pgTable(
     type: text("type").notNull(),
     sessionHash: text("session_hash"), // hash(ip+ua+day) — no PII
     meta: jsonb("meta").default({}),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [index("ix_events").on(t.orgId, t.campaignId, t.type, t.createdAt)]
 );

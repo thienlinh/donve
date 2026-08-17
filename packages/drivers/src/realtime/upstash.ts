@@ -66,10 +66,10 @@ export function createUpstashRealtimeDriver(
               signal.removeEventListener("abort", stop);
               stop();
               return { done: true, value: undefined };
-            },
+            }
           };
-        },
+        }
       };
-    },
+    }
   };
 }

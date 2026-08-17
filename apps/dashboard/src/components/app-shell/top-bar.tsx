@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@dv/ui/components/shadcn/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";

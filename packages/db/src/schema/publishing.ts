@@ -5,7 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
@@ -19,18 +19,18 @@ export const deployments = pgTable(
     pageVersionId: text("page_version_id").notNull(),
     hostname: text("hostname").notNull(),
     status: text("status", {
-      enum: ["building", "live", "superseded", "failed", "unpublished"],
+      enum: ["building", "live", "superseded", "failed", "unpublished"]
     }).notNull(),
     r2Prefix: text("r2_prefix").notNull(),
     meta: jsonb("meta").default({}),
-    createdAt: timestamps.createdAt,
+    createdAt: timestamps.createdAt
   },
   (t) => [
     index("ix_deploy_host").on(t.hostname, t.status),
     // only one "live" row per hostname
     uniqueIndex("uq_deploy_live_host")
       .on(t.hostname)
-      .where(sql`status = 'live'`),
+      .where(sql`status = 'live'`)
   ]
 );
 
@@ -42,7 +42,7 @@ export const customDomains = pgTable("custom_domains", {
     .notNull()
     .default("pending"),
   cfHostnameId: text("cf_hostname_id"),
-  createdAt: timestamps.createdAt,
+  createdAt: timestamps.createdAt
 });
 
 export const publishOutbox = pgTable(
@@ -58,7 +58,7 @@ export const publishOutbox = pgTable(
       .notNull()
       .default("pending"),
     createdAt: timestamps.createdAt,
-    appliedAt: timestamp("applied_at"),
+    appliedAt: timestamp("applied_at")
   },
   (t) => [index("ix_outbox_status").on(t.status, t.createdAt)]
 );

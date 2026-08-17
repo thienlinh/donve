@@ -18,7 +18,7 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "#components/shadcn/dropdown-menu";
 import { cn } from "#lib/utils";
 
@@ -280,5 +280,5 @@ export {
   MenubarRadioItem,
   MenubarSub,
   MenubarSubTrigger,
-  MenubarSubContent,
+  MenubarSubContent
 };

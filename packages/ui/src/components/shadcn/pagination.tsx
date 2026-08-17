@@ -1,7 +1,7 @@
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  MoreHorizontalIcon,
+  MoreHorizontalIcon
 } from "lucide-react";
 import * as React from "react";
 
@@ -129,5 +129,5 @@ export {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
+  PaginationPrevious
 };

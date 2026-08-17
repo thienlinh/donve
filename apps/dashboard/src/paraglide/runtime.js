@@ -55,9 +55,9 @@ export const urlPatterns = [
     pattern: ":protocol://:domain(.*)::port?/:path(.*)?",
     localized: [
       ["en", ":protocol://:domain(.*)::port?/en/:path(.*)?"],
-      ["vi", ":protocol://:domain(.*)::port?/:path(.*)?"],
-    ],
-  },
+      ["vi", ":protocol://:domain(.*)::port?/:path(.*)?"]
+    ]
+  }
 ];
 /**
  * Controls trailing slash canonicalization for localized URLs.
@@ -299,7 +299,7 @@ const rtlLanguages = new Set([
   "sd",
   "ug",
   "ur",
-  "yi",
+  "yi"
 ]);
 /**
  * Get writing direction for a locale.
@@ -377,7 +377,7 @@ const navigateOrReload = (newLocation) => {
 export let setLocale = (newLocale, options) => {
   const optionsWithDefaults = {
     reload: true,
-    ...options,
+    ...options
   };
   if (
     experimentalStaticLocale !== undefined &&
@@ -445,7 +445,7 @@ export let setLocale = (newLocale, options) => {
       // can be overwritten by `defineSetLocale()` to avoid
       // a full page reload.
       newLocation = localizeUrl(window.location.href, {
-        locale: newLocale,
+        locale: newLocale
       }).href;
     } else if (
       TREE_SHAKE_LOCAL_STORAGE_STRATEGY_USED &&
@@ -462,7 +462,7 @@ export let setLocale = (newLocale, options) => {
         if (result instanceof Promise) {
           result = result.catch((error) => {
             throw new Error(`Custom strategy "${strat}" setLocale failed.`, {
-              cause: error,
+              cause: error
             });
           });
           customSetLocalePromises.push(result);
@@ -881,7 +881,7 @@ export function extractLocaleFromHeader(request) {
         return {
           fullTag: tag,
           baseTag,
-          q: Number(q),
+          q: Number(q)
         };
       })
       .sort((a, b) => b.q - a.q);
@@ -917,7 +917,7 @@ export function extractLocaleFromNavigator() {
   }
   const languages = navigator.languages.map((lang) => ({
     fullTag: lang,
-    baseTag: lang.split("-")[0],
+    baseTag: lang.split("-")[0]
   }));
   for (const lang of languages) {
     const fullLocale = toLocale(lang.fullTag);
@@ -1377,7 +1377,7 @@ export function aggregateGroups(match) {
     ...match.port.groups,
     ...match.protocol.groups,
     ...match.search.groups,
-    ...match.username.groups,
+    ...match.username.groups
   };
 }
 /** @type {Map<string, URLPattern>} */
@@ -1551,7 +1551,7 @@ function parseFastPathOriginAndPath(prefix) {
       hostname: undefined,
       port: undefined,
       pathnamePrefix: normalizePathPrefix(prefix),
-      pathMode: "catch-all-optional",
+      pathMode: "catch-all-optional"
     };
   }
   // A `:protocol://host` pattern is common in generated configurations. The
@@ -1575,7 +1575,7 @@ function parseFastPathOriginAndPath(prefix) {
       hostname: (hostMatch[1] ?? "").toLowerCase(),
       port: hostMatch[2],
       pathnamePrefix: normalizePathPrefix(dynamicProtocol[2] ?? ""),
-      pathMode: "catch-all-optional",
+      pathMode: "catch-all-optional"
     };
   }
   if (staticOrigin === null) return undefined;
@@ -1593,7 +1593,7 @@ function parseFastPathOriginAndPath(prefix) {
     hostname: (hostMatch[1] ?? "").toLowerCase(),
     port: normalizePatternPort(hostMatch[2], `${staticOrigin[1]}:`),
     pathnamePrefix: normalizePathPrefix(pathname ?? ""),
-    pathMode: "catch-all-optional",
+    pathMode: "catch-all-optional"
   };
 }
 /**
@@ -1870,7 +1870,7 @@ export async function shouldRedirect(input = {}) {
   return {
     shouldRedirect: shouldRedirectToLocalizedUrl,
     locale,
-    redirectUrl: shouldRedirectToLocalizedUrl ? localizedUrl : undefined,
+    redirectUrl: shouldRedirectToLocalizedUrl ? localizedUrl : undefined
   };
 }
 /**
@@ -1887,7 +1887,7 @@ async function resolveLocale(input, currentUrl) {
   }
   if (input.request) {
     return extractLocaleFromRequestAsync(input.request, {
-      effectiveRequestUrl: currentUrl,
+      effectiveRequestUrl: currentUrl
     });
   }
   if ("url" in input && typeof input.url !== "undefined") {
@@ -1998,7 +1998,7 @@ export function localizeHref(href, options) {
     // check for cross origin localization in which case an absolute URL must be returned.
     if (locale !== currentLocale) {
       const localizedCurrentLocale = localizeUrl(url, {
-        locale: currentLocale,
+        locale: currentLocale
       });
       if (localizedCurrentLocale.origin !== localized.origin) {
         return localized.href;

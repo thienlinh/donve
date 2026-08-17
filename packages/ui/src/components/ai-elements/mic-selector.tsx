@@ -9,7 +9,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import { Button } from "#components/shadcn/button";
@@ -18,12 +18,12 @@ import {
   CommandEmpty,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from "#components/shadcn/command";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from "#components/shadcn/popover";
 import { useControllableState } from "#hooks/use-controllable-state";
 import { cn } from "#lib/utils";
@@ -47,7 +47,7 @@ const MicSelectorContext = createContext<MicSelectorContextType>({
   open: false,
   setWidth: undefined,
   value: undefined,
-  width: 200,
+  width: 200
 });
 
 export const useAudioDevices = () => {
@@ -90,7 +90,7 @@ export const useAudioDevices = () => {
       setError(null);
 
       const tempStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: true
       });
 
       for (const track of tempStream.getTracks()) {
@@ -145,7 +145,7 @@ export const useAudioDevices = () => {
     error,
     hasPermission,
     loadDevices: loadDevicesWithPermission,
-    loading,
+    loading
   };
 };
 
@@ -169,12 +169,12 @@ export const MicSelector = ({
   const [value, onValueChange] = useControllableState<string | undefined>({
     defaultProp: defaultValue,
     onChange: controlledOnValueChange,
-    prop: controlledValue,
+    prop: controlledValue
   });
   const [open, onOpenChange] = useControllableState({
     defaultProp: defaultOpen,
     onChange: controlledOnOpenChange,
-    prop: controlledOpen,
+    prop: controlledOpen
   });
   const [width, setWidth] = useState(200);
   const { devices, loading, hasPermission, loadDevices } = useAudioDevices();
@@ -193,7 +193,7 @@ export const MicSelector = ({
       open,
       setWidth,
       value,
-      width,
+      width
     }),
     [devices, onOpenChange, onValueChange, open, setWidth, value, width]
   );

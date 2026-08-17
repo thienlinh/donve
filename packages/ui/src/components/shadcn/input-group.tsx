@@ -34,12 +34,12 @@ const inputGroupAddonVariants = cva(
         "block-start":
           "order-first w-full justify-start px-2.5 pt-2 group-has-[>input]/input-group:pt-2 [.border-b]:pb-2",
         "block-end":
-          "order-last w-full justify-start px-2.5 pb-2 group-has-[>input]/input-group:pb-2 [.border-t]:pt-2",
-      },
+          "order-last w-full justify-start px-2.5 pb-2 group-has-[>input]/input-group:pb-2 [.border-t]:pt-2"
+      }
     },
     defaultVariants: {
-      align: "inline-start",
-    },
+      align: "inline-start"
+    }
   }
 );
 
@@ -74,12 +74,12 @@ const inputGroupButtonVariants = cva(
         sm: "",
         "icon-xs":
           "size-6 rounded-[calc(var(--radius)-3px)] p-0 has-[>svg]:p-0",
-        "icon-sm": "size-8 p-0 has-[>svg]:p-0",
-      },
+        "icon-sm": "size-8 p-0 has-[>svg]:p-0"
+      }
     },
     defaultVariants: {
-      size: "xs",
-    },
+      size: "xs"
+    }
   }
 );
 
@@ -154,5 +154,5 @@ export {
   InputGroupButton,
   InputGroupText,
   InputGroupInput,
-  InputGroupTextarea,
+  InputGroupTextarea
 };

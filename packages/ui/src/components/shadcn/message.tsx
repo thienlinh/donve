@@ -88,5 +88,5 @@ export {
   MessageAvatar,
   MessageContent,
   MessageFooter,
-  MessageHeader,
+  MessageHeader
 };

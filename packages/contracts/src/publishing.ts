@@ -7,7 +7,7 @@ export const deploymentStatusValues = [
   "live",
   "superseded",
   "failed",
-  "unpublished",
+  "unpublished"
 ] as const;
 export const deploymentStatusSchema = z.enum(deploymentStatusValues);
 export type DeploymentStatus = z.infer<typeof deploymentStatusSchema>;
@@ -16,7 +16,7 @@ export type DeploymentStatus = z.infer<typeof deploymentStatusSchema>;
 export const deploymentMetaSchema = z
   .object({
     lighthouseScore: z.number().min(0).max(100).optional(),
-    sizeBytes: z.number().int().nonnegative().optional(),
+    sizeBytes: z.number().int().nonnegative().optional()
   })
   .catchall(z.unknown())
   .default({});
@@ -31,14 +31,14 @@ export const deploymentSchema = z.object({
   status: deploymentStatusSchema,
   r2Prefix: z.string(),
   meta: deploymentMetaSchema,
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type Deployment = z.infer<typeof deploymentSchema>;
 
 export const customDomainStatusValues = [
   "pending",
   "active",
-  "failed",
+  "failed"
 ] as const;
 export const customDomainStatusSchema = z.enum(customDomainStatusValues);
 export type CustomDomainStatus = z.infer<typeof customDomainStatusSchema>;
@@ -50,14 +50,14 @@ export const customDomainSchema = z.object({
   status: customDomainStatusSchema,
   /** Cloudflare for SaaS custom hostname id. */
   cfHostnameId: z.string().nullable(),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type CustomDomain = z.infer<typeof customDomainSchema>;
 
 export const publishOutboxStatusValues = [
   "pending",
   "applied",
-  "failed",
+  "failed"
 ] as const;
 export const publishOutboxStatusSchema = z.enum(publishOutboxStatusValues);
 export type PublishOutboxStatus = z.infer<typeof publishOutboxStatusSchema>;
@@ -71,6 +71,6 @@ export const publishOutboxSchema = z.object({
   targetDeployId: ulidSchema,
   status: publishOutboxStatusSchema.default("pending"),
   createdAt: z.coerce.date(),
-  appliedAt: z.coerce.date().nullable(),
+  appliedAt: z.coerce.date().nullable()
 });
 export type PublishOutbox = z.infer<typeof publishOutboxSchema>;

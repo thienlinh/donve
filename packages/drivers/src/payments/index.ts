@@ -9,7 +9,7 @@ export type {
   PaymentProviderId,
   PaymentsDriver,
   VerifiedPaymentEvent,
-  VerifyWebhookInput,
+  VerifyWebhookInput
 } from "./types.js";
 export { PaymentWebhookVerificationError } from "./types.js";
 
@@ -19,7 +19,7 @@ export type { ExtractedOrderCodes } from "./order-code.js";
 export {
   encodeOrderCode,
   extractOrderCodes,
-  isValidOrderCode,
+  isValidOrderCode
 } from "./order-code.js";
 
 export type { SepayDriverConfig } from "./sepay.js";

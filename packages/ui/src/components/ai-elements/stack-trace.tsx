@@ -4,7 +4,7 @@ import {
   AlertTriangleIcon,
   CheckIcon,
   ChevronDownIcon,
-  CopyIcon,
+  CopyIcon
 } from "lucide-react";
 import type { ComponentProps } from "react";
 import {
@@ -15,14 +15,14 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import { Button } from "#components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { useControllableState } from "#hooks/use-controllable-state";
 import { cn } from "#lib/utils";
@@ -84,7 +84,7 @@ const parseStackFrame = (line: string): StackFrame => {
       functionName: functionName ?? null,
       isInternal: isInternal ?? false,
       lineNumber: lineNum ? Number.parseInt(lineNum, 10) : null,
-      raw: trimmed,
+      raw: trimmed
     };
   }
 
@@ -102,7 +102,7 @@ const parseStackFrame = (line: string): StackFrame => {
       functionName: null,
       isInternal,
       lineNumber: lineNum ? Number.parseInt(lineNum, 10) : null,
-      raw: trimmed,
+      raw: trimmed
     };
   }
 
@@ -113,7 +113,7 @@ const parseStackFrame = (line: string): StackFrame => {
     functionName: null,
     isInternal: trimmed.includes("node_modules") || trimmed.includes("node:"),
     lineNumber: null,
-    raw: trimmed,
+    raw: trimmed
   };
 };
 
@@ -125,7 +125,7 @@ const parseStackTrace = (trace: string): ParsedStackTrace => {
       errorMessage: trace,
       errorType: null,
       frames: [],
-      raw: trace,
+      raw: trace
     };
   }
 
@@ -151,7 +151,7 @@ const parseStackTrace = (trace: string): ParsedStackTrace => {
     errorMessage: errorMessage ?? "",
     errorType,
     frames,
-    raw: trace,
+    raw: trace
   };
 };
 
@@ -177,7 +177,7 @@ export const StackTrace = memo(
     const [isOpen, setIsOpen] = useControllableState({
       defaultProp: defaultOpen,
       onChange: onOpenChange,
-      prop: open,
+      prop: open
     });
 
     const parsedTrace = useMemo(() => parseStackTrace(trace), [trace]);
@@ -188,7 +188,7 @@ export const StackTrace = memo(
         onFilePathClick,
         raw: trace,
         setIsOpen,
-        trace: parsedTrace,
+        trace: parsedTrace
       }),
       [parsedTrace, trace, isOpen, setIsOpen, onFilePathClick]
     );

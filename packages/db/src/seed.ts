@@ -7,13 +7,13 @@ const PLATFORM_SKILLS = [
   {
     slug: "landing-hero",
     name: "Landing hero section",
-    content: "# Hero\nDefault hero section skill.",
+    content: "# Hero\nDefault hero section skill."
   },
   {
     slug: "pricing-table",
     name: "Pricing table",
-    content: "# Pricing\nDefault pricing table skill.",
-  },
+    content: "# Pricing\nDefault pricing table skill."
+  }
 ];
 
 async function seed() {

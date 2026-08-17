@@ -4,7 +4,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@dv/ui/components/shadcn/card";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
@@ -17,7 +17,7 @@ import { authClient } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  component: OnboardingPage,
+  component: OnboardingPage
 });
 
 const onboardingSchema = z.object({ name: z.string().min(1) });
@@ -38,13 +38,13 @@ function OnboardingPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(onboardingSchema) });
 
   const onSubmit = handleSubmit(async ({ name }) => {
     const { data: org, error } = await authClient.organization.create({
       name,
-      slug: `${slugify(name)}-${Date.now().toString(36)}`,
+      slug: `${slugify(name)}-${Date.now().toString(36)}`
     });
     if (error || !org) return;
     await authClient.organization.setActive({ organizationId: org.id });

@@ -14,14 +14,14 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
-import { Streamdown } from "streamdown";
+import { Streamdown, type PluginConfig } from "streamdown";
 
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { useControllableState } from "#hooks/use-controllable-state";
 import { cn } from "#lib/utils";
@@ -74,11 +74,11 @@ export const Reasoning = memo(
     const [isOpen, setIsOpen] = useControllableState<boolean>({
       defaultProp: resolvedDefaultOpen,
       onChange: onOpenChange,
-      prop: open,
+      prop: open
     });
     const [duration, setDuration] = useControllableState<number | undefined>({
       defaultProp: undefined,
-      prop: durationProp,
+      prop: durationProp
     });
 
     const hasEverStreamedRef = useRef(isStreaming);
@@ -205,7 +205,7 @@ export type ReasoningContentProps = ComponentProps<
   children: string;
 };
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+const streamdownPlugins = { cjk, code, math, mermaid } as PluginConfig;
 
 export const ReasoningContent = memo(
   ({ className, children, ...props }: ReasoningContentProps) => (

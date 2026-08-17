@@ -29,5 +29,5 @@ export const leadsRepository = {
           .limit(1)
     );
     return rows[0];
-  },
+  }
 };

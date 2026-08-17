@@ -6,12 +6,12 @@ import { ResetPasswordForm } from "@/features/auth/components/reset-password-for
 import * as m from "@/paraglide/messages.js";
 
 const resetPasswordSearchSchema = z.object({
-  token: z.string().optional(),
+  token: z.string().optional()
 });
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: resetPasswordSearchSchema,
-  component: ResetPasswordPage,
+  component: ResetPasswordPage
 });
 
 function ResetPasswordPage() {

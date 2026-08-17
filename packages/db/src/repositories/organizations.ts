@@ -32,5 +32,5 @@ export const organizationsRepository = {
       .where(eq(organizations.slug, slug))
       .limit(1);
     return rows[0];
-  },
+  }
 };

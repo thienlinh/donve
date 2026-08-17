@@ -7,7 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useState,
+  useState
 } from "react";
 
 import { Badge } from "#components/shadcn/badge";
@@ -15,12 +15,12 @@ import type { CarouselApi } from "#components/shadcn/carousel";
 import {
   Carousel,
   CarouselContent,
-  CarouselItem,
+  CarouselItem
 } from "#components/shadcn/carousel";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
+  HoverCardTrigger
 } from "#components/shadcn/hover-card";
 import { cn } from "#lib/utils";
 

@@ -23,7 +23,7 @@ export function createApp() {
     "/api/*",
     cors({
       origin: (_origin, c) => c.env.DASHBOARD_URL,
-      credentials: true,
+      credentials: true
     })
   );
   // Public/unauthenticated surfaces (architecture.md §6) get IP-scoped limits;

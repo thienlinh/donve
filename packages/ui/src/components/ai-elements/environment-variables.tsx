@@ -9,7 +9,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import { Badge } from "#components/shadcn/badge";
@@ -29,7 +29,7 @@ const noop = () => {};
 const EnvironmentVariablesContext =
   createContext<EnvironmentVariablesContextType>({
     setShowValues: noop,
-    showValues: false,
+    showValues: false
   });
 
 export type EnvironmentVariablesProps = HTMLAttributes<HTMLDivElement> & {
@@ -148,7 +148,7 @@ interface EnvironmentVariableContextType {
 const EnvironmentVariableContext =
   createContext<EnvironmentVariableContextType>({
     name: "",
-    value: "",
+    value: ""
   });
 
 export type EnvironmentVariableGroupProps = HTMLAttributes<HTMLDivElement>;
@@ -269,7 +269,7 @@ export const EnvironmentVariableCopyButton = ({
     const formatMap = {
       export: () => `export ${name}="${value}"`,
       name: () => name,
-      value: () => value,
+      value: () => value
     };
     return formatMap[copyFormat]();
   }, [name, value, copyFormat]);

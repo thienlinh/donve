@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/login" });
     }
   },
-  component: AuthenticatedLayout,
+  component: AuthenticatedLayout
 });
 
 function AuthenticatedLayout() {

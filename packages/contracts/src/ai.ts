@@ -6,7 +6,7 @@ export const aiProviderValues = [
   "anthropic",
   "openai",
   "openrouter",
-  "platform",
+  "platform"
 ] as const;
 export const aiProviderSchema = z.enum(aiProviderValues);
 export type AiProvider = z.infer<typeof aiProviderSchema>;
@@ -25,7 +25,7 @@ export const aiConnectionSchema = z.object({
   defaultModel: z.string(),
   isDefault: z.boolean().default(false),
   status: aiConnectionStatusSchema.default("active"),
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type AiConnection = z.infer<typeof aiConnectionSchema>;
 
@@ -33,7 +33,7 @@ export type AiConnection = z.infer<typeof aiConnectionSchema>;
 export const aiUsageContextSchema = z
   .object({
     pageId: z.string().optional(),
-    sessionId: z.string().optional(),
+    sessionId: z.string().optional()
   })
   .catchall(z.unknown())
   .default({});
@@ -48,7 +48,7 @@ export const aiUsageSchema = z.object({
   outputTokens: z.number().int().nonnegative(),
   creditCost: z.number().int().nonnegative().default(0),
   context: aiUsageContextSchema,
-  createdAt: z.coerce.date(),
+  createdAt: z.coerce.date()
 });
 export type AiUsage = z.infer<typeof aiUsageSchema>;
 
@@ -61,14 +61,14 @@ export const skillSchema = z.object({
   content: z.string(),
   version: z.number().int().positive().default(1),
   isActiveDefault: z.boolean().default(false),
-  ...timestampsSchema.shape,
+  ...timestampsSchema.shape
 });
 export type Skill = z.infer<typeof skillSchema>;
 
 const promptTemplateSectionSchema = z
   .object({
     key: z.string(),
-    content: z.string(),
+    content: z.string()
   })
   .catchall(z.unknown());
 
@@ -76,7 +76,7 @@ const promptTemplateVariableSchema = z
   .object({
     key: z.string(),
     label: z.string().optional(),
-    required: z.boolean().optional(),
+    required: z.boolean().optional()
   })
   .catchall(z.unknown());
 
@@ -88,7 +88,7 @@ export const promptTemplateSchema = z.object({
   sections: z.array(promptTemplateSectionSchema).default([]),
   variables: z.array(promptTemplateVariableSchema).default([]),
   version: z.number().int().positive().default(1),
-  ...timestampsSchema.shape,
+  ...timestampsSchema.shape
 });
 export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 
@@ -96,6 +96,6 @@ export type PromptTemplate = z.infer<typeof promptTemplateSchema>;
 export const landingSkillSchema = z.object({
   orgId: orgIdSchema,
   landingPageId: ulidSchema,
-  skillId: ulidSchema,
+  skillId: ulidSchema
 });
 export type LandingSkill = z.infer<typeof landingSkillSchema>;

@@ -5,7 +5,7 @@ import {
   ChevronRightIcon,
   CircleDotIcon,
   CircleIcon,
-  XCircleIcon,
+  XCircleIcon
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes } from "react";
 import { createContext, useContext, useMemo } from "react";
@@ -14,7 +14,7 @@ import { Badge } from "#components/shadcn/badge";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { cn } from "#lib/utils";
 
@@ -218,21 +218,21 @@ interface TestSuiteContextType {
 
 const TestSuiteContext = createContext<TestSuiteContextType>({
   name: "",
-  status: "passed",
+  status: "passed"
 });
 
 const statusStyles: Record<TestStatus, string> = {
   failed: "text-red-600 dark:text-red-400",
   passed: "text-green-600 dark:text-green-400",
   running: "text-blue-600 dark:text-blue-400",
-  skipped: "text-yellow-600 dark:text-yellow-400",
+  skipped: "text-yellow-600 dark:text-yellow-400"
 };
 
 const statusIcons: Record<TestStatus, React.ReactNode> = {
   failed: <XCircleIcon className="size-4" />,
   passed: <CheckCircle2Icon className="size-4" />,
   running: <CircleDotIcon className="size-4 animate-pulse" />,
-  skipped: <CircleIcon className="size-4" />,
+  skipped: <CircleIcon className="size-4" />
 };
 
 const TestStatusIcon = ({ status }: { status: TestStatus }) => (
@@ -348,7 +348,7 @@ interface TestContextType {
 
 const TestContext = createContext<TestContextType>({
   name: "",
-  status: "passed",
+  status: "passed"
 });
 
 export type TestNameProps = HTMLAttributes<HTMLSpanElement>;

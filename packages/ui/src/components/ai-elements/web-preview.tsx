@@ -7,21 +7,21 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
+  useState
 } from "react";
 
 import { Button } from "#components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleTrigger
 } from "#components/shadcn/collapsible";
 import { Input } from "#components/shadcn/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "#components/shadcn/tooltip";
 import { cn } from "#lib/utils";
 
@@ -70,7 +70,7 @@ export const WebPreview = ({
       consoleOpen,
       setConsoleOpen,
       setUrl: handleUrlChange,
-      url,
+      url
     }),
     [consoleOpen, handleUrlChange, url]
   );

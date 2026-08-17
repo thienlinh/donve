@@ -4,7 +4,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@dv/ui/components/shadcn/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronsUpDown, Plus } from "lucide-react";
@@ -12,7 +12,7 @@ import { ChevronsUpDown, Plus } from "lucide-react";
 import {
   authClient,
   useActiveOrganization,
-  useListOrganizations,
+  useListOrganizations
 } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 

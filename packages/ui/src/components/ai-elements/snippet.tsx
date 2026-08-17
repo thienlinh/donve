@@ -9,7 +9,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import {
@@ -17,7 +17,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-  InputGroupText,
+  InputGroupText
 } from "#components/shadcn/input-group";
 import { cn } from "#lib/utils";
 
@@ -26,7 +26,7 @@ interface SnippetContextType {
 }
 
 const SnippetContext = createContext<SnippetContextType>({
-  code: "",
+  code: ""
 });
 
 export type SnippetProps = ComponentProps<typeof InputGroup> & {

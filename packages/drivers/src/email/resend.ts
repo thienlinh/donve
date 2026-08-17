@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import {
   renderInviteEmail,
   renderResetPassword,
-  renderVerifyEmail,
+  renderVerifyEmail
 } from "./templates.js";
 import type { EmailSender, SendEmailInput, SendEmailResult } from "./types.js";
 
@@ -32,7 +32,7 @@ export function createResendEmailSender(
         from,
         to: input.to,
         subject,
-        html,
+        html
       });
       if (error) {
         throw new Error(
@@ -40,7 +40,7 @@ export function createResendEmailSender(
         );
       }
       return { id: data?.id ?? null };
-    },
+    }
   };
 }
 
