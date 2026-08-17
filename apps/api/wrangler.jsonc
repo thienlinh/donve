@@ -12,7 +12,7 @@
   "vars": {
     "RUNTIME": "workers",
     "BETTER_AUTH_URL": "http://localhost:8787",
-    "DASHBOARD_URL": "http://localhost:5173",
+    "DASHBOARD_URL": "http://localhost:5173"
   },
   // Domains below are placeholders (donve.vn is used as working domain
   // throughout docs/ but "Chốt tên miền nền tảng" is still an open backlog
@@ -25,16 +25,16 @@
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api-staging.donve.vn",
-        "DASHBOARD_URL": "https://app-staging.donve.vn",
-      },
+        "DASHBOARD_URL": "https://app-staging.donve.vn"
+      }
     },
     "production": {
       "name": "dv-api",
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api.donve.vn",
-        "DASHBOARD_URL": "https://app.donve.vn",
-      },
-    },
-  },
+        "DASHBOARD_URL": "https://app.donve.vn"
+      }
+    }
+  }
 }

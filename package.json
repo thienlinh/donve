@@ -57,7 +57,7 @@
         "input-otp": "^1.4.2",
         "react-day-picker": "^10.0.1",
         "@shadcn/react": "^0.3.0",
-        "react-resizable-panels": "^4.12.2",
+        "react-resizable-panels": "^4.12.3",
         "recharts": "3.10.1",
         "shiki": "4.4.3",
         "media-chrome": "4.19.2",
@@ -107,7 +107,7 @@
       "queue": {
         "@upstash/redis": "1.38.2",
         "@upstash/qstash": "2.11.3",
-        "bullmq": "6.1.1",
+        "bullmq": "6.1.2",
         "ioredis": "6.0.0"
       },
       "content": {
@@ -128,9 +128,10 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "oxlint --type-aware --fix",
-    "fmt": "oxfmt --write",
-    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware --fix .",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "prepare": "lefthook install",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
