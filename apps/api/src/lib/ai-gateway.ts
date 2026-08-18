@@ -4,6 +4,7 @@ import {
   decryptApiKey,
   getProvider,
   importMasterKey,
+  pickMaxOutputTokens,
   pickModel,
   WORKERS_AI_TRIAL_MODEL,
   type AiUseCase,
@@ -54,7 +55,11 @@ export async function runModelCompletion(
     const provider = createWorkersAiProvider(env.AI);
     const { text, usage } = await collectStream(
       provider.stream(
-        { model: WORKERS_AI_TRIAL_MODEL, messages },
+        {
+          model: WORKERS_AI_TRIAL_MODEL,
+          messages,
+          maxOutputTokens: pickMaxOutputTokens(useCase)
+        },
         { apiKey: "" }
       )
     );
@@ -80,7 +85,7 @@ export async function runModelCompletion(
     const model = pickModel(providerId, useCase, PLATFORM_MODEL);
     const { text, usage } = await collectStream(
       provider.stream(
-        { model, messages },
+        { model, messages, maxOutputTokens: pickMaxOutputTokens(useCase) },
         { apiKey: env.PLATFORM_OPENROUTER_API_KEY }
       )
     );
@@ -123,7 +128,10 @@ export async function runModelCompletion(
   const apiKey = await decryptApiKey(connection.encryptedKey, masterKey);
 
   const { text, usage } = await collectStream(
-    provider.stream({ model, messages }, { apiKey })
+    provider.stream(
+      { model, messages, maxOutputTokens: pickMaxOutputTokens(useCase) },
+      { apiKey }
+    )
   );
   const creditCost = provider.countCost(usage, model);
   // BYOK usage is billed on the tenant's own provider account, not `aiCreditBalance` — record only, no debit.

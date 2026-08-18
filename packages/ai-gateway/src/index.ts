@@ -6,7 +6,7 @@ export {
   KeyDecryptionError
 } from "./key-vault.js";
 
-export { pickModel } from "./model-tiering.js";
+export { pickMaxOutputTokens, pickModel } from "./model-tiering.js";
 export type { AiUseCase } from "./model-tiering.js";
 export { getProvider } from "./providers/registry.js";
 export { collectStream } from "./providers/shared.js";

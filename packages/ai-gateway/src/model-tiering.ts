@@ -23,3 +23,18 @@ export function pickModel(
     ? connectionDefaultModel
     : CHEAP_MODEL[provider];
 }
+
+/**
+ * Output token budget per use case — a full single-file HTML document (FR-B-21) needs far
+ * more headroom than a small patch/layer-naming call. Left unset, providers fall back to
+ * their own default, which for Workers AI's trial models is low enough to cut a generated
+ * page off mid-`<style>` block with no `<body>` at all (confirmed live on staging).
+ */
+const MAX_OUTPUT_TOKENS: Record<AiUseCase, number> = {
+  generate: 8000,
+  patch: 2000
+};
+
+export function pickMaxOutputTokens(useCase: AiUseCase): number {
+  return MAX_OUTPUT_TOKENS[useCase];
+}
