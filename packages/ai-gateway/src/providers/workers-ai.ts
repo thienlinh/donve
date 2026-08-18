@@ -16,8 +16,13 @@ export interface WorkersAiBinding {
   ): Promise<{ response?: string } | ReadableStream>;
 }
 
-/** Free-tier text model used for the FR-H-05 no-BYOK trial — Llama, not Gemini (ai-integration-byok.md §6). */
-export const WORKERS_AI_TRIAL_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+/**
+ * Free-tier text model used for the FR-H-05 no-BYOK trial — Llama, not Gemini
+ * (ai-integration-byok.md §6). The plain `llama-3.1-8b-instruct` id is deprecated on
+ * Cloudflare's model catalog (confirmed live on staging: CF error 5028) — `-fast` is the
+ * current replacement for the same model size, not a different model.
+ */
+export const WORKERS_AI_TRIAL_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 
 /**
  * Trial-only provider backing FR-H-05: no API key, billed as a Workers AI request against
