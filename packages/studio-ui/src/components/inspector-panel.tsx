@@ -159,6 +159,22 @@ function SelectValue({
   );
 }
 
+// Reading an inline color style back off the DOM never returns what was written: the
+// browser's CSSOM canonicalizes `style.color = "#dc2626"` to `rgb(220, 38, 38)` (and
+// `readInspectorValues` reads that canonical form) — but the native `<input type="color">`
+// rejects anything that isn't `#rrggbb`, silently resetting its swatch to black. Convert
+// on the way in; the hex text field next to it is unaffected since it's a plain text input.
+function toHexColor(value: string | undefined): string {
+  if (!value) return "#000000";
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value;
+  const rgb = value.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (!rgb) return "#000000";
+  return `#${rgb
+    .slice(1, 4)
+    .map((c) => Number(c).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
 function ColorValue({
   value,
   onCommit
@@ -176,7 +192,7 @@ function ColorValue({
     <span className="flex min-w-0 items-center gap-2">
       <input
         type="color"
-        value={value ?? "#000000"}
+        value={toHexColor(value)}
         onChange={(e) => onCommit(e.target.value)}
         className="size-4 shrink-0 cursor-pointer rounded-sm border border-input bg-transparent p-0"
       />
