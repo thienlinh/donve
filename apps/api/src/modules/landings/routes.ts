@@ -1,10 +1,4 @@
 import {
-  collectStream,
-  decryptApiKey,
-  getProvider,
-  pickModel
-} from "@dv/ai-gateway";
-import {
   generateLandingPageInputSchema,
   landingPageDetailSchema,
   landingPageListItemSchema,
@@ -14,11 +8,11 @@ import {
 } from "@dv/contracts";
 import {
   aiConnectionsRepository,
-  aiUsageRepository,
   campaignsRepository,
   chatMessagesRepository,
   deploymentsRepository,
   landingPagesRepository,
+  organizationsRepository,
   pageAssetsRepository,
   pageVersionsRepository,
   skillsRepository
@@ -32,7 +26,7 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { importAiMasterKeyFromEnv } from "../../lib/ai-gateway.js";
+import { runModelCompletion } from "../../lib/ai-gateway.js";
 import { createDbFromEnv } from "../../lib/db.js";
 import { ApiError } from "../../lib/errors.js";
 import { createStorageFromEnv } from "../../lib/storage.js";
@@ -333,12 +327,23 @@ landingsRoutes.post("/:id/generate", async (c) => {
     throw new ApiError(400, "landing_page_already_generated");
   }
 
-  // Same BYOK-only pattern as studio/routes.ts's chat/stream — no connection picker yet
-  // for studio actions, so this just requires a default connection to be set up.
+  // Same trial/platform/BYOK resolution as POST /api/ai/generate (FR-H-05): a brand-new
+  // org has no `aiConnections` row at all, so it must fall through to the free Workers AI
+  // trial rather than hard-requiring BYOK — this used to always throw `no_ai_connection`
+  // for every new signup, blocking the very first landing page.
   const connections = await aiConnectionsRepository.list(db, orgId);
-  const connection = connections.find((row) => row.isDefault);
-  if (!connection?.encryptedKey || connection.provider === "platform") {
-    throw new ApiError(400, "no_ai_connection");
+  const defaultConnection = connections.find((row) => row.isDefault);
+  let connectionId: string;
+  if (defaultConnection?.provider === "platform") {
+    connectionId = "platform";
+  } else if (defaultConnection?.encryptedKey) {
+    connectionId = defaultConnection.id;
+  } else {
+    const org = await organizationsRepository.findById(db, orgId);
+    if (!org || org.trialUsesRemaining <= 0) {
+      throw new ApiError(400, "no_ai_connection");
+    }
+    connectionId = "trial";
   }
 
   const [skills, tenantAssets] = await Promise.all([
@@ -354,28 +359,18 @@ landingsRoutes.post("/:id/generate", async (c) => {
     }))
   });
 
-  const provider = getProvider(connection.provider);
-  const model = pickModel(
-    connection.provider,
+  const result = await runModelCompletion(
+    db,
+    c.env,
+    orgId,
+    connectionId,
     "generate",
-    connection.defaultModel
+    [
+      { role: "system", content: system },
+      { role: "user", content: prompt }
+    ]
   );
-  const masterKey = await importAiMasterKeyFromEnv(c.env);
-  const apiKey = await decryptApiKey(connection.encryptedKey, masterKey);
-
-  const { text, usage } = await collectStream(
-    provider.stream(
-      {
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: prompt }
-        ]
-      },
-      { apiKey }
-    )
-  );
-  const html = stampSrcmap(sanitizeLandingHtml(extractHtml(text)));
+  const html = stampSrcmap(sanitizeLandingHtml(extractHtml(result.text)));
 
   const storage = createStorageFromEnv(c.env);
   const seq = 1;
@@ -401,19 +396,11 @@ landingsRoutes.post("/:id/generate", async (c) => {
   });
   if (!version) throw new ApiError(500, "page_version_create_failed");
 
-  await Promise.all([
-    landingPagesRepository.update(db, orgId, id, {
-      currentVersionId: version.id
-    }),
-    aiUsageRepository.insert(db, orgId, {
-      connectionId: connection.id,
-      model,
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      creditCost: provider.countCost(usage, model),
-      context: { pageId: id }
-    })
-  ]);
+  // Usage/billing is already recorded inside `runModelCompletion` (trial debit, platform
+  // credit debit, or BYOK usage insert) — nothing left to do here but advance the page.
+  await landingPagesRepository.update(db, orgId, id, {
+    currentVersionId: version.id
+  });
 
   const placeholders = findImagePlaceholders(html);
   if (placeholders.length > 0) {
