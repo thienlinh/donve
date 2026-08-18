@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { ulid } from "ulid";
 
 import type { Db } from "./client/types.js";
 
@@ -44,8 +45,8 @@ async function debitAndRecordUsage(
       where id = ${input.orgId} and ${sql.raw(column)} >= ${amount}
       returning ${sql.raw(column)} as remaining
     )
-    insert into ai_usage (org_id, connection_id, model, input_tokens, output_tokens, credit_cost, context)
-    select ${input.orgId}, ${input.connectionId}, ${input.model}, ${input.inputTokens}, ${input.outputTokens}, ${input.creditCost}, ${JSON.stringify(input.context ?? {})}::jsonb
+    insert into ai_usage (id, org_id, connection_id, model, input_tokens, output_tokens, credit_cost, context)
+    select ${ulid()}, ${input.orgId}, ${input.connectionId}, ${input.model}, ${input.inputTokens}, ${input.outputTokens}, ${input.creditCost}, ${JSON.stringify(input.context ?? {})}::jsonb
     where exists (select 1 from debit)
     returning (select remaining from debit) as remaining
   `;

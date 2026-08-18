@@ -23,7 +23,11 @@ export const errorHandler: ErrorHandler<AppEnv> = (err, c) => {
         : "http_error";
   const message = status === 500 ? "Internal server error" : err.message;
 
-  log("error", { requestId, orgId, status, code, message: err.message });
+  // Driver errors (e.g. a raw SQL constraint violation) wrap the real Postgres message in
+  // `.cause` — logging only `err.message` hid it entirely behind a generic "Failed query"
+  // wrapper when this was last debugged. Never sent to the client, log-only.
+  const cause = err.cause instanceof Error ? err.cause.message : undefined;
+  log("error", { requestId, orgId, status, code, message: err.message, cause });
 
   return c.json({ error: { code, message, requestId } }, status);
 };
