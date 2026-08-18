@@ -63,6 +63,16 @@ export function createOrgScopedRepository<TTable extends OrgScopedTable>(
           .returning()
       );
       return rows[0];
+    },
+
+    async remove(db: Db, orgId: string, id: string) {
+      const rows = await withOrgScope<Row[]>(db, orgId, (qb) =>
+        qb
+          .delete(anyTable)
+          .where(and(eq(table.orgId, orgId), eq(table.id, id)))
+          .returning()
+      );
+      return rows[0];
     }
   };
 }

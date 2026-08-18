@@ -501,3 +501,125 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
     expect(res.status).toBe(401);
   });
 });
+
+/**
+ * NFR-04 for the Phase 2 AI/skills surface (`requireOrgSession` middleware, app.ts) —
+ * `orgId` here always comes from the caller's own session-active org (never a client-
+ * supplied param), so the attack shape is different from the `/api/auth/organization/*`
+ * suite above: it's "does a foreign resource id 404 instead of leaking/mutating", not
+ * "can I spoof organizationId". Reuses org A/B from the suite above.
+ */
+describe("cross-tenant isolation on /api/ai/skills and /api/landings (NFR-04)", () => {
+  let cookieA: string;
+  let cookieB: string;
+  let orgA: Organization;
+  let orgB: Organization;
+
+  beforeAll(async () => {
+    cookieA = await signUpAndSignIn(
+      "owner-a2@donve.test",
+      "pw-a2-123456",
+      "Owner A2"
+    );
+    cookieB = await signUpAndSignIn(
+      "owner-b2@donve.test",
+      "pw-b2-123456",
+      "Owner B2"
+    );
+
+    const createA = await authed(cookieA, "/api/auth/organization/create", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org A2", slug: "org-a2-xtenant" })
+    });
+    orgA = (await createA.json()) as Organization;
+    const createB = await authed(cookieB, "/api/auth/organization/create", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B2", slug: "org-b2-xtenant" })
+    });
+    orgB = (await createB.json()) as Organization;
+
+    await authed(cookieA, "/api/auth/organization/set-active", {
+      method: "POST",
+      body: JSON.stringify({ organizationId: orgA.id })
+    });
+    await authed(cookieB, "/api/auth/organization/set-active", {
+      method: "POST",
+      body: JSON.stringify({ organizationId: orgB.id })
+    });
+  });
+
+  it("blocks updating org B's skill while acting as org A (404, not found for this org)", async () => {
+    const createRes = await authed(cookieB, "/api/ai/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        slug: "org-b-skill",
+        name: "Org B skill",
+        content: "secret sauce"
+      })
+    });
+    expect(createRes.status).toBe(201);
+    const skillB = (await createRes.json()) as { id: string };
+
+    const updateRes = await authed(cookieA, `/api/ai/skills/${skillB.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Pwned by org A" })
+    });
+    expect(updateRes.status).toBe(404);
+
+    const deleteRes = await authed(cookieA, `/api/ai/skills/${skillB.id}`, {
+      method: "DELETE"
+    });
+    expect(deleteRes.status).toBe(404);
+
+    const listB = await authed(cookieB, "/api/ai/skills", { method: "GET" });
+    const { skills } = (await listB.json()) as {
+      skills: { id: string; name: string }[];
+    };
+    expect(skills.find((s) => s.id === skillB.id)?.name).toBe("Org B skill");
+  });
+
+  it("blocks updating org B's prompt template while acting as org A (404)", async () => {
+    const createRes = await authed(cookieB, "/api/ai/prompt-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        slug: "org-b-template",
+        sections: [{ key: "intro", content: "Hello {{brand}}" }],
+        variables: [{ key: "brand" }]
+      })
+    });
+    expect(createRes.status).toBe(201);
+    const templateB = (await createRes.json()) as { id: string };
+
+    const updateRes = await authed(
+      cookieA,
+      `/api/ai/prompt-templates/${templateB.id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ variables: [{ key: "pwned" }] })
+      }
+    );
+    expect(updateRes.status).toBe(404);
+  });
+
+  it("blocks reading org B's landing page by id while acting as org A (404)", async () => {
+    const createRes = await authed(cookieB, "/api/landings", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B landing" })
+    });
+    expect(createRes.status).toBe(201);
+    const landingB = (await createRes.json()) as { id: string };
+
+    const getRes = await authed(cookieA, `/api/landings/${landingB.id}`);
+    expect(getRes.status).toBe(404);
+
+    const deleteRes = await authed(cookieA, `/api/landings/${landingB.id}`, {
+      method: "DELETE"
+    });
+    expect(deleteRes.status).toBe(404);
+  });
+
+  it("edge case: an unauthenticated request to /api/ai/skills is rejected before any org check", async () => {
+    const res = await req("/api/ai/skills");
+    expect(res.status).toBe(401);
+  });
+});

@@ -17,9 +17,12 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as VerifiedRouteImport } from './routes/verified'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
-import { Route as AuthenticatedLandingsRouteImport } from './routes/_authenticated/landings'
+import { Route as AuthenticatedAiConnectionsRouteImport } from './routes/_authenticated/ai-connections'
+import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
+import { Route as AuthenticatedLandingsIndexRouteImport } from './routes/_authenticated/landings.index'
+import { Route as AuthenticatedLandingsIdStudioRouteImport } from './routes/_authenticated/landings.$id.studio'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -60,9 +63,15 @@ const VerifyEmailRoute = VerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedLandingsRoute = AuthenticatedLandingsRouteImport.update({
-  id: '/landings',
-  path: '/landings',
+const AuthenticatedAiConnectionsRoute =
+  AuthenticatedAiConnectionsRouteImport.update({
+    id: '/ai-connections',
+    path: '/ai-connections',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -75,6 +84,18 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
   path: '/platform',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedLandingsIndexRoute =
+  AuthenticatedLandingsIndexRouteImport.update({
+    id: '/landings/',
+    path: '/landings/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedLandingsIdStudioRoute =
+  AuthenticatedLandingsIdStudioRouteImport.update({
+    id: '/landings/$id/studio',
+    path: '/landings/$id/studio',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -84,9 +105,12 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
-  '/landings': typeof AuthenticatedLandingsRoute
+  '/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/landings/': typeof AuthenticatedLandingsIndexRoute
+  '/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,9 +120,12 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
-  '/landings': typeof AuthenticatedLandingsRoute
+  '/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/landings': typeof AuthenticatedLandingsIndexRoute
+  '/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,9 +137,12 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
-  '/_authenticated/landings': typeof AuthenticatedLandingsRoute
+  '/_authenticated/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/landings/': typeof AuthenticatedLandingsIndexRoute
+  '/_authenticated/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -124,9 +154,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verified'
     | '/verify-email'
-    | '/landings'
+    | '/ai-connections'
+    | '/members'
     | '/onboarding'
     | '/platform'
+    | '/landings/'
+    | '/landings/$id/studio'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -136,9 +169,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verified'
     | '/verify-email'
-    | '/landings'
+    | '/ai-connections'
+    | '/members'
     | '/onboarding'
     | '/platform'
+    | '/landings'
+    | '/landings/$id/studio'
   id:
     | '__root__'
     | '/'
@@ -149,9 +185,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verified'
     | '/verify-email'
-    | '/_authenticated/landings'
+    | '/_authenticated/ai-connections'
+    | '/_authenticated/members'
     | '/_authenticated/onboarding'
     | '/_authenticated/platform'
+    | '/_authenticated/landings/'
+    | '/_authenticated/landings/$id/studio'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,11 +262,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/landings': {
-      id: '/_authenticated/landings'
-      path: '/landings'
-      fullPath: '/landings'
-      preLoaderRoute: typeof AuthenticatedLandingsRouteImport
+    '/_authenticated/ai-connections': {
+      id: '/_authenticated/ai-connections'
+      path: '/ai-connections'
+      fullPath: '/ai-connections'
+      preLoaderRoute: typeof AuthenticatedAiConnectionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/members': {
+      id: '/_authenticated/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof AuthenticatedMembersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/onboarding': {
@@ -244,19 +290,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/landings/': {
+      id: '/_authenticated/landings/'
+      path: '/landings'
+      fullPath: '/landings/'
+      preLoaderRoute: typeof AuthenticatedLandingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/landings/$id/studio': {
+      id: '/_authenticated/landings/$id/studio'
+      path: '/landings/$id/studio'
+      fullPath: '/landings/$id/studio'
+      preLoaderRoute: typeof AuthenticatedLandingsIdStudioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedLandingsRoute: typeof AuthenticatedLandingsRoute
+  AuthenticatedAiConnectionsRoute: typeof AuthenticatedAiConnectionsRoute
+  AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedLandingsIndexRoute: typeof AuthenticatedLandingsIndexRoute
+  AuthenticatedLandingsIdStudioRoute: typeof AuthenticatedLandingsIdStudioRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedLandingsRoute: AuthenticatedLandingsRoute,
+  AuthenticatedAiConnectionsRoute: AuthenticatedAiConnectionsRoute,
+  AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedLandingsIndexRoute: AuthenticatedLandingsIndexRoute,
+  AuthenticatedLandingsIdStudioRoute: AuthenticatedLandingsIdStudioRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

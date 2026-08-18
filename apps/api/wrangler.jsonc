@@ -5,15 +5,27 @@
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
-  // RESEND_API_KEY are secrets, set per environment via `wrangler secret put
-  // <NAME> --env <env>` (staging/production) — not committed here, see
-  // docs/runbooks/ci-cd-setup.md. Top-level vars below are only the default
+  // RESEND_API_KEY / AI_KEY_MASTER_SECRET / PLATFORM_OPENROUTER_API_KEY are secrets,
+  // set per environment via `wrangler secret put <NAME> --env <env>` (staging/production)
+  // — not committed here, see docs/runbooks/ci-cd-setup.md. Top-level vars below are only the default
   // used by bare `wrangler dev` (local CF Workers simulation); real deploys
   // always pass --env and use the blocks under "env" instead.
   "vars": {
     "RUNTIME": "workers",
     "BETTER_AUTH_URL": "http://localhost:8787",
     "DASHBOARD_URL": "http://localhost:5173"
+  },
+  // Studio draft assets (page_versions.htmlKey/srcmapKey) — separate bucket from
+  // apps/edge-router's `deployments/*` (published landing serving), per architecture.md §3.
+  "r2_buckets": [
+    {
+      "binding": "LANDING_ASSETS_BUCKET",
+      "bucket_name": "dv-landing-assets-dev"
+    }
+  ],
+  // FR-H-05 no-BYOK trial (ai-integration-byok.md §6) — same binding name/model in every env.
+  "ai": {
+    "binding": "AI"
   },
   // Domains below are placeholders (donve.vn is used as working domain
   // throughout docs/ but "Chốt tên miền nền tảng" is still an open backlog
@@ -27,7 +39,13 @@
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api-staging.donve.vn",
         "DASHBOARD_URL": "https://app-staging.donve.vn"
-      }
+      },
+      "r2_buckets": [
+        {
+          "binding": "LANDING_ASSETS_BUCKET",
+          "bucket_name": "dv-landing-assets-staging"
+        }
+      ]
     },
     "production": {
       "name": "dv-api",
@@ -35,7 +53,13 @@
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api.donve.vn",
         "DASHBOARD_URL": "https://app.donve.vn"
-      }
+      },
+      "r2_buckets": [
+        {
+          "binding": "LANDING_ASSETS_BUCKET",
+          "bucket_name": "dv-landing-assets"
+        }
+      ]
     }
   }
 }

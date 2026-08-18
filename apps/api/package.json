@@ -16,8 +16,13 @@
     "@dv/contracts": "workspace:*",
     "@dv/db": "workspace:*",
     "@dv/drivers": "workspace:*",
+    "@dv/studio-ai": "workspace:*",
+    "@dv/studio-core": "workspace:*",
     "@hono/zod-validator": "catalog:server",
+    "ai": "catalog:ai",
+    "chrome-launcher": "catalog:server",
     "hono": "catalog:server",
+    "lighthouse": "catalog:server",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -41,6 +41,7 @@ export const organizationSchema = z.object({
   slug: z.string().min(1),
   plan: orgPlanSchema.default("free"),
   aiCreditBalance: z.number().int().nonnegative().default(0),
+  trialUsesRemaining: z.number().int().nonnegative().default(3),
   settings: orgSettingsSchema.default({}),
   ...timestampsSchema.shape
 });

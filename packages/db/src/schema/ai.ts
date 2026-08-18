@@ -9,7 +9,11 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
-import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
+import {
+  orgIsolationPolicy,
+  orgOrPlatformReadPolicy,
+  platformReadPolicy
+} from "./rls.js";
 
 export const aiConnections = pgTable(
   "ai_connections",
@@ -60,18 +64,50 @@ export const skills = pgTable(
     isActiveDefault: boolean("is_active_default").notNull().default(false),
     ...timestamps
   },
-  (t) => [uniqueIndex("uq_skill").on(t.orgId, t.slug)]
-);
+  (t) => [
+    uniqueIndex("uq_skill").on(t.orgId, t.slug),
+    orgIsolationPolicy(),
+    orgOrPlatformReadPolicy()
+  ]
+).enableRLS();
 
-export const promptTemplates = pgTable("prompt_templates", {
-  id: id(),
-  orgId: text("org_id"),
-  slug: text("slug").notNull(),
-  sections: jsonb("sections").notNull().default({}),
-  variables: jsonb("variables").default({}),
-  version: integer("version").notNull().default(1),
-  createdAt: timestamps.createdAt
-});
+export const promptTemplates = pgTable(
+  "prompt_templates",
+  {
+    id: id(),
+    orgId: text("org_id"), // null = platform-wide template (read-only tenant)
+    slug: text("slug").notNull(),
+    sections: jsonb("sections").notNull().default([]),
+    variables: jsonb("variables").default([]),
+    version: integer("version").notNull().default(1),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_prompt_template").on(t.orgId, t.slug),
+    orgIsolationPolicy(),
+    orgOrPlatformReadPolicy()
+  ]
+).enableRLS();
+
+export const promptTestRuns = pgTable(
+  "prompt_test_runs",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    promptTemplateId: text("prompt_template_id").notNull(),
+    model: text("model").notNull(),
+    compiledPrompt: text("compiled_prompt").notNull(),
+    outputHtml: text("output_html").notNull(),
+    // null when the runtime can't launch Chrome (CF Workers) — see lighthouse-sandbox.ts.
+    lighthouse: jsonb("lighthouse"),
+    usage: jsonb("usage").notNull(),
+    createdAt: timestamps.createdAt
+  },
+  (t) => [
+    index("ix_prompt_test_runs_template").on(t.promptTemplateId, t.createdAt),
+    orgIsolationPolicy()
+  ]
+).enableRLS();
 
 export const landingSkills = pgTable(
   "landing_skills",

@@ -3,18 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:ai",
     "@ai-sdk/openai": "catalog:ai",
+    "@openrouter/ai-sdk-provider": "catalog:ai",
     "ai": "catalog:ai",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
-    "typescript": "catalog:"
+    "bun-types": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

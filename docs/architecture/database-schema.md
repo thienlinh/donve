@@ -46,8 +46,10 @@ export const memberships = pgTable(
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
 );
 
+// Owned by Better Auth's organization plugin (invite-member/accept-invitation/
+// cancel-invitation address rows by `id`, not a token) — see packages/auth/src/config.ts.
 export const invites = pgTable("invites", {
-  /* orgId, email, role, token, expiresAt */
+  /* orgId, email, role, status, inviterId, expiresAt */
 });
 
 export const auditLogs = pgTable(

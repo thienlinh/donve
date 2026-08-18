@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutTemplate } from "lucide-react";
+import { Bot, LayoutTemplate, Users } from "lucide-react";
 
 import * as m from "@/paraglide/messages.js";
 
 const navItems = [
-  { to: "/landings", label: () => m.shellLandingsNav(), icon: LayoutTemplate }
+  { to: "/landings", label: () => m.shellLandingsNav(), icon: LayoutTemplate },
+  { to: "/members", label: () => m.shellMembersNav(), icon: Users },
+  { to: "/ai-connections", label: () => m.shellAiNav(), icon: Bot }
   // "/settings" isn't built yet — Phase 1+ fills this in (studio/CRM land first).
 ];
 

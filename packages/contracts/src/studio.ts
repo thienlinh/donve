@@ -25,6 +25,16 @@ export const landingPageSchema = z.object({
 });
 export type LandingPage = z.infer<typeof landingPageSchema>;
 
+/** List view row — adds fields derived at query time, not stored on `landingPages`. */
+export const landingPageListItemSchema = landingPageSchema.extend({
+  /** true iff a `deployments` row with status="live" exists for this page — not a stored column. */
+  isPublished: z.boolean(),
+  /** hostname of the live deployment, if any — lets the UI link to the published site. */
+  liveHostname: z.string().nullable(),
+  campaignName: z.string().nullable()
+});
+export type LandingPageListItem = z.infer<typeof landingPageListItemSchema>;
+
 export const pageVersionOriginValues = [
   "ai_patch",
   "ai_full",
@@ -53,6 +63,12 @@ export const pageVersionSchema = z.object({
   prunedAt: z.coerce.date().nullable()
 });
 export type PageVersion = z.infer<typeof pageVersionSchema>;
+
+/** Bootstrap payload for the studio editor — landing page plus its current version, if any. */
+export const landingPageDetailSchema = landingPageSchema.extend({
+  currentVersion: pageVersionSchema.nullable()
+});
+export type LandingPageDetail = z.infer<typeof landingPageDetailSchema>;
 
 export const pageAssetSourceValues = [
   "user_upload",
@@ -89,6 +105,24 @@ export const pageAssetSchema = z.object({
   createdAt: z.coerce.date()
 });
 export type PageAsset = z.infer<typeof pageAssetSchema>;
+
+/** POST /api/landings/:id/generate body (FR-B-21). */
+export const generateLandingPageInputSchema = z.object({
+  prompt: z.string().trim().min(1).max(4000)
+});
+export type GenerateLandingPageInput = z.infer<
+  typeof generateLandingPageInputSchema
+>;
+
+/** One stock-photo search result (FR-B-32/33) — Unsplash or Pexels, commercial-license only. */
+export const stockImageCandidateSchema = z.object({
+  provider: z.enum(["unsplash", "pexels"]),
+  url: z.string(),
+  thumbUrl: z.string(),
+  attribution: z.string(),
+  sourceUrl: z.string()
+});
+export type StockImageCandidate = z.infer<typeof stockImageCandidateSchema>;
 
 export const studioCommentStatusValues = [
   "queued",

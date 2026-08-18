@@ -102,7 +102,6 @@
 
 | Quyết định | Thời gian tiết kiệm ước tính |
 | --- | --- |
-| Tái sử dụng dv-studio-kit (không nằm trong bảng version nhưng là quyết định lớn nhất) | ~4–6 tuần |
 | AI Elements + AI SDK 7 `useChat`/`ToolLoopAgent` thay vì tự viết chat + agent loop | ~1.5–2 tuần |
 | Better Auth plugin organization thay vì tự viết multi-tenant auth/invite/RBAC | ~1.5 tuần |
 | shadcn/ui + Tailwind v4 + token strategy có sẵn của bạn | ~1 tuần |

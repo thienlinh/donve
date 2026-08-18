@@ -19,7 +19,7 @@ apps/dashboard        Vite 8 + React 19 + TanStack Router/Query, Tailwind v4
 apps/api              Hono — workers.ts (CF) / bun.ts (VPS) entrypoints
 apps/edge-router      CF Worker: landing serving (KV+R2+Cache), event beacon
 apps/landing-runtime  Vanilla TS, built as IIFE via tsdown (the one compiled package)
-packages/studio-core  srcmap engine, patch ops, undo/redo (from dv-studio-kit @dv/core)
+packages/studio-core  srcmap engine, patch ops, undo/redo
 packages/studio-ui    Canvas/LayerTree/Inspector (from @dv/studio)
 packages/studio-ai    patch protocol, prompt compiler (from @dv/ai)
 packages/db           drizzle schema + org-scoped repositories

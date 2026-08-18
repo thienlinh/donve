@@ -30,6 +30,9 @@ export const account = pgTable("account", {
   id: id(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
+  // better-auth 1.7 core field (credential-account de-duplication) — every
+  // account row it creates now sets this, including email/password sign-up.
+  issuer: text("issuer"),
   userId: text("user_id").notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),

@@ -20,7 +20,7 @@
 ## Tóm tắt quyết định kiến trúc quan trọng (đọc trước)
 
 1. **Landing page xuất bản = HTML tĩnh thuần, zero framework runtime** — serve từ Cloudflare edge (R2 + Worker), đây là cách duy nhất đạt Core Web Vitals gần tuyệt đối cho user non-tech. Dashboard là SPA (Vite + React), không cần SSR.
-2. **Studio builder tái sử dụng `dv-studio-kit`** — bạn đã có `@dv/core` (srcmap engine), `@dv/ai` (patch layer), `@dv/studio` (UI). Nền tảng này chính là "ứng dụng host" đầu tiên của bộ kit đó. Không viết lại từ đầu.
+2. **Studio builder tái sử dụng** — `@dv/core` (srcmap engine), `@dv/ai` (patch layer), `@dv/studio` (UI). Nền tảng này chính là "ứng dụng host" đầu tiên.
 3. **Kết nối tài khoản Claude/ChatGPT cá nhân của user: KHÔNG khả thi về mặt ToS cho SaaS multi-tenant** (chi tiết + nguồn ở ai-integration-byok.md). Con đường hợp lệ: (a) BYOK API key, (b) platform key + bán credit, (c) đăng ký chương trình "Sign in with Claude / Sign in with ChatGPT" chính thức (discretionary, phải được duyệt, chạy trên usage credits chứ không phải subscription limit).
 4. **Backend Hono viết adapter-agnostic** — chạy Cloudflare Workers ở giai đoạn free tier, chạy Bun/Node trên VPS Việt Nam khi scale; jobs layer trừu tượng hoá (QStash driver ↔ BullMQ driver) để migrate không đau.
 5. **Khuyến nghị hạ tầng: hybrid vĩnh viễn** — landing serving luôn ở Cloudflare edge (SEO + tốc độ VN + free), backend/DB có thể về VPS VN. Không nên đưa landing serving về VPS.

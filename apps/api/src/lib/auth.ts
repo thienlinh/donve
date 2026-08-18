@@ -12,13 +12,15 @@ import { createDbFromEnv } from "./db.js";
  */
 export function createAuthFromEnv(env: Bindings) {
   const db = createDbFromEnv(env);
-  const sender = email.createResendEmailSender({ apiKey: env.RESEND_API_KEY });
+  const sender = env.RESEND_API_KEY
+    ? email.createResendEmailSender({ apiKey: env.RESEND_API_KEY })
+    : undefined;
 
   return createAuth({
     db: db.raw,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.DASHBOARD_URL],
-    email: { sender, appURL: env.DASHBOARD_URL }
+    email: sender ? { sender, appURL: env.DASHBOARD_URL } : undefined
   });
 }

@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@dv/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -39,9 +40,11 @@ export function TopBar() {
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel className="truncate">
-            {m.shellSignedInAs({ email })}
-          </DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="truncate">
+              {m.shellSignedInAs({ email })}
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut /> {m.shellLogout()}

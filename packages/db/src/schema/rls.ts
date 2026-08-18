@@ -26,3 +26,17 @@ export const platformReadPolicy = () =>
     for: "select",
     using: sql`current_setting('app.is_platform_admin', true) = 'true'`
   });
+
+/**
+ * Read access for tables where `org_id IS NULL` marks a platform-curated row visible to
+ * every tenant (e.g. platform skills/prompt templates — see `skillsRepository`'s `ownedBy`).
+ * Paired with `orgIsolationPolicy()` on the same table: that policy alone would hide NULL
+ * rows from everyone (`org_id = current_org` is never true when `org_id IS NULL`), and still
+ * fully governs INSERT/UPDATE/DELETE since this policy is `for: "select"` only — a tenant
+ * session can never write a NULL-org row through it.
+ */
+export const orgOrPlatformReadPolicy = () =>
+  pgPolicy("org_or_platform_read", {
+    for: "select",
+    using: sql`org_id = current_setting('app.current_org', true) OR org_id IS NULL`
+  });

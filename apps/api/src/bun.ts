@@ -12,7 +12,12 @@ const bindings: Bindings = {
     `http://localhost:${process.env.PORT ?? 3000}`,
   DASHBOARD_URL: process.env.DASHBOARD_URL ?? "http://localhost:5173",
   RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
-  RUNTIME: "bun"
+  RUNTIME: "bun",
+  LOCAL_STORAGE_DIR: process.env.LOCAL_STORAGE_DIR,
+  AI_KEY_MASTER_SECRET: process.env.AI_KEY_MASTER_SECRET ?? "",
+  PLATFORM_OPENROUTER_API_KEY: process.env.PLATFORM_OPENROUTER_API_KEY ?? "",
+  UNSPLASH_ACCESS_KEY: process.env.UNSPLASH_ACCESS_KEY,
+  PEXELS_API_KEY: process.env.PEXELS_API_KEY
 };
 
 const app = createApp();

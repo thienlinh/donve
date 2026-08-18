@@ -102,6 +102,24 @@ export function createAuth(config: AuthConfig) {
           editor: editorRole,
           sales: salesRole
         },
+        // Runs in the background (better-auth doesn't await this before
+        // responding to invite-member) — a Resend failure never blocks the
+        // invite itself. No dedicated accept-invite page exists in the
+        // dashboard; the invitee sees pending invitations in-app after
+        // logging in (apps/dashboard's PendingInvitationsBanner), so the
+        // link only needs to land them there.
+        sendInvitationEmail: async (data) => {
+          if (!config.email) return;
+          await config.email.sender.send({
+            to: data.email,
+            template: "invite",
+            props: {
+              orgName: data.organization.name,
+              inviteUrl: config.email.appURL,
+              role: data.role
+            }
+          });
+        },
         // Point the org plugin at the existing hand-rolled tables
         // (packages/db/src/schema/core.ts) instead of generating its own
         // organization/member/invitation tables.

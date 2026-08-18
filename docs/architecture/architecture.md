@@ -4,7 +4,7 @@
 
 1. **Landing serving tách khỏi mọi thứ khác** — đường nóng nhất, phải bất tử và nhanh nhất, chạy thuần edge + storage, không đụng DB trên request path.
 2. **Portable by design** — mọi lớp phụ thuộc hạ tầng (runtime HTTP, jobs, storage, cache, realtime) đứng sau interface; đổi Cloudflare ↔ VPS là đổi driver, không đổi business code.
-3. **Studio là package tái sử dụng** — dashboard chỉ là host của `dv-studio-kit`; core logic (srcmap, patch, modes, undo) không biết gì về CRM.
+3. **Studio là package tái sử dụng** — core logic (srcmap, patch, modes, undo) không biết gì về CRM.
 4. **AI trả patch, không trả file** — mọi thay đổi là operation có cấu trúc trên srcmap → diffable, undoable, merge được với manual edit.
 5. **Multi-tenant từ dòng code đầu tiên** — `org_id` là thuộc tính bắt buộc của mọi entity nghiệp vụ.
 

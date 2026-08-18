@@ -6,23 +6,32 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "@ai-sdk/react": "catalog:ai",
+    "@dv/auth": "workspace:*",
     "@dv/config": "workspace:*",
     "@dv/contracts": "workspace:*",
+    "@dv/studio-core": "workspace:*",
+    "@dv/studio-ui": "workspace:*",
     "@dv/ui": "workspace:*",
     "@hookform/resolvers": "catalog:react",
     "@inlang/paraglide-js": "catalog:react",
     "@tanstack/react-query": "catalog:data",
     "@tanstack/react-router": "catalog:data",
+    "@tanstack/react-virtual": "catalog:data",
+    "ai": "catalog:ai",
     "better-auth": "catalog:server",
+    "fflate": "catalog:content",
     "lucide-react": "catalog:ui",
+    "modern-screenshot": "catalog:ui",
     "react": "catalog:react",
     "react-dom": "catalog:react",
     "react-hook-form": "catalog:react",
+    "react-resizable-panels": "catalog:ui",
     "zod": "catalog:"
   },
   "devDependencies": {

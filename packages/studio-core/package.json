@@ -3,12 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "linkedom": "catalog:content",
+    "sanitize-html": "catalog:content"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
-    "typescript": "catalog:"
+    "@types/sanitize-html": "catalog:content",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,18 +1,16 @@
 # 05 — Landing Studio: Spec kỹ thuật chi tiết
 
-Tài liệu này map trực tiếp 8 screenshot tham chiếu vào spec triển khai, và chỉ rõ phần nào tái sử dụng từ `dv-studio-kit` (`@dv/core`, `@dv/ai`, `@dv/studio`) bạn đã xây.
+Tài liệu này map trực tiếp 8 screenshot tham chiếu vào spec triển khai.
 
-## 1. Tái sử dụng dv-studio-kit
+## 1. Các khối chức năng cần implement
 
-| Thành phần đã có | Dùng cho | Việc cần làm thêm |
+| Khối | Dùng cho | Ghi chú |
 | --- | --- | --- |
-| `@dv/core` srcmap engine | FR-B-08..11, B-15..19 | Bổ sung op `toggleVisibility`, layer rename metadata, serialize srcmap ra file `.srcmap.json` (khớp screenshot #2 mục DATA) |
-| Mode system view/select/comment/draw | FR-B-08, B-12, B-14 | Thêm trạng thái "queue comments" + badge |
-| `StudioProvider` context + portal-scoped CSS vars | Toàn bộ studio UI | Nhúng vào `apps/dashboard/features/studio` như package L2 |
-| Undo/redo | FR-B-15 | Hợp nhất nguồn thay đổi thứ 3: AI patch (đã có patch layer nên chủ yếu là wiring) |
-| `@dv/ai` patch layer | FR-B-22 | Chốt schema tool `apply_patch` (ai-integration-byok.md §4), validate server-side |
-
-Kết luận quan trọng: **studio không phải hạng mục rủi ro lớn nhất của dự án nữa** — bạn đã trả phần lớn "học phí" runtime issues khi build dv-studio-kit. Rủi ro chuyển sang tích hợp AI đa provider + publishing + CRM.
+| srcmap engine (`packages/studio-core`) | FR-B-08..11, B-15..19 | Op `toggleVisibility`, layer rename metadata, serialize srcmap ra file `.srcmap.json` (khớp screenshot #2 mục DATA) |
+| Mode system view/select/edit/comment/draw (`packages/studio-ui`) | FR-B-08, B-12, B-14 | Kèm trạng thái "queue comments" + badge |
+| Context state layout (panel sizes, active mode) | Toàn bộ studio UI | Nhúng vào `apps/dashboard/features/studio` như package L2 |
+| Undo/redo (`packages/studio-core`) | FR-B-15 | Thiết kế để hợp nhất được nguồn thay đổi thứ 3 ở Phase 2: AI patch (patch layer cùng shape op, chủ yếu là wiring lúc đó) |
+| Patch protocol (`packages/studio-ai`, khung sườn Phase 1, logic thật Phase 2) | FR-B-22 | Chốt schema tool `apply_patch` (ai-integration-byok.md §4), validate server-side |
 
 ## 2. Trang quản lý Landing Pages (FR-B-00, trước khi vào Studio)
 
@@ -60,7 +58,7 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 ### 4.1 Iframe & giao tiếp
 
 - `<iframe sandbox="allow-same-origin">` (không `allow-scripts` khi edit — HTML landing không cần JS lúc thiết kế; runtime script chỉ inject lúc publish → loại trừ toàn bộ rủi ro script trong editor).
-- Nạp nội dung bằng `srcdoc` từ version hiện hành; **mọi mutation qua `@dv/core` áp trực tiếp vào `iframe.contentDocument`** — không reload trừ khi restore version/AI full-file.
+- Nạp nội dung bằng `srcdoc` từ version hiện hành; **mọi mutation qua `packages/studio-core` áp trực tiếp vào `iframe.contentDocument`** — không reload trừ khi restore version/AI full-file.
 - Overlay hệ thống (border hover/select, label, vẽ draw) đặt ở **layer div bên ngoài iframe**, đồng bộ toạ độ qua `getBoundingClientRect` của element trong iframe × transform canvas. Lý do: không "làm bẩn" DOM trang (screenshot #4/#6 cho thấy overlay label `span [cc-2] "STREET"` nằm đè lên, đúng pattern này).
 
 ### 4.2 Zoom / Pan (FR-B-05..07)
@@ -85,7 +83,7 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 ## 5. Edit mode & Inspector (FR-B-10, B-11; screenshot #3)
 
 - Inspector đọc **computed style + inline style + srcmap style ops** của element chọn, nhóm đúng như screenshot: TYPOGRAPHY (Font, Size, Weight, Color+swatch, Align, Case, Style, Decoration, Line, Tracking) / SIZE (Width, Height) / BOX (Opacity, Overflow, Padding, Margin, Border, BColor, Radius).
-- Ghi thay đổi: mỗi lần commit control → `@dv/core` op `setStyle(srcmapId, prop, value)` → (a) áp inline style vào iframe ngay, (b) ghi vào source HTML (inline style attr hoặc class utility nếu trang dùng Tailwind CDN — v1 chọn inline style cho đơn giản và không phụ thuộc), (c) đẩy undo stack, (d) debounce 800ms tạo version `origin:"manual"`.
+- Ghi thay đổi: mỗi lần commit control → `packages/studio-core` op `setStyle(srcmapId, prop, value)` → (a) áp inline style vào iframe ngay, (b) ghi vào source HTML (inline style attr hoặc class utility nếu trang dùng Tailwind CDN — v1 chọn inline style cho đơn giản và không phụ thuộc), (c) đẩy undo stack, (d) debounce 800ms tạo version `origin:"manual"`.
 - Inline text edit: double-click → set `contenteditable` đúng element trong iframe, focus, chọn hết; `Enter`/blur → op `replaceText(srcmapId, newText)`; `Esc` = huỷ. Chặn khi element chứa con phức tạp (chỉ cho text node thuần / inline đơn giản).
 - Đơn vị: px mặc định; parse "0,86"/"−0,16" kiểu vi-VN (screenshot #3 hiển thị dấu phẩy) — chuẩn hoá dấu chấm khi ghi CSS.
 
@@ -130,5 +128,5 @@ Genspark (screenshot #8) làm đúng mẫu cần: 1 trang gallery **trước** e
 - Trang landing đơn file < 300KB HTML — mọi op DOM là O(1) theo srcmap id (map id→node cache, invalidate theo op).
 - Overlay chỉ re-render khi hover đổi target hoặc transform đổi (rAF-throttled).
 - LayerTree ảo hoá khi > 100 items (TanStack Virtual).
-- Không dùng `srcdoc` reload cho mọi thay đổi — chỉ patch DOM (đã là bài học từ dv-studio-kit).
+- Không dùng `srcdoc` reload cho mọi thay đổi — chỉ patch DOM (lý do: reload mất zoom/scroll/selection hiện tại của người dùng, không phải bug — thiết kế đúng từ đầu).
 - Ảnh assets trong preview load từ R2 qua signed URL cache.

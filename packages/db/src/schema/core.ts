@@ -19,6 +19,8 @@ export const organizations = pgTable("organizations", {
     .notNull()
     .default("free"),
   aiCreditBalance: integer("ai_credit_balance").notNull().default(0),
+  // FR-H-05 — free generations on the platform's Workers AI key before BYOK/credits kick in.
+  trialUsesRemaining: integer("trial_uses_remaining").notNull().default(3),
   settings: jsonb("settings").notNull().default({}),
   ...timestamps
 });
@@ -43,26 +45,20 @@ export const memberships = pgTable(
   (t) => [uniqueIndex("uq_membership").on(t.orgId, t.userId)]
 );
 
+// Owned entirely by Better Auth's organization plugin (packages/auth/src/config.ts,
+// `modelName: "invites"`) — invite-member/accept-invitation/cancel-invitation etc.
+// address rows by `id` and require `status`/`inviterId` on every row they write.
 export const invites = pgTable("invites", {
   id: id(),
   orgId: text("org_id").notNull(),
   email: text("email").notNull(),
   role: text("role", { enum: ["owner", "admin", "editor", "sales"] }).notNull(),
-  // Better Auth's organization plugin invite-member/accept-invitation/cancel-invitation
-  // endpoints own this table's shape too (same `modelName: "invites"` mapping) and
-  // require `status`/`inviterId` on every row it writes.
   status: text("status", {
     enum: ["pending", "accepted", "rejected", "canceled"]
   })
     .notNull()
     .default("pending"),
   inviterId: text("inviter_id"),
-  /**
-   * Only set by packages/auth's own createInvite/acceptInvite (dashboard invite
-   * links, `${appURL}/invites/:token`) — the organization plugin's own invite
-   * endpoints above address invitations by id and never populate this column.
-   */
-  token: text("token").unique(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });

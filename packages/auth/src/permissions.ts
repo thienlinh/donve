@@ -41,7 +41,7 @@ export function can(role: MembershipRole, permission: Permission): boolean {
 // silently forbids that action for every role, including owner — this custom
 // `ac` fully replaces better-auth's own default statement, it doesn't extend it.
 const statement = {
-  org: ["update", "billing", "delete", "aiKeys"],
+  organization: ["update", "billing", "delete", "aiKeys"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
   studio: ["publish"],
@@ -54,7 +54,7 @@ const statement = {
 export const accessControl = createAccessControl(statement);
 
 export const ownerRole = accessControl.newRole({
-  org: ["update", "billing", "delete", "aiKeys"],
+  organization: ["update", "billing", "delete", "aiKeys"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
   studio: ["publish"],
@@ -65,7 +65,7 @@ export const ownerRole = accessControl.newRole({
 });
 
 export const adminRole = accessControl.newRole({
-  org: ["update"],
+  organization: ["update"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
   studio: ["publish"],

@@ -3,14 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "@dnd-kit/core": "catalog:ui",
+    "@dnd-kit/sortable": "catalog:ui",
+    "@dnd-kit/utilities": "catalog:ui",
     "@dv/studio-core": "workspace:*",
     "@dv/ui": "workspace:*",
     "@tanstack/react-virtual": "catalog:data",
+    "lucide-react": "catalog:ui",
     "react": "catalog:react",
     "react-dom": "catalog:react"
   },

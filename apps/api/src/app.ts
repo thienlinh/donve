@@ -5,8 +5,12 @@ import { createAuthFromEnv } from "./lib/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { rateLimit } from "./middleware/rate-limit.js";
 import { requestContext } from "./middleware/request-context.js";
+import { requireOrgSession } from "./middleware/require-org-session.js";
 import { requirePlatformStaff } from "./middleware/require-platform-staff.js";
+import { aiRoutes } from "./modules/ai/routes.js";
+import { landingsRoutes } from "./modules/landings/routes.js";
 import { platformRoutes } from "./modules/platform/routes.js";
+import { studioRoutes } from "./modules/studio/routes.js";
 import type { AppEnv } from "./types.js";
 
 /**
@@ -34,6 +38,10 @@ export function createApp() {
   // Separate gate from tenant auth entirely (platform-admin.md §4) — a valid tenant
   // session is not enough, the user must also have a `platform_staff` row.
   app.use("/platform/*", requirePlatformStaff);
+  // First tenant-scoped module — resolves `orgId` from the session's active org.
+  app.use("/api/landings/*", requireOrgSession);
+  app.use("/api/studio/*", requireOrgSession);
+  app.use("/api/ai/*", requireOrgSession);
 
   app.onError(errorHandler);
   app.notFound(notFoundHandler);
@@ -47,6 +55,9 @@ export function createApp() {
   );
 
   app.route("/platform", platformRoutes);
+  app.route("/api/landings", landingsRoutes);
+  app.route("/api/studio", studioRoutes);
+  app.route("/api/ai", aiRoutes);
 
   return app;
 }

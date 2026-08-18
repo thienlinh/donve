@@ -1,6 +1,6 @@
 # 08 — Kế hoạch thực hiện (production-grade, theo phase)
 
-Giả định: bạn là dev chính (senior, đã có dv-studio-kit + kinh nghiệm checkout VietQR/SePay), làm ~25–30h/tuần cho dự án. Con số là ước lượng thực tế, không lạc quan hoá. "Không làm MVP" được hiểu đúng là: **mỗi phase ship chất lượng production (test, bảo mật, UX hoàn chỉnh cho phần đã làm)** — chứ không phải làm tất cả song song rồi ra mắt một lần (rủi ro cao nhất có thể).
+Giả định: bạn là dev chính (senior, có kinh nghiệm checkout VietQR/SePay), làm ~25–30h/tuần cho dự án. Con số là ước lượng thực tế, không lạc quan hoá. "Không làm MVP" được hiểu đúng là: **mỗi phase ship chất lượng production (test, bảo mật, UX hoàn chỉnh cho phần đã làm)** — chứ không phải làm tất cả song song rồi ra mắt một lần (rủi ro cao nhất có thể).
 
 ## Phase 0 — Nền móng (1.5–2 tuần)
 
@@ -10,9 +10,9 @@ Giả định: bạn là dev chính (senior, đã có dv-studio-kit + kinh nghi�
 - `apps/dashboard` skeleton: TanStack Router, layout, auth flow, org switcher, i18n scaffold (vi).
 - **DoD:** đăng ký → tạo org → mời member → phân quyền hoạt động; cross-tenant test suite xanh; deploy staging tự động.
 
-## Phase 1 — Studio core (3–4 tuần) _(giảm mạnh nhờ dv-studio-kit)_
+## Phase 1 — Studio core (3–4 tuần, viết mới hoàn toàn — xem đính chính ở trên)
 
-- Port `@dv/core`, `@dv/studio`, `@dv/ai` vào `packages/studio-*`; wiring vào dashboard (feature module L2).
+- Implement `packages/studio-core`/`studio-ui`/`studio-ai` từ đầu theo `docs/features/studio-builder-spec.md`; wiring vào dashboard (feature module L2).
 - Canvas iframe + zoom/pan touchpad & chuột (FR-B-05..07), hover/select overlay + label (B-08/09), LayerTree (B-16..17), Edit inspector + inline text (B-10/11), Undo/redo hợp nhất (B-15).
 - Design Files tab, assets upload (R2), version history + restore, thumbnail client-side.
 - **DoD:** mở 1 file HTML seed, chỉnh manual đầy đủ như screenshots #1/#3/#4/#6, version/restore chạy; keyboard map hoạt động.
@@ -67,7 +67,7 @@ Publish (P3) đứng trước CRM (P4) để bạn demo/quay content sớm bằn
 | Rủi ro | Xác suất | Đối sách |
 | --- | --- | --- |
 | AI patch sai/không stable trên trang phức tạp | Cao | Schema chặt + server validate + fallback full-file + eval set 20 trang mẫu chạy regression mỗi khi đổi prompt (test bench FR-F-04 phục vụ chính việc này) |
-| Zoom/pan + overlay lệch toạ độ đa trình duyệt | Trung | Đã có bài học dv-studio-kit; test matrix Safari/Chrome/Firefox + touchpad/chuột ngay Phase 1 |
+| Zoom/pan + overlay lệch toạ độ đa trình duyệt | Trung–Cao (không có code cũ để tham khảo cách né lỗi) | Test matrix Safari/Chrome/Firefox + touchpad/chuột ngay từ prompt canvas đầu tiên ở Phase 1, không để cuối phase mới test |
 | Khớp sai mã đơn (nhầm sang đơn khác) | Trung | Mã đơn có checksum (phát hiện gõ sai, không âm thầm khớp nhầm) + auto-match **luôn** yêu cầu amount khớp chính xác (không có ngưỡng dung sai) + đúng 1 ứng viên; mơ hồ/double-match → unmatched queue, không bao giờ tự động xử lý (functional-requirements.md FR-D-05) |
 | RLS mất hiệu lực do driver serverless Neon (SET LOCAL không chung transaction với query) | Cao nếu xảy ra, phát hiện muộn | Helper `withOrgScope` bắt buộc, test tích hợp thật (không chỉ test tầng app) ngay từ Phase 0 — architecture.md §6.1 |
 | Publish/rollback lệch trạng thái giữa KV và Postgres khi job crash giữa chừng | Trung | Outbox pattern + partial unique index + job reconciliation định kỳ — architecture.md §5.2 |

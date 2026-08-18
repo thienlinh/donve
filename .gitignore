@@ -20,6 +20,12 @@ dist-ssr
 # turbo
 .turbo
 
+# local-dev filesystem storage driver stand-in (apps/api RUNTIME=bun)
+.data/
+
+# Playwright MCP session output (console logs, screenshots) — not build output
+.playwright-mcp/
+
 # Editor directories and files
 .idea
 .DS_Store

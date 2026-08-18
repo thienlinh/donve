@@ -1,7 +1,11 @@
 {
   "extends": "@dv/config/node-library.json",
   "compilerOptions": {
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    // @dv/studio-core/@dv/studio-ai's srcmap engine types (Element/Document) come from
+    // linkedom's DOM implementation, not a browser — same "lib": DOM addition those two
+    // packages' own tsconfigs already make.
+    "lib": ["ESNext", "DOM"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

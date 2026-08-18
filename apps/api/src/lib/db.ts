@@ -4,13 +4,22 @@ import type { Db } from "@dv/db";
 import type { Bindings } from "../types.js";
 
 /**
- * CF Workers gets the HTTP driver (no persistent connection possible there);
- * Bun/VPS gets the pooled `postgres.js` driver — architecture.md §3. Built
- * fresh per request, same convention as `middleware/rate-limit.ts`'s
- * `cache.createUpstashCacheDriver(...)`.
+ * CF Workers gets the HTTP driver (no persistent connection possible there,
+ * and `neon()` is a cheap stateless fetch wrapper) — built fresh per request,
+ * same convention as `middleware/rate-limit.ts`'s `cache.createUpstashCacheDriver(...)`.
+ *
+ * Bun/VPS gets the pooled `postgres.js` driver — architecture.md §3. That pool
+ * is a real TCP connection pool and MUST be a process-wide singleton: creating
+ * one per request (the old behavior here) opens a fresh pool on every request
+ * that's never closed, exhausting Postgres's connection limit almost
+ * immediately under any real traffic.
  */
+let bunDbSingleton: Db | undefined;
+
 export function createDbFromEnv(env: Bindings): Db {
-  return env.RUNTIME === "workers"
-    ? createNeonDb(env.DATABASE_URL)
-    : createPostgresDb(env.DATABASE_URL);
+  if (env.RUNTIME === "workers") {
+    return createNeonDb(env.DATABASE_URL);
+  }
+  bunDbSingleton ??= createPostgresDb(env.DATABASE_URL);
+  return bunDbSingleton;
 }
