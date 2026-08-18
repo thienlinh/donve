@@ -45,7 +45,10 @@
           "binding": "LANDING_ASSETS_BUCKET",
           "bucket_name": "dv-landing-assets-staging"
         }
-      ]
+      ],
+      "ai": {
+        "binding": "AI"
+      }
     },
     "production": {
       "name": "dv-api",
@@ -59,7 +62,10 @@
           "binding": "LANDING_ASSETS_BUCKET",
           "bucket_name": "dv-landing-assets"
         }
-      ]
+      ],
+      "ai": {
+        "binding": "AI"
+      }
     }
   }
 }
