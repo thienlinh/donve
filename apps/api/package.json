@@ -21,7 +21,9 @@
     "@hono/zod-validator": "catalog:server",
     "ai": "catalog:ai",
     "chrome-launcher": "catalog:server",
+    "fflate": "catalog:content",
     "hono": "catalog:server",
+    "libphonenumber-js": "catalog:server",
     "lighthouse": "catalog:server",
     "zod": "catalog:"
   },

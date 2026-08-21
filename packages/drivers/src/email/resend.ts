@@ -1,8 +1,12 @@
 import { Resend } from "resend";
 
 import {
+  renderDataSubjectRequestSla,
   renderInviteEmail,
+  renderLeadDigest,
+  renderOrderConfirmation,
   renderResetPassword,
+  renderTrafficSpikeAlert,
   renderVerifyEmail
 } from "./templates.js";
 import type { EmailSender, SendEmailInput, SendEmailResult } from "./types.js";
@@ -55,6 +59,14 @@ function renderTemplate(input: SendEmailInput): {
       return renderResetPassword(input.props);
     case "invite":
       return renderInviteEmail(input.props);
+    case "lead_digest":
+      return renderLeadDigest(input.props);
+    case "order_confirmation":
+      return renderOrderConfirmation(input.props);
+    case "traffic_spike_alert":
+      return renderTrafficSpikeAlert(input.props);
+    case "data_subject_request_sla":
+      return renderDataSubjectRequestSla(input.props);
     default: {
       const exhaustive: never = input;
       throw new Error(

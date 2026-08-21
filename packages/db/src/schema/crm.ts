@@ -27,7 +27,10 @@ export const leads = pgTable(
     stage: text("stage").notNull().default("new"),
     assigneeId: text("assignee_id"),
     ...timestamps,
-    deletedAt: deletedAt()
+    deletedAt: deletedAt(),
+    // NFR-10/NFR-11 (Nghị định 13/2023/NĐ-CP) — set once phone/email/customFields are
+    // scrubbed, by request or by the retention job. Row (and its orders/payments) stays.
+    anonymizedAt: timestamp("anonymized_at")
   },
   (t) => [
     uniqueIndex("uq_lead_phone")
@@ -187,6 +190,35 @@ export const unmatchedTransactions = pgTable(
   },
   (t) => [
     index("ix_unmatched_org").on(t.orgId, t.status),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+// NFR-10 (Nghị định 13/2023/NĐ-CP) — logs a lead's delete/export request so the org (the data
+// controller, NFR-12) can track its own 72h response SLA. No in-app intake; staff logs a
+// request that arrived by phone/email/etc, backdating `receivedAt` if it wasn't logged the
+// moment it came in.
+export const dataSubjectRequests = pgTable(
+  "data_subject_requests",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    leadId: text("lead_id").notNull(),
+    requestType: text("request_type", { enum: ["delete", "export"] }).notNull(),
+    receivedAt: timestamp("received_at").notNull().defaultNow(),
+    // computed as receivedAt + 72h at write time, not re-derived on every read.
+    dueAt: timestamp("due_at").notNull(),
+    status: text("status", { enum: ["pending", "completed"] })
+      .notNull()
+      .default("pending"),
+    resolvedAt: timestamp("resolved_at"),
+    notes: text("notes"),
+    createdAt: timestamps.createdAt
+  },
+  (t) => [
+    index("ix_dsr_org").on(t.orgId, t.status, t.dueAt),
+    index("ix_dsr_lead").on(t.leadId, t.createdAt),
     orgIsolationPolicy(),
     platformReadPolicy()
   ]

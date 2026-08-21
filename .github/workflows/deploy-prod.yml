@@ -32,8 +32,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # @dv/landing-runtime is built directly (nothing depends on it, same reasoning as
+      # deploy-staging.yml) — its dist/ bundle is uploaded to R2 for the API deploy below.
       - name: Build API + Dashboard
-        run: bunx turbo run build --filter=@dv/api... --filter=@dv/dashboard...
+        run: bunx turbo run build --filter=@dv/api... --filter=@dv/dashboard... --filter=@dv/landing-runtime
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -45,21 +47,20 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Sync Worker secrets (production)
+      # Worker secrets (DATABASE_URL, BETTER_AUTH_SECRET, etc.) are NOT synced here — set by
+      # hand with `wrangler secret put <KEY> --env production` (or `secret bulk`) whenever one
+      # changes. See docs/runbooks/env-management.md. `wrangler deploy` never clears existing
+      # Worker secrets, so this only needs to run again when a value actually changes.
+      - name: Deploy API (CF Workers, production)
         working-directory: apps/api
-        run: |
-          echo "${{ secrets.DATABASE_URL }}" | bunx wrangler secret put DATABASE_URL --env production
-          echo "${{ secrets.BETTER_AUTH_SECRET }}" | bunx wrangler secret put BETTER_AUTH_SECRET --env production
-          echo "${{ secrets.UPSTASH_REDIS_URL }}" | bunx wrangler secret put UPSTASH_REDIS_URL --env production
-          echo "${{ secrets.UPSTASH_REDIS_TOKEN }}" | bunx wrangler secret put UPSTASH_REDIS_TOKEN --env production
-          echo "${{ secrets.RESEND_API_KEY }}" | bunx wrangler secret put RESEND_API_KEY --env production
+        run: bunx wrangler deploy --env production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy API (CF Workers, production)
-        working-directory: apps/api
-        run: bunx wrangler deploy --env production
+      # FR-G-01 — see the matching step in deploy-staging.yml for why this exists.
+      - name: Upload runtime script to R2 (production)
+        run: bunx wrangler r2 object put dv-landing-deployments/_runtime/index.iife.js --file apps/landing-runtime/dist/index.iife.js --content-type application/javascript --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

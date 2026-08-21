@@ -1,9 +1,13 @@
 import {
+  deploymentSchema,
+  importLandingPageResponseSchema,
   landingPageDetailSchema,
   landingPageListItemSchema,
   landingPageSchema,
   pageAssetSchema,
   pageVersionSchema,
+  type Deployment,
+  type ImportLandingPageResponse,
   type LandingPage,
   type LandingPageDetail,
   type LandingPageListItem,
@@ -63,6 +67,33 @@ export async function createLandingPage(input: {
   return landingPageSchema.parse(await res.json());
 }
 
+export type ImportLandingPageInput = { name?: string } & (
+  | { mode: "html"; html: string }
+  | { mode: "url"; url: string }
+  | { mode: "file"; file: File }
+);
+
+/** FR-B-30 — paste HTML/upload file/paste a public link, multipart either way (see
+ * apps/api's own comment on why: the file-upload case has a binary payload, the other two
+ * don't, and one request shape covers all three instead of branching on content-type). */
+export async function importLandingPage(
+  input: ImportLandingPageInput
+): Promise<ImportLandingPageResponse> {
+  const body = new FormData();
+  body.set("mode", input.mode);
+  if (input.name) body.set("name", input.name);
+  if (input.mode === "html") body.set("html", input.html);
+  else if (input.mode === "url") body.set("url", input.url);
+  else body.set("file", input.file, input.file.name);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/landings/import`,
+    { method: "POST", credentials: "include", body }
+  );
+  if (!res.ok) throw new Error(`landings api /import failed: ${res.status}`);
+  return importLandingPageResponseSchema.parse(await res.json());
+}
+
 /** FR-B-21 — lands the first `pageVersions` row for a page created via the prompt bar. */
 export async function generateLandingPage(
   id: string,
@@ -73,6 +104,71 @@ export async function generateLandingPage(
     body: JSON.stringify({ prompt })
   });
   return pageVersionSchema.parse(await res.json());
+}
+
+/** One SSE frame from `/generate/stream`: `event: <name>` + one or more joined `data:` lines. */
+function parseSseFrame(frame: string): { event: string; data: string } {
+  let event = "message";
+  const dataLines: string[] = [];
+  for (const line of frame.split("\n")) {
+    if (line.startsWith("event: ")) event = line.slice("event: ".length);
+    else if (line.startsWith("data: "))
+      dataLines.push(line.slice("data: ".length));
+  }
+  return { event, data: dataLines.join("\n") };
+}
+
+/**
+ * Streaming twin of `generateLandingPage` — same server-side work, but relays each chunk to
+ * `onDelta` as it arrives instead of leaving the caller with zero feedback for however long the
+ * model takes (a full generate can run minutes on a slow BYOK model). No AI SDK stream-protocol
+ * dependency here since this returns one full HTML document, not a chat message — a plain
+ * `event: delta|done|error` framing (written server-side via Hono's `streamSSE`) is enough.
+ */
+export async function generateLandingPageStream(
+  id: string,
+  prompt: string,
+  onDelta: (deltaText: string) => void
+): Promise<PageVersion> {
+  const res = await landingsFetch(`/${id}/generate/stream`, {
+    method: "POST",
+    body: JSON.stringify({ prompt })
+  });
+  if (!res.body) {
+    throw new Error(
+      `landings api /${id}/generate/stream failed: no response body`
+    );
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    // oxlint-disable-next-line no-await-in-loop -- inherently sequential: each read depends on the stream's current position, there's nothing to parallelize
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let frameEnd = buffer.indexOf("\n\n");
+    while (frameEnd !== -1) {
+      const { event, data } = parseSseFrame(buffer.slice(0, frameEnd));
+      buffer = buffer.slice(frameEnd + 2);
+
+      if (event === "delta") {
+        onDelta(data);
+      } else if (event === "done") {
+        return pageVersionSchema.parse(JSON.parse(data));
+      } else if (event === "error") {
+        const parsed = JSON.parse(data) as { code: string; message: string };
+        throw new Error(parsed.message || parsed.code);
+      }
+      frameEnd = buffer.indexOf("\n\n");
+    }
+  }
+  throw new Error(
+    `landings api /${id}/generate/stream failed: stream ended with no result`
+  );
 }
 
 export async function renameLandingPage(
@@ -92,6 +188,17 @@ export async function removeLandingPageFromCampaign(
   const res = await landingsFetch(`/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ campaignId: null })
+  });
+  return landingPageSchema.parse(await res.json());
+}
+
+export async function assignLandingPageToCampaign(
+  id: string,
+  campaignId: string
+): Promise<LandingPage> {
+  const res = await landingsFetch(`/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ campaignId })
   });
   return landingPageSchema.parse(await res.json());
 }
@@ -184,6 +291,58 @@ export async function uploadThumbnail(id: string, blob: Blob): Promise<void> {
   });
 }
 
+const deploymentListResponseSchema = z.object({
+  deployments: z.array(deploymentSchema)
+});
+
+/** FR-G-01/02 — deploy history for a page, newest first (rollback target picker). */
+export async function fetchDeployments(id: string): Promise<Deployment[]> {
+  const res = await landingsFetch(`/${id}/deployments`);
+  return deploymentListResponseSchema.parse(await res.json()).deployments;
+}
+
+/** FR-G-01 — builds and goes live at `subdomain`.<publish base domain>. */
+export async function publishLandingPage(
+  id: string,
+  subdomain: string
+): Promise<{ deployment: Deployment; live: boolean }> {
+  const res = await landingsFetch(`/${id}/publish`, {
+    method: "POST",
+    body: JSON.stringify({ subdomain })
+  });
+  const json = await res.json();
+  return {
+    deployment: deploymentSchema.parse(
+      (json as { deployment: unknown }).deployment
+    ),
+    live: (json as { live: boolean }).live
+  };
+}
+
+/**
+ * FR-G-02 — points the hostname back at an older, already-built deployment through the same
+ * outbox mechanism as publish (architecture.md §5.2), not a direct KV write.
+ */
+export async function rollbackDeployment(
+  id: string,
+  deploymentId: string
+): Promise<{ live: boolean }> {
+  const res = await landingsFetch(
+    `/${id}/deployments/${deploymentId}/rollback`,
+    {
+      method: "POST"
+    }
+  );
+  return (await res.json()) as { live: boolean };
+}
+
+/** FR-G-02 — takes the live hostname down. */
+export async function unpublishLandingPage(id: string): Promise<Deployment> {
+  const res = await landingsFetch(`/${id}/unpublish`, { method: "POST" });
+  const json = (await res.json()) as { deployment: unknown };
+  return deploymentSchema.parse(json.deployment);
+}
+
 const assetListResponseSchema = z.object({
   assets: z.array(pageAssetSchema)
 });
@@ -194,9 +353,14 @@ export async function fetchAssets(id: string): Promise<PageAsset[]> {
   return assetListResponseSchema.parse(await res.json()).assets;
 }
 
-/** Direct `<img>` src for one uploaded asset (mirrors `thumbnailUrl`). */
+/** Direct `<img>`/`<video>` src for one uploaded asset (mirrors `thumbnailUrl`). */
 export function assetFileUrl(id: string, assetId: string): string {
   return `${import.meta.env.VITE_API_URL}/api/landings/${id}/assets/${assetId}/file`;
+}
+
+/** FR-B-29 — first-frame poster for a video asset; only meaningful when `asset.posterKey` is set. */
+export function assetPosterUrl(id: string, assetId: string): string {
+  return `${import.meta.env.VITE_API_URL}/api/landings/${id}/assets/${assetId}/poster`;
 }
 
 /** FR-B-28 ZIP export — raw bytes for one asset, to bundle under `assets/`. */
@@ -215,15 +379,19 @@ export async function fetchAssetFile(
   return res.blob();
 }
 
-/** FR-B-29 — `file` is already compressed to WebP client-side before this call. */
+/** FR-B-29 — `file` is already compressed to WebP client-side before this call (images), or
+ * left as-is (video, no client transcode). `poster` is the extracted first-frame JPEG for a
+ * video upload — sent alongside it in the same request and linked server-side as `posterKey`. */
 export async function uploadAsset(
   id: string,
   file: Blob,
-  fileName: string
+  fileName: string,
+  poster?: Blob
 ): Promise<PageAsset> {
   const body = new FormData();
   body.set("file", file, fileName);
   body.set("fileName", fileName);
+  if (poster) body.set("poster", poster, `${fileName}.poster.jpg`);
   const res = await fetch(
     `${import.meta.env.VITE_API_URL}/api/landings/${id}/assets`,
     {

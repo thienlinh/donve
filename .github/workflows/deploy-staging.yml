@@ -29,10 +29,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Filters build to @dv/api + @dv/dashboard and everything they depend
-      # on ("..." suffix) — no need to build the rest of the monorepo to deploy.
+      # Filters build to @dv/api + @dv/dashboard (and everything they depend on, "..." suffix)
+      # plus @dv/landing-runtime directly — nothing depends on it yet (edge-router isn't wired
+      # into this workflow), but the Lighthouse gate below needs its dist/ bundle to size-check.
       - name: Build API + Dashboard
-        run: bunx turbo run build --filter=@dv/api... --filter=@dv/dashboard...
+        run: bunx turbo run build --filter=@dv/api... --filter=@dv/dashboard... --filter=@dv/landing-runtime
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -44,23 +45,23 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # Idempotent — re-running just overwrites the same secret, which is how
-      # rotation works (update the GitHub environment secret, redeploy).
-      - name: Sync Worker secrets (staging)
+      # Worker secrets (DATABASE_URL, BETTER_AUTH_SECRET, etc.) are NOT synced here — set by
+      # hand with `wrangler secret put <KEY> --env staging` (or `secret bulk`) whenever one
+      # changes. See docs/runbooks/env-management.md. `wrangler deploy` never clears existing
+      # Worker secrets, so this only needs to run again when a value actually changes.
+      - name: Deploy API (CF Workers, staging)
         working-directory: apps/api
-        run: |
-          echo "${{ secrets.DATABASE_URL }}" | bunx wrangler secret put DATABASE_URL --env staging
-          echo "${{ secrets.BETTER_AUTH_SECRET }}" | bunx wrangler secret put BETTER_AUTH_SECRET --env staging
-          echo "${{ secrets.UPSTASH_REDIS_URL }}" | bunx wrangler secret put UPSTASH_REDIS_URL --env staging
-          echo "${{ secrets.UPSTASH_REDIS_TOKEN }}" | bunx wrangler secret put UPSTASH_REDIS_TOKEN --env staging
-          echo "${{ secrets.RESEND_API_KEY }}" | bunx wrangler secret put RESEND_API_KEY --env staging
+        run: bunx wrangler deploy --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy API (CF Workers, staging)
-        working-directory: apps/api
-        run: bunx wrangler deploy --env staging
+      # FR-G-01 — CF Workers has no filesystem at request time, so lib/publish.ts reads the
+      # compiled runtime script back from R2 instead (RUNTIME_SCRIPT_KEY). Uploaded here, right
+      # after the bucket exists (previous step already ran `wrangler deploy`), from the same
+      # `bunx turbo run build` output the Lighthouse gate below also reads.
+      - name: Upload runtime script to R2 (staging)
+        run: bunx wrangler r2 object put dv-landing-deployments-staging/_runtime/index.iife.js --file apps/landing-runtime/dist/index.iife.js --content-type application/javascript --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -74,3 +75,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # NFR-01 gate (tooling/lighthouse-ci) — no-op until a sample landing page is published on
+      # staging and its URL set as the `SAMPLE_LANDING_URL` repo variable (ci-cd-setup.md §7).
+      # ubuntu-latest ships Google Chrome preinstalled, so chrome-launcher needs no setup step.
+      - name: Lighthouse CI gate (NFR-01, sample landing)
+        if: vars.SAMPLE_LANDING_URL != ''
+        run: bun run tooling/lighthouse-ci/run.ts "${{ vars.SAMPLE_LANDING_URL }}"

@@ -1,4 +1,5 @@
 import type { PublicAiConnection } from "@dv/contracts";
+import { Alert, AlertTitle } from "@dv/ui/components/shadcn/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +21,12 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import { Empty, EmptyHeader, EmptyTitle } from "@dv/ui/components/shadcn/empty";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle
+} from "@dv/ui/components/shadcn/empty";
 import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import {
   Table,
@@ -30,8 +36,9 @@ import {
   TableHeader,
   TableRow
 } from "@dv/ui/components/shadcn/table";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Star, Trash2 } from "lucide-react";
+import { Star, TriangleAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import * as m from "@/paraglide/messages.js";
@@ -47,7 +54,7 @@ import { ConnectAiDialog } from "./connect-ai-dialog";
 
 export function AiConnectionsPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-1 flex-col gap-6 p-6">
       <UsageCard />
       <ConnectionsCard />
     </div>
@@ -55,7 +62,11 @@ export function AiConnectionsPage() {
 }
 
 function UsageCard() {
-  const { data: usage, isPending } = useQuery({
+  const {
+    data: usage,
+    isPending,
+    error
+  } = useQuery({
     queryKey: aiUsageKeys.summary(),
     queryFn: fetchAiUsage
   });
@@ -72,8 +83,27 @@ function UsageCard() {
             <Spinner /> {m.commonLoading()}
           </div>
         )}
+        {error && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{m.aiUsageLoadErrorTitle()}</EmptyTitle>
+              <EmptyDescription>{error.message}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
         {usage && (
           <>
+            {(usage.aiCreditBalance === 0 ||
+              usage.trialUsesRemaining === 0) && (
+              <Alert variant="destructive">
+                <TriangleAlert />
+                <AlertTitle>
+                  {usage.aiCreditBalance === 0
+                    ? m.aiCreditBalanceLowWarning()
+                    : m.aiTrialRemainingLowWarning()}
+                </AlertTitle>
+              </Alert>
+            )}
             <div className="flex gap-6">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">
@@ -134,7 +164,11 @@ function UsageCard() {
 }
 
 function ConnectionsCard() {
-  const { data: connections, isPending } = useQuery({
+  const {
+    data: connections,
+    isPending,
+    error
+  } = useQuery({
     queryKey: aiConnectionKeys.list(),
     queryFn: fetchAiConnections
   });
@@ -153,6 +187,14 @@ function ConnectionsCard() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Spinner /> {m.commonLoading()}
           </div>
+        )}
+        {error && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{m.aiConnectionsLoadErrorTitle()}</EmptyTitle>
+              <EmptyDescription>{error.message}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
         {connections && connections.length === 0 && (
           <Empty>
@@ -192,7 +234,9 @@ function ConnectionRow({ connection }: { connection: PublicAiConnection }) {
   const setDefault = useMutation({
     mutationFn: () => updateAiConnection(connection.id, { isDefault: true }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: aiConnectionKeys.list() })
+      queryClient.invalidateQueries({ queryKey: aiConnectionKeys.list() }),
+    onError: () =>
+      toast.add({ title: m.aiSetDefaultErrorToast(), type: "error" })
   });
 
   const remove = useMutation({
@@ -200,7 +244,9 @@ function ConnectionRow({ connection }: { connection: PublicAiConnection }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: aiConnectionKeys.list() });
       setOpen(false);
-    }
+    },
+    onError: () =>
+      toast.add({ title: m.aiRemoveConnectionErrorToast(), type: "error" })
   });
 
   return (

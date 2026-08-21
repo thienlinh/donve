@@ -1,6 +1,7 @@
 import { decryptApiKey, getProvider } from "@dv/ai-gateway";
 import {
   chatMessageSchema,
+  orgSettingsSchema,
   pageAssetSchema,
   stockImageCandidateSchema,
   studioCommentSchema,
@@ -10,6 +11,7 @@ import {
   aiConnectionsRepository,
   chatMessagesRepository,
   landingPagesRepository,
+  organizationsRepository,
   pageAssetsRepository,
   pageVersionsRepository,
   skillsRepository,
@@ -21,11 +23,8 @@ import {
   compilePrompt,
   validatePatchOps
 } from "@dv/studio-ai";
-import {
-  applyOpsToHtml,
-  sanitizeLandingHtml,
-  type PatchOp
-} from "@dv/studio-core";
+import { applyOpsToHtml, type PatchOp } from "@dv/studio-core";
+import { sanitizeLandingHtml } from "@dv/studio-core/sanitize";
 import {
   convertToModelMessages,
   stepCountIs,
@@ -80,11 +79,13 @@ studioRoutes.get("/comments", async (c) => {
 const createCommentSchema = z.object({
   landingPageId: z.string(),
   srcmapId: z.string().min(1),
-  body: z.string().trim().min(1)
+  body: z.string().trim().min(1),
+  // Cropped-to-element screenshot (FR-B-12) — client uploads it via the existing
+  // `/landings/:id/assets` pipeline first and passes back that asset's `r2Key`.
+  screenshotKey: z.string().nullable().optional()
 });
 
-// FR-B-12/13: Queue button — stores the comment as `queued`. `elementScreenshot` capture
-// (prompt-playbook.md #5) has no upload pipeline yet, so `screenshotKey` stays null for now.
+// FR-B-12/13: Queue button — stores the comment as `queued`.
 studioRoutes.post("/comments", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
@@ -95,7 +96,7 @@ studioRoutes.post("/comments", async (c) => {
     landingPageId: body.landingPageId,
     srcmapId: body.srcmapId,
     body: body.body,
-    screenshotKey: null,
+    screenshotKey: body.screenshotKey ?? null,
     status: "queued",
     createdBy: null
   });
@@ -432,11 +433,12 @@ studioRoutes.post("/chat/stream", async (c) => {
   const apiKey = await decryptApiKey(connection.encryptedKey, masterKey);
   const model = provider.model(connection.defaultModel, { apiKey });
 
-  const skills = await skillsRepository.listEnabledForLandingPage(
-    db,
-    orgId,
-    landingPageId
-  );
+  const [skills, org] = await Promise.all([
+    skillsRepository.listEnabledForLandingPage(db, orgId, landingPageId),
+    organizationsRepository.findById(db, orgId)
+  ]);
+  // FR-B-24: org.settings.designTokens (no settings UI writes it yet — see contracts/tenancy.ts).
+  const { designTokens } = orgSettingsSchema.parse(org?.settings ?? {});
 
   const result = streamText({
     model,
@@ -444,7 +446,8 @@ studioRoutes.post("/chat/stream", async (c) => {
     // wraps it in a delimiter and marks it as data, not instructions.
     system: compilePrompt({
       html: currentHtml,
-      skills: skills.map((s) => ({ name: s.name, content: s.content }))
+      skills: skills.map((s) => ({ name: s.name, content: s.content })),
+      designTokens
     }),
     messages: await convertToModelMessages(
       expandCommentContextForModel(messages)
@@ -557,7 +560,8 @@ studioRoutes.post("/images/apply", async (c) => {
       attribution: body.candidate.attribution,
       sourceUrl: body.candidate.sourceUrl
     },
-    unverifiedSource: false
+    unverifiedSource: false,
+    usageConfirmed: false
   });
   if (!asset) throw new ApiError(500, "page_asset_create_failed");
 

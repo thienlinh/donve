@@ -16,6 +16,7 @@ import {
   NativeSelect,
   NativeSelectOption
 } from "@dv/ui/components/shadcn/native-select";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -62,6 +63,10 @@ export function InviteMemberDialog({
     }
     reset();
     setOpen(false);
+    toast.add({
+      title: m.membersInviteSuccessToast({ email }),
+      type: "success"
+    });
   });
 
   return (

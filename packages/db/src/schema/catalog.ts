@@ -42,11 +42,19 @@ export const campaigns = pgTable(
     status: text("status", { enum: ["draft", "active", "paused", "ended"] })
       .notNull()
       .default("draft"),
+    goal: text("goal"),
     startsAt: timestamp("starts_at"),
     endsAt: timestamp("ends_at"),
     formConfig: jsonb("form_config").notNull().default({}),
     paymentConfig: jsonb("payment_config").notNull().default({}),
     utmDefaults: jsonb("utm_defaults").default({}),
+    // FR-E-04: "manual" leaves assigneeId as set by PATCH /leads/:id/assignee; "round_robin"
+    // rotates new leads across the org's sales members, tracked by roundRobinCursor.
+    assignmentMode: text("assignment_mode", { enum: ["manual", "round_robin"] })
+      .notNull()
+      .default("manual"),
+    /** last user id assigned via round-robin — next lead goes to the sales member after this one. */
+    roundRobinCursor: text("round_robin_cursor"),
     ...timestamps,
     deletedAt: deletedAt()
   },

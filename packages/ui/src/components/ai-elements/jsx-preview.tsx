@@ -215,6 +215,7 @@ export const JSXPreviewContent = memo(
     useEffect(() => {
       errorReportedRef.current = null;
       setHadError(false);
+      // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `processedJsx` is a deliberate trigger-only dep, not read in the body
     }, [processedJsx]);
 
     const handleError = useCallback(

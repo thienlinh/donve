@@ -7,18 +7,18 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 const vi_studiofilesuploadlabel3 =
   /** @type {(inputs: Studiofilesuploadlabel3Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Tải ảnh lên`;
+    return /** @type {LocalizedString} */ `Tải ảnh hoặc video lên`;
   };
 
 const en_studiofilesuploadlabel3 =
   /** @type {(inputs: Studiofilesuploadlabel3Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Upload image`;
+    return /** @type {LocalizedString} */ `Upload image or video`;
   };
 
 /**
  * | output |
  * | --- |
- * | "Upload image" |
+ * | "Upload image or video" |
  *
  * @param {Studiofilesuploadlabel3Inputs} inputs
  * @param {{ locale?: "vi" | "en" }} options

@@ -49,6 +49,7 @@ const ShimmerComponent = ({
   );
 
   return (
+    // oxlint-disable-next-line react/static-components -- read from motionComponentCache above, not created during render
     <MotionComponent
       animate={{ backgroundPosition: "0% center" }}
       className={cn(

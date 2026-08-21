@@ -26,23 +26,27 @@ Tạo 2 environment ở **Settings → Environments** (không tạo `dev` — de
 - **`staging`** — không cần protection rule (auto-deploy sau khi CI xanh trên `main`, đúng thiết kế).
 - **`prod`** — bật **Required reviewers** (ít nhất chính bạn) để `deploy-prod.yml` (`workflow_dispatch`) phải chờ approve thủ công trước khi chạy — đây là gate thật, không phải cosmetic.
 
-Mỗi environment cần các secret sau (giá trị **khác nhau** giữa staging/prod — staging trỏ Neon branch riêng, prod trỏ Neon branch chính):
+Mỗi environment cần 9 secret sau set thẳng vào Cloudflare bằng `wrangler secret put <KEY> --env <env>` (giá trị **khác nhau** giữa staging/prod — staging trỏ Neon branch riêng, prod trỏ Neon branch chính). Đây **không phải** GitHub Environment secret (trừ `DATABASE_URL`, xem ngoại lệ ở `env-management.md` §2) — chi tiết đầy đủ + lý do thiết kế ở `docs/runbooks/env-management.md`.
 
-| Secret | Nguồn |
-| --- | --- |
-| `DATABASE_URL` | Neon: staging = branch riêng (Neon "branching" feature), prod = branch chính |
-| `BETTER_AUTH_SECRET` | `openssl rand -hex 32` — khác giá trị giữa staging/prod |
-| `UPSTASH_REDIS_URL` / `UPSTASH_REDIS_TOKEN` | Upstash console — có thể dùng chung 1 Upstash DB cho cả 2 env ở giai đoạn free tier này (tách riêng khi cần) |
-| `RESEND_API_KEY` | Resend dashboard — domain `mail.donve.vn` phải verify SPF/DKIM/DMARC trước khi gửi thật |
+| Secret | Bắt buộc | Nguồn giá trị |
+| --- | --- | --- |
+| `DATABASE_URL` | có | Neon: staging = branch riêng (Neon "branching" feature), prod = branch chính |
+| `BETTER_AUTH_SECRET` | có | `openssl rand -hex 32` — khác giá trị giữa staging/prod |
+| `UPSTASH_REDIS_URL` / `UPSTASH_REDIS_TOKEN` | có | Upstash console — có thể dùng chung 1 Upstash DB cho cả 2 env ở giai đoạn free tier này (tách riêng khi cần) |
+| `RESEND_API_KEY` | có | Resend dashboard — domain `mail.donve.vn` phải verify SPF/DKIM/DMARC trước khi gửi thật |
+| `AI_KEY_MASTER_SECRET`, `PAYMENTS_KEY_MASTER_SECRET` | có | Master key mã hoá BYOK/payment connection (`packages/ai-gateway`) — generate 1 lần, **không đổi sau đó** trừ khi chạy job re-encrypt (xem `env-management.md` §3, chưa implement) |
+| `TURNSTILE_SECRET_KEY` | có | Cloudflare Turnstile dashboard, widget riêng cho zone `donve.vn` |
+| `PLATFORM_OPENROUTER_API_KEY` | có | OpenRouter — key của platform dùng cho no-BYOK trial (FR-H-02) |
+| `CF_API_TOKEN`, `CF_ZONE_ID` | không | FR-G-04 custom domain (Cloudflare for SaaS) — bỏ trống nếu chưa làm tính năng này |
+| `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY` | không | FR-B-32/33 stock photo — bỏ trống thì feature tự degrade |
 
-Ngoài ra 2 secret **repo-level** (không thuộc riêng environment nào, dùng chung cho cả `deploy-staging.yml`/`deploy-prod.yml`):
+Ngoài ra 3 secret **repo-level** (không thuộc riêng environment nào, dùng chung cho cả `deploy-staging.yml`/`deploy-prod.yml`, set tay qua GitHub UI — không qua `env:push` vì đây là thứ tự xác thực cho chính pipeline):
 
 - `CLOUDFLARE_API_TOKEN` — tạo ở CF dashboard → My Profile → API Tokens → Create Token, quyền tối thiểu: `Workers Scripts:Edit`, `Cloudflare Pages:Edit`, `Account Settings:Read` (scope theo account đang dùng).
 - `CLOUDFLARE_ACCOUNT_ID` — CF dashboard, góc phải trang tổng quan account.
+- `TURBO_TOKEN` (§1 ở trên).
 
-> Secret nào có ở GitHub Environment cũng cần đồng thời tồn tại như **Wrangler secret** ở Worker thật (`wrangler secret put NAME --env staging`) — `deploy-staging.yml`/`deploy-prod.yml` đã tự động sync việc này mỗi lần deploy (bước "Sync Worker secrets"), không cần chạy `wrangler secret put` tay ngoài lần đầu set giá trị GitHub secret.
-
-`masterKey` mã hoá BYOK (nhắc ở infra-deployment-cost.md §6) **chưa cần** ở bước này — `packages/ai-gateway` (key vault) là việc Phase 2, chưa tồn tại. Khi Phase 2 làm xong, thêm secret riêng (vd `BYOK_MASTER_KEY`) theo đúng nguyên tắc "tách riêng, rotate được" — không gộp chung với secret khác.
+> Các secret ở trên set thẳng vào Worker bằng `wrangler secret put`/`wrangler secret bulk` chạy tay — không đi qua GitHub Environment, không có bước CI nào đồng bộ. Ngoại lệ: `DATABASE_URL` còn phải set thêm 1 lần nữa làm GitHub Environment secret riêng vì bước migrate DB chạy trong CI cần nó (xem `env-management.md` §2).
 
 ## 3. Neon — staging branch
 
@@ -77,3 +81,13 @@ bunx wrangler pages project create dv-dashboard --production-branch=main
 3. Chạy `deploy-prod.yml` bằng tay (Actions tab → Deploy Production → Run workflow) → phải dừng chờ approve ở bước environment `prod` trước khi chạy job.
 
 > Migration DB (`drizzle-kit migrate`) đã tự chạy trong cả 2 workflow trên — không cần làm tay. Riêng cấp quyền `/platform` (platform-admin) thì **không** tự động — mỗi environment mới deploy xong phải tự chạy 1 lệnh CLI, xem `docs/architecture/platform-admin.md` §9.
+
+## 7. Lighthouse CI gate (NFR-01) — cần 1 landing mẫu đã publish
+
+`tooling/lighthouse-ci/run.ts` đã implement và có bước gọi trong `deploy-staging.yml`, nhưng bước đó chỉ chạy khi biến `SAMPLE_LANDING_URL` tồn tại — chưa set thì gate bị skip (không fail workflow), vì repo hiện chưa có script seed publish sẵn 1 landing mẫu.
+
+1. Tự publish 1 landing thật lên staging (qua dashboard hoặc gọi `POST /:id/publish`), lấy hostname `*.donve.vn` (hoặc domain tạm) của deployment đó.
+2. **Settings → Secrets and variables → Actions → Variables** (repo-level, không phải riêng environment): thêm `SAMPLE_LANDING_URL` = URL đầy đủ của landing mẫu đó.
+3. Chạy lại workflow — bước "Lighthouse CI gate (NFR-01, sample landing)" giờ chạy thật; fail nếu Performance/SEO/Best Practices/A11y < 95 (mobile), LCP ≥ 1.8s, hoặc `apps/landing-runtime` build ra > 10KB gzip.
+
+Landing mẫu này cần giữ ổn định (không xoá/unpublish) để gate không đột nhiên mất mục tiêu — đổi landing mẫu thì cập nhật lại biến trên.

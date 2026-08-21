@@ -54,6 +54,12 @@ export type ThumbnailControls = {
   capture: () => Promise<Blob | null>;
 };
 
+/** FR-B-12 — crops the shot to just the commented element, not the whole artboard (unlike
+ * `ThumbnailControls`/`composite` above, which always shoot the fixed 1200x800 artboard). */
+export type CommentScreenshotControls = {
+  capture: (srcmapId: string) => Promise<Blob | null>;
+};
+
 /** FR-B-28 PNG export — full page height, unlike the fixed-artboard thumbnail/draw shots. */
 export type ExportControls = {
   capturePng: () => Promise<Blob | null>;
@@ -68,7 +74,10 @@ type HistoryControls = {
   flushSave: () => void;
 };
 
-/** Fired 800ms after the last commit settles (studio-builder-spec.md §5) — creates a `manual` pageVersion. */
+/** Explicit save trigger for the toolbar's Save button — mirrors Cmd+S. */
+export type SaveControls = { save: () => void };
+
+/** Fired on an explicit save (Cmd+S or the toolbar button) — creates a `manual` pageVersion. */
 export type ManualSaveInput = { html: string; patch: PatchOp[] };
 
 export type CanvasProps = {
@@ -90,12 +99,16 @@ export type CanvasProps = {
   onCommentTarget?: (target: CommentTarget) => void;
   onDrawControlsReady?: (controls: DrawControls) => void;
   onDrawCanUndoChange?: (canUndo: boolean) => void;
+  onCommentScreenshotControlsReady?: (
+    controls: CommentScreenshotControls
+  ) => void;
   onManualSave?: (input: ManualSaveInput) => Promise<unknown> | void;
   onThumbnailControlsReady?: (controls: ThumbnailControls) => void;
   onExportControlsReady?: (controls: ExportControls) => void;
+  onSaveControlsReady?: (controls: SaveControls) => void;
+  /** Unsaved edits pending an explicit save (Cmd+S / the toolbar Save button). */
+  onDirtyChange?: (dirty: boolean) => void;
 };
-
-const MANUAL_SAVE_DEBOUNCE_MS = 800;
 
 /** Fixed artboard size — matches the iframe's `h-[800px] w-[1200px]` below. */
 const CONTENT_WIDTH = 1200;
@@ -179,8 +192,13 @@ function deriveLayers(root: Element): LayerNode[] {
   const layers: LayerNode[] = [];
   // Reversed sibling order: a later DOM sibling paints on top, so it surfaces first in
   // the panel — "top of list = topmost layer" (studio-builder-spec.md §8).
-  function walk(el: Element) {
+  // `parentSrcmapId`/`depth` track the nearest srcmap'd ancestor (not the raw DOM parent) —
+  // an element without a srcmap id is skipped from the list but its children still nest
+  // under whichever ancestor above it does have one.
+  function walk(el: Element, parentSrcmapId: string | null, depth: number) {
     const srcmapId = el.getAttribute(Srcmap.idAttr);
+    let childParentSrcmapId = parentSrcmapId;
+    let childDepth = depth;
     if (srcmapId) {
       const tag = el.tagName.toLowerCase();
       const kind = inferKind(el);
@@ -192,20 +210,33 @@ function deriveLayers(root: Element): LayerNode[] {
         thumbnailUrl:
           kind === "image" && tag === "img"
             ? (el.getAttribute("src") ?? undefined)
-            : undefined
+            : undefined,
+        parentSrcmapId,
+        depth
       });
+      childParentSrcmapId = srcmapId;
+      childDepth = depth + 1;
     }
-    for (const child of Array.from(el.children).toReversed()) walk(child);
+    for (const child of Array.from(el.children).toReversed())
+      walk(child, childParentSrcmapId, childDepth);
   }
-  for (const child of Array.from(root.children).toReversed()) walk(child);
+  for (const child of Array.from(root.children).toReversed())
+    walk(child, null, 0);
   return layers;
 }
 
-/** Reads inline styles only — the same surface `setStyle` ops write, so values round-trip. */
+/**
+ * Inline style wins when present (it's the same surface `setStyle` ops write, so an edited
+ * value round-trips exactly) — falling back to `getComputedStyle` for everything else, since
+ * most AI-generated HTML is styled via CSS classes/`<style>` blocks, not inline `style=`, and
+ * would otherwise show blank Inspector fields for values that are visibly set on the element.
+ */
 function readInspectorValues(el: HTMLElement): InspectorValues {
   const values: InspectorValues = {};
+  const computed = el.ownerDocument.defaultView?.getComputedStyle(el);
   for (const prop of INSPECTOR_PROPS) {
-    const raw = el.style.getPropertyValue(prop);
+    const raw =
+      el.style.getPropertyValue(prop) || computed?.getPropertyValue(prop) || "";
     if (!raw) continue;
     if (NUMERIC_INSPECTOR_PROPS.has(prop)) {
       const n = Number.parseFloat(raw);
@@ -266,9 +297,12 @@ export function Canvas({
   onCommentTarget,
   onDrawControlsReady,
   onDrawCanUndoChange,
+  onCommentScreenshotControlsReady,
   onManualSave,
   onThumbnailControlsReady,
-  onExportControlsReady
+  onExportControlsReady,
+  onSaveControlsReady,
+  onDirtyChange
 }: CanvasProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
@@ -280,6 +314,16 @@ export function Canvas({
   selectedIdRef.current = selectedId;
   const onManualSaveRef = React.useRef(onManualSave);
   onManualSaveRef.current = onManualSave;
+  const onSaveControlsReadyRef = React.useRef(onSaveControlsReady);
+  onSaveControlsReadyRef.current = onSaveControlsReady;
+  const onDirtyChangeRef = React.useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+  const dirtyRef = React.useRef(false);
+  const markDirty = React.useCallback(() => {
+    if (dirtyRef.current) return;
+    dirtyRef.current = true;
+    onDirtyChangeRef.current?.(true);
+  }, []);
   // `handleLoad` below wires these into DOM listeners on the iframe's own document
   // ONCE, when it loads — the iframe only fires `load` once per `srcDoc` change, so
   // those listeners never get torn down/re-attached on a normal re-render. Reading
@@ -295,24 +339,14 @@ export function Canvas({
   const onCommentTargetRef = React.useRef(onCommentTarget);
   onCommentTargetRef.current = onCommentTarget;
   const pendingOpsRef = React.useRef<PatchOp[]>([]);
-  const saveTimerRef = React.useRef<number | null>(null);
-  // Serializes manual-save requests (debounced edits + undo/redo's forced
-  // saves) so a rapid undo-then-redo can never have two in flight at once —
-  // otherwise whichever response lands last wins the landing page's
-  // `currentVersionId`, regardless of which edit the user made last.
+  // Serializes manual-save requests (an explicit save while another is still in flight)
+  // so two saves can never race — otherwise whichever response lands last wins the
+  // landing page's `currentVersionId`, regardless of which save the user triggered last.
   const saveQueueRef = React.useRef<Promise<unknown> | undefined>(undefined);
   const commitFnRef = React.useRef<((op: PatchOp) => void) | null>(null);
   const historyControlsRef = React.useRef<HistoryControls | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(
     null
-  );
-
-  React.useEffect(
-    () => () => {
-      if (saveTimerRef.current !== null)
-        window.clearTimeout(saveTimerRef.current);
-    },
-    []
   );
 
   const [hoverTarget, setHoverTarget] = React.useState<OverlayTarget | null>(
@@ -386,6 +420,24 @@ export function Canvas({
     },
     [zoomAt, pan, toContainerPoint]
   );
+  const handleWheelRef = React.useRef(handleWheel);
+  handleWheelRef.current = handleWheel;
+
+  // React's synthetic `onWheel` is attached passively — `preventDefault()` inside it is a
+  // silent no-op (browsers log "Unable to preventDefault inside passive event listener"), so
+  // a two-finger trackpad swipe over the canvas gutter never actually gets blocked and instead
+  // falls through to Chrome/Safari's built-in swipe-to-go-back/forward gesture. A real
+  // `addEventListener` with `{ passive: false }` — same as the iframe-document listener below
+  // — is the only way to make `preventDefault()` stick.
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      handleWheelRef.current(e);
+    }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   const zoomAtCenter = React.useCallback(
     (factor: number) => {
@@ -458,6 +510,22 @@ export function Canvas({
   React.useEffect(() => {
     onThumbnailControlsReady?.({ capture: captureThumbnail });
   }, [onThumbnailControlsReady, captureThumbnail]);
+
+  // FR-B-12: shoots just the commented element (its own bounding box), not the fixed artboard —
+  // `domToCanvas` sizes the canvas to the target node when no width/height is given.
+  const captureElementScreenshot = React.useCallback(
+    async (srcmapId: string): Promise<Blob | null> => {
+      const el = srcmapRef.current?.get(srcmapId) as HTMLElement | undefined;
+      if (!el) return null;
+      const shot = await domToCanvas(el);
+      return new Promise((resolve) => shot.toBlob(resolve, "image/jpeg", 0.85));
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    onCommentScreenshotControlsReady?.({ capture: captureElementScreenshot });
+  }, [onCommentScreenshotControlsReady, captureElementScreenshot]);
 
   // FR-B-28 PNG export — full document height/width, not the fixed 1200x800 artboard used
   // for the thumbnail/draw shots above, so a tall page isn't cropped.
@@ -640,6 +708,8 @@ export function Canvas({
     },
     [pan]
   );
+  const handleDragMoveRef = React.useRef(handleDragMove);
+  handleDragMoveRef.current = handleDragMove;
 
   const handleDragEnd = React.useCallback((e: PointerEvent) => {
     if (dragPointerId.current !== e.pointerId) return;
@@ -669,6 +739,14 @@ export function Canvas({
     const doc = iframeRef.current?.contentDocument;
     if (!doc?.body) return;
 
+    // Belt-and-suspenders against the trackpad-swipe-triggers-browser-back/forward bug: the
+    // generated page is a separate browsing context, so `preventDefault()` on its own wheel
+    // events isn't guaranteed to suppress a *top-level* swipe-navigation gesture the OS/browser
+    // recognizes independently of DOM event cancellation. `overscroll-behavior-x` is the
+    // purpose-built CSS defense for exactly this (MDN) and doesn't depend on event timing.
+    doc.documentElement.style.setProperty("overscroll-behavior-x", "none");
+    doc.body.style.setProperty("overscroll-behavior-x", "none");
+
     const srcmap = buildSrcmap(doc.body);
     srcmapRef.current = srcmap;
     const history = new PatchHistory(srcmap);
@@ -676,11 +754,9 @@ export function Canvas({
     // `force` saves even with an empty patch — undo/redo change the DOM without a
     // fresh op to record, but the source still needs to reach the server (FR-B-15).
     function persistNow(patch: PatchOp[], force = false) {
-      if (saveTimerRef.current !== null) {
-        window.clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = null;
-      }
       if (patch.length === 0 && !force) return;
+      dirtyRef.current = false;
+      onDirtyChangeRef.current?.(false);
       const html = `<!doctype html>\n${doc!.documentElement.outerHTML}`;
       // Both `.catch()`s keep the queue itself always resolved — a failed
       // save (this one, or the one before it) must not skip/poison every
@@ -694,15 +770,8 @@ export function Canvas({
     function commit(op: PatchOp) {
       history.commit(op);
       refreshLayers();
-
       pendingOpsRef.current.push(op);
-      if (saveTimerRef.current !== null) {
-        window.clearTimeout(saveTimerRef.current);
-      }
-      saveTimerRef.current = window.setTimeout(() => {
-        saveTimerRef.current = null;
-        persistNow(pendingOpsRef.current.splice(0));
-      }, MANUAL_SAVE_DEBOUNCE_MS);
+      markDirty();
     }
     commitFnRef.current = commit;
 
@@ -710,19 +779,24 @@ export function Canvas({
       undo: () => {
         if (!history.undo()) return;
         refreshLayers();
-        persistNow(pendingOpsRef.current.splice(0), true);
+        markDirty();
       },
       redo: () => {
         if (!history.redo()) return;
         refreshLayers();
-        persistNow(pendingOpsRef.current.splice(0), true);
+        markDirty();
       },
       canUndo: () => history.canUndo(),
       canRedo: () => history.canRedo(),
-      flushSave: () => persistNow(pendingOpsRef.current.splice(0))
+      // Always `force` — undo/redo (and a save with nothing newly committed since the
+      // last one) may leave `pendingOpsRef` empty even though the DOM itself changed.
+      flushSave: () => persistNow(pendingOpsRef.current.splice(0), true)
     };
 
     onCommitReady(commit);
+    onSaveControlsReadyRef.current?.({
+      save: () => historyControlsRef.current?.flushSave()
+    });
     refreshLayers();
     doFitToScreen(); // FR-B-07: fit-to-screen is the default state whenever a version loads.
 
@@ -871,24 +945,30 @@ export function Canvas({
 
     // Zoom/pan need to also work while the cursor is over the page content, not just the
     // canvas gutter — a separate document doesn't forward wheel/pointer events to the parent.
+    // The iframe only fires `load` once per `srcDoc`, so these listeners are registered exactly
+    // once for the whole editing session — closing over `handleWheel`/`handleDragMove` directly
+    // would freeze them at whatever `transform.scale` was at that one moment (both are recreated
+    // on every zoom/pan since they depend on the transform), silently corrupting the on-screen
+    // anchor point for every wheel/drag over the page content from the very next zoom onward.
+    // Reading through a ref (updated every render) is what keeps them current instead.
     doc.addEventListener(
       "wheel",
-      (e) => handleWheel(e, iframeRef.current!.getBoundingClientRect()),
+      (e) =>
+        handleWheelRef.current(e, iframeRef.current!.getBoundingClientRect()),
       { passive: false }
     );
     doc.addEventListener("pointerdown", (e) => {
       if (beginPan(e.button, e.pointerId)) e.preventDefault();
     });
-    doc.addEventListener("pointermove", handleDragMove);
+    doc.addEventListener("pointermove", (e) => handleDragMoveRef.current(e));
     doc.addEventListener("pointerup", handleDragEnd);
   }, [
     onCommitReady,
     refreshLayers,
     doFitToScreen,
-    handleWheel,
     beginPan,
-    handleDragMove,
-    handleDragEnd
+    handleDragEnd,
+    markDirty
   ]);
 
   React.useEffect(() => {
@@ -920,17 +1000,17 @@ export function Canvas({
       selectedEl ? readInspectorValues(selectedEl as HTMLElement) : null
     );
     // `revision` bumps after every commit so an edited element's rect/values re-measure.
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `revision` is a deliberate trigger-only dep, see comment above
   }, [hoveredId, selectedId, transform, revision, onSelectedValuesChange]);
 
   return (
     <div
       ref={containerRef}
-      className="relative size-full overflow-hidden bg-muted"
+      className="relative size-full overflow-hidden overscroll-x-none bg-muted"
       style={{
         cursor: isPanning ? "grabbing" : spaceHeld ? "grab" : undefined,
         touchAction: "none"
       }}
-      onWheel={(e) => handleWheel(e)}
       onPointerDown={handlePointerDown}
       onDoubleClick={(e) => {
         if (e.target === e.currentTarget) doFitToScreen();

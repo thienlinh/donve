@@ -16,6 +16,7 @@ import {
   aiUsageRepository,
   debitAiCreditsAndRecordUsage,
   debitTrialUseAndRecordUsage,
+  organizationsRepository,
   type Db
 } from "@dv/db";
 
@@ -29,6 +30,28 @@ export function importAiMasterKeyFromEnv(env: Bindings): Promise<CryptoKey> {
 
 /** The model routed against the platform's own OpenRouter key for `connectionId=platform` (FR-H-02). */
 const PLATFORM_MODEL = "anthropic/claude-sonnet-4.5";
+
+/**
+ * Picks which `connectionId` a landing page's generate call should use: the org's default
+ * connection if it has one, otherwise the free Workers AI trial (FR-H-05) — a brand-new org
+ * has no `aiConnections` row at all, so it must fall through to trial rather than hard-requiring
+ * BYOK. Shared by the non-streaming and streaming `/generate` handlers so they can't drift.
+ */
+export async function resolveGenerateConnectionId(
+  db: Db,
+  orgId: string
+): Promise<string> {
+  const connections = await aiConnectionsRepository.list(db, orgId);
+  const defaultConnection = connections.find((row) => row.isDefault);
+  if (defaultConnection?.provider === "platform") return "platform";
+  if (defaultConnection?.encryptedKey) return defaultConnection.id;
+
+  const org = await organizationsRepository.findById(db, orgId);
+  if (!org || org.trialUsesRemaining <= 0) {
+    throw new ApiError(400, "no_ai_connection");
+  }
+  return "trial";
+}
 
 export interface ModelCompletionResult {
   text: string;
@@ -48,7 +71,8 @@ export async function runModelCompletion(
   orgId: string,
   connectionId: string,
   useCase: AiUseCase,
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  onTextDelta?: (text: string) => void | Promise<void>
 ): Promise<ModelCompletionResult> {
   if (connectionId === "trial") {
     if (!env.AI) throw new ApiError(503, "trial_unavailable_on_this_runtime");
@@ -61,7 +85,8 @@ export async function runModelCompletion(
           maxOutputTokens: pickMaxOutputTokens(useCase)
         },
         { apiKey: "" }
-      )
+      ),
+      onTextDelta
     );
     const debit = await debitTrialUseAndRecordUsage(db, {
       orgId,
@@ -87,7 +112,8 @@ export async function runModelCompletion(
       provider.stream(
         { model, messages, maxOutputTokens: pickMaxOutputTokens(useCase) },
         { apiKey: env.PLATFORM_OPENROUTER_API_KEY }
-      )
+      ),
+      onTextDelta
     );
     const creditCost = provider.countCost(usage, model);
     const debit = await debitAiCreditsAndRecordUsage(db, {
@@ -131,7 +157,8 @@ export async function runModelCompletion(
     provider.stream(
       { model, messages, maxOutputTokens: pickMaxOutputTokens(useCase) },
       { apiKey }
-    )
+    ),
+    onTextDelta
   );
   const creditCost = provider.countCost(usage, model);
   // BYOK usage is billed on the tenant's own provider account, not `aiCreditBalance` — record only, no debit.

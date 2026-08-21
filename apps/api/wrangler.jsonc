@@ -5,15 +5,25 @@
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
-  // RESEND_API_KEY / AI_KEY_MASTER_SECRET / PLATFORM_OPENROUTER_API_KEY are secrets,
-  // set per environment via `wrangler secret put <NAME> --env <env>` (staging/production)
-  // — not committed here, see docs/runbooks/ci-cd-setup.md. Top-level vars below are only the default
-  // used by bare `wrangler dev` (local CF Workers simulation); real deploys
-  // always pass --env and use the blocks under "env" instead.
+  // RESEND_API_KEY / AI_KEY_MASTER_SECRET / PAYMENTS_KEY_MASTER_SECRET / PLATFORM_OPENROUTER_API_KEY /
+  // TURNSTILE_SECRET_KEY / CF_API_TOKEN / CF_ZONE_ID (FR-G-04 custom domains) /
+  // UNSPLASH_ACCESS_KEY / PEXELS_API_KEY (FR-B-32/33, optional) are secrets — set directly with
+  // `wrangler secret put <KEY> --env staging|production` (or `wrangler secret bulk`). Cloudflare
+  // is the only place these live; nothing local or in CI holds a copy — see
+  // docs/runbooks/env-management.md. Top-level vars below are only the default used by bare
+  // `wrangler dev` (local CF Workers simulation); real deploys always pass --env and use the
+  // blocks under "env" instead.
   "vars": {
     "RUNTIME": "workers",
     "BETTER_AUTH_URL": "http://localhost:8787",
-    "DASHBOARD_URL": "http://localhost:5173"
+    "DASHBOARD_URL": "http://localhost:5173",
+    "PUBLISH_BASE_DOMAIN": "donve.vn",
+    "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
+    // Cloudflare's documented always-passes test sitekey (dev only) — replace with the real
+    // per-zone site key in staging/production below. Not a secret, safe to commit as `vars`.
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    // NFR-14 traffic-spike alert recipient — not a secret (just an address), safe as `vars`.
+    "FOUNDER_ALERT_EMAIL": "founder@donve.vn"
   },
   // Studio draft assets (page_versions.htmlKey/srcmapKey) — separate bucket from
   // apps/edge-router's `deployments/*` (published landing serving), per architecture.md §3.
@@ -21,8 +31,43 @@
     {
       "binding": "LANDING_ASSETS_BUCKET",
       "bucket_name": "dv-landing-assets-dev"
+    },
+    {
+      // Same bucket apps/edge-router/wrangler.jsonc binds as `DEPLOYMENTS_BUCKET` — the
+      // publish pipeline writes here, edge-router reads it back (architecture.md §5.2).
+      "binding": "DEPLOYMENTS_BUCKET",
+      "bucket_name": "dv-landing-deployments-dev"
     }
   ],
+  // Same namespace apps/edge-router/wrangler.jsonc binds — the publish outbox worker writes
+  // the hostname -> deployment pointer here, edge-router reads it at serve time.
+  "kv_namespaces": [
+    {
+      "binding": "HOSTNAME_KV",
+      "id": "dev-placeholder"
+    }
+  ],
+  // Publish outbox reconciliation (architecture.md §5.2, every 5 minutes), FR-I-03 lead
+  // digest (hourly — also the tick that decides whether a "daily" org is due), NFR-11
+  // lead retention anonymize (daily, 03:00 UTC), NFR-10 data-subject-request SLA check
+  // (daily, 08:00 UTC), and NFR-14 traffic-spike check (daily, 23:50 UTC — late enough that
+  // "today" is nearly complete). Same quintet the Bun/VPS entrypoint self-schedules via
+  // `setInterval` (src/bun.ts).
+  "triggers": {
+    "crons": [
+      "*/5 * * * *",
+      "0 * * * *",
+      "0 3 * * *",
+      "0 8 * * *",
+      "50 23 * * *"
+    ]
+  },
+  // FR-G-06 — consumer side of apps/edge-router/wrangler.jsonc's `EVENTS_QUEUE` producer
+  // binding; same queue name (`dv-events-dev`). `queue()` in src/workers.ts drains it into
+  // Postgres. Bun/VPS has no equivalent (never runs edge-router in front of it).
+  "queues": {
+    "consumers": [{ "queue": "dv-events-dev", "max_batch_size": 50 }]
+  },
   // FR-H-05 no-BYOK trial (ai-integration-byok.md §6) — same binding name/model in every env.
   "ai": {
     "binding": "AI"
@@ -38,14 +83,46 @@
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api-staging.donve.vn",
-        "DASHBOARD_URL": "https://app-staging.donve.vn"
+        "DASHBOARD_URL": "https://app-staging.donve.vn",
+        "PUBLISH_BASE_DOMAIN": "donve.vn",
+        "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
+        // Real Turnstile widget ("Donve Staging", invisible mode, domain donve.vn) created via
+        // `wrangler turnstile widget create` — matching TURNSTILE_SECRET_KEY set as a Worker
+        // secret (`wrangler secret list --env staging`).
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAEW0G5_fr2ARZ3VV",
+        "FOUNDER_ALERT_EMAIL": "founder@donve.vn"
       },
       "r2_buckets": [
         {
           "binding": "LANDING_ASSETS_BUCKET",
           "bucket_name": "dv-landing-assets-staging"
+        },
+        {
+          "binding": "DEPLOYMENTS_BUCKET",
+          "bucket_name": "dv-landing-deployments-staging"
         }
       ],
+      "kv_namespaces": [
+        {
+          "binding": "HOSTNAME_KV",
+          "id": "staging-placeholder"
+        }
+      ],
+      "triggers": {
+        "crons": [
+          "*/5 * * * *",
+          "0 * * * *",
+          "0 3 * * *",
+          "0 8 * * *",
+          "50 23 * * *"
+        ]
+      },
+      // NOTE: apps/edge-router/wrangler.jsonc has no staging/production env blocks yet at
+      // all (dev-only today) — this consumer name assumes a `dv-events-staging` producer
+      // queue that still needs to be added there before this env actually receives events.
+      "queues": {
+        "consumers": [{ "queue": "dv-events-staging", "max_batch_size": 50 }]
+      },
       "ai": {
         "binding": "AI"
       }
@@ -55,14 +132,44 @@
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api.donve.vn",
-        "DASHBOARD_URL": "https://app.donve.vn"
+        "DASHBOARD_URL": "https://app.donve.vn",
+        "PUBLISH_BASE_DOMAIN": "donve.vn",
+        "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
+        // Placeholder — replace with the real Turnstile site key for the production zone
+        // (Cloudflare dashboard → Turnstile → widget for api.donve.vn / *.donve.vn).
+        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "FOUNDER_ALERT_EMAIL": "founder@donve.vn"
       },
       "r2_buckets": [
         {
           "binding": "LANDING_ASSETS_BUCKET",
           "bucket_name": "dv-landing-assets"
+        },
+        {
+          "binding": "DEPLOYMENTS_BUCKET",
+          "bucket_name": "dv-landing-deployments"
         }
       ],
+      "kv_namespaces": [
+        {
+          "binding": "HOSTNAME_KV",
+          "id": "production-placeholder"
+        }
+      ],
+      "triggers": {
+        "crons": [
+          "*/5 * * * *",
+          "0 * * * *",
+          "0 3 * * *",
+          "0 8 * * *",
+          "50 23 * * *"
+        ]
+      },
+      // Same caveat as staging above — assumes a `dv-events-production` producer queue on
+      // apps/edge-router once its env blocks are added there.
+      "queues": {
+        "consumers": [{ "queue": "dv-events-production", "max_batch_size": 50 }]
+      },
       "ai": {
         "binding": "AI"
       }

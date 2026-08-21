@@ -8,9 +8,17 @@ import { requestContext } from "./middleware/request-context.js";
 import { requireOrgSession } from "./middleware/require-org-session.js";
 import { requirePlatformStaff } from "./middleware/require-platform-staff.js";
 import { aiRoutes } from "./modules/ai/routes.js";
+import { campaignsRoutes } from "./modules/campaigns/routes.js";
+import { domainsRoutes } from "./modules/domains/routes.js";
 import { landingsRoutes } from "./modules/landings/routes.js";
+import { leadsRoutes } from "./modules/leads/routes.js";
+import { organizationsRoutes } from "./modules/organizations/routes.js";
+import { paymentsRoutes } from "./modules/payments/routes.js";
 import { platformRoutes } from "./modules/platform/routes.js";
+import { productsRoutes } from "./modules/products/routes.js";
+import { publicRoutes } from "./modules/public/routes.js";
 import { studioRoutes } from "./modules/studio/routes.js";
+import { webhooksRoutes } from "./modules/webhooks/routes.js";
 import type { AppEnv } from "./types.js";
 
 /**
@@ -33,15 +41,28 @@ export function createApp() {
   app.use("/platform/*", dashboardCors);
   // Public/unauthenticated surfaces (architecture.md §6) get IP-scoped limits;
   // authenticated routes get their own limiter once session middleware lands.
-  app.use("/public/*", rateLimit({ windowSeconds: 60, max: 30 }));
+  // `/public/orders/:code/status` is excluded here — NFR-16 gives it its own
+  // IP+campaign limiter (modules/public/routes.ts) tuned for poll cadence
+  // instead of this general per-IP bucket.
+  app.use("/public/leads", rateLimit({ windowSeconds: 60, max: 30 }));
+  app.use(
+    "/public/orders/:code/confirm-transfer",
+    rateLimit({ windowSeconds: 60, max: 30 })
+  );
   app.use("/webhooks/*", rateLimit({ windowSeconds: 60, max: 60 }));
   // Separate gate from tenant auth entirely (platform-admin.md §4) — a valid tenant
   // session is not enough, the user must also have a `platform_staff` row.
   app.use("/platform/*", requirePlatformStaff);
   // First tenant-scoped module — resolves `orgId` from the session's active org.
   app.use("/api/landings/*", requireOrgSession);
+  app.use("/api/domains/*", requireOrgSession);
   app.use("/api/studio/*", requireOrgSession);
   app.use("/api/ai/*", requireOrgSession);
+  app.use("/api/products/*", requireOrgSession);
+  app.use("/api/campaigns/*", requireOrgSession);
+  app.use("/api/leads/*", requireOrgSession);
+  app.use("/api/organizations/*", requireOrgSession);
+  app.use("/api/payments/*", requireOrgSession);
 
   app.onError(errorHandler);
   app.notFound(notFoundHandler);
@@ -56,8 +77,16 @@ export function createApp() {
 
   app.route("/platform", platformRoutes);
   app.route("/api/landings", landingsRoutes);
+  app.route("/api/domains", domainsRoutes);
   app.route("/api/studio", studioRoutes);
   app.route("/api/ai", aiRoutes);
+  app.route("/api/products", productsRoutes);
+  app.route("/api/campaigns", campaignsRoutes);
+  app.route("/api/leads", leadsRoutes);
+  app.route("/api/organizations", organizationsRoutes);
+  app.route("/api/payments", paymentsRoutes);
+  app.route("/public", publicRoutes);
+  app.route("/webhooks", webhooksRoutes);
 
   return app;
 }

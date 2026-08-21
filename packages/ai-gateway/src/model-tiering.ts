@@ -10,7 +10,9 @@ export type AiUseCase = "generate" | "patch";
 const CHEAP_MODEL: Record<ByokProviderId, string> = {
   openrouter: "deepseek/deepseek-chat-v3",
   anthropic: "claude-haiku-4-5",
-  openai: "gpt-5-mini"
+  openai: "gpt-5-mini",
+  groq: "llama-3.1-8b-instant",
+  nvidia: "meta/llama-3.1-8b-instruct"
 };
 
 /** Picks which model a request should actually use, given the connection's own default. */

@@ -14,16 +14,9 @@ import {
   verticalListSortingStrategy
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Badge } from "@dv/ui/components/shadcn/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@dv/ui/components/shadcn/collapsible";
 import { cn } from "@dv/ui/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
-  ChevronDownIcon,
   EyeIcon,
   EyeOffIcon,
   GripVerticalIcon,
@@ -40,6 +33,11 @@ export type LayerNode = {
   hidden?: boolean;
   /** Only for `kind: "image"` layers — real thumbnail instead of the `T` glyph. */
   thumbnailUrl?: string;
+  /** `srcmapId` of the nearest srcmap'd ancestor, `null` at the tree root. Drag-reorder is only
+   * valid between layers that share this — they're the only ones that are real DOM siblings. */
+  parentSrcmapId: string | null;
+  /** Nesting depth from the tree root, used to indent the row. */
+  depth: number;
 };
 
 export type LayerTreePanelProps = {
@@ -55,8 +53,10 @@ export type LayerTreePanelProps = {
   footer?: React.ReactNode;
 };
 
-// LayerTree virtualizes past this threshold (studio-builder-spec.md §11).
-const VIRTUALIZE_THRESHOLD = 100;
+// LayerTree virtualizes past this threshold (studio-builder-spec.md §11). Exported so a
+// consumer (the dashboard's `footer` prop) can explain why drag-reorder disappears past it,
+// without duplicating the number.
+export const LAYER_TREE_VIRTUALIZE_THRESHOLD = 100;
 const ROW_HEIGHT = 30;
 
 function LayerIcon({ layer }: { layer: LayerNode }) {
@@ -127,6 +127,7 @@ function LayerRow({
         isSelected && "bg-accent text-accent-foreground",
         isHovered && !isSelected && "bg-muted"
       )}
+      style={{ paddingInlineStart: `${6 + layer.depth * 14}px` }}
       onMouseEnter={() => onHoverChange?.(layer.srcmapId)}
       onMouseLeave={() => onHoverChange?.(null)}
     >
@@ -134,7 +135,7 @@ function LayerRow({
         <button
           type="button"
           aria-label="Reorder layer"
-          className="shrink-0 cursor-grab touch-none text-muted-foreground opacity-0 group-hover/layer-row:opacity-100 hover:text-foreground active:cursor-grabbing"
+          className="shrink-0 cursor-grab touch-none text-muted-foreground/40 group-hover/layer-row:text-muted-foreground hover:text-foreground active:cursor-grabbing"
           {...dragHandleProps.attributes}
           {...dragHandleProps.listeners}
         >
@@ -256,10 +257,19 @@ function ReorderableLayerList({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = layers.findIndex((l) => l.srcmapId === active.id);
-    const newIndex = layers.findIndex((l) => l.srcmapId === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(layers, oldIndex, newIndex);
+    const activeLayer = layers.find((l) => l.srcmapId === active.id);
+    const overLayer = layers.find((l) => l.srcmapId === over.id);
+    if (!activeLayer || !overLayer) return;
+    // `moveBefore` only ever moves a node within its existing DOM parent — dropping onto a
+    // layer from a different parent isn't a supported move, so just let it snap back.
+    if (activeLayer.parentSrcmapId !== overLayer.parentSrcmapId) return;
+
+    const siblings = layers.filter(
+      (l) => l.parentSrcmapId === activeLayer.parentSrcmapId
+    );
+    const oldIndex = siblings.findIndex((l) => l.srcmapId === active.id);
+    const newIndex = siblings.findIndex((l) => l.srcmapId === over.id);
+    const reordered = arrayMove(siblings, oldIndex, newIndex);
     const draggedIndex = reordered.findIndex((l) => l.srcmapId === active.id);
     // The panel lists layers topmost-first (paint order), the reverse of DOM sibling
     // order — so the new DOM predecessor is whichever layer now sits just *above* it here.
@@ -302,6 +312,7 @@ function PlainLayerList({ layers, ...rest }: RowListProps) {
 // this product doesn't have yet. Upgrade when that combination is actually requested.
 function VirtualizedLayerList({ layers, ...rest }: RowListProps) {
   const parentRef = React.useRef<HTMLDivElement>(null);
+  // oxlint-disable-next-line react/incompatible-library -- @tanstack/react-virtual returns functions the compiler can't memoize; informational only
   const virtualizer = useVirtualizer({
     count: layers.length,
     getScrollElement: () => parentRef.current,
@@ -359,7 +370,7 @@ export function LayerTreePanel({
   onReorder,
   footer
 }: LayerTreePanelProps) {
-  const virtualized = layers.length > VIRTUALIZE_THRESHOLD;
+  const virtualized = layers.length > LAYER_TREE_VIRTUALIZE_THRESHOLD;
   const rowListProps = {
     layers,
     selectedId,
@@ -371,37 +382,23 @@ export function LayerTreePanel({
   };
 
   return (
-    <Collapsible defaultOpen className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-2 py-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Layers
-          </span>
-          <Badge variant="secondary">{layers.length}</Badge>
+    <div className="flex h-full flex-col">
+      {virtualized ? (
+        <VirtualizedLayerList {...rowListProps} />
+      ) : (
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-1.5 py-1.5">
+          {onReorder ? (
+            <ReorderableLayerList {...rowListProps} onReorder={onReorder} />
+          ) : (
+            <PlainLayerList {...rowListProps} />
+          )}
         </div>
-        <CollapsibleTrigger className="text-muted-foreground hover:text-foreground">
-          <ChevronDownIcon className="size-4" />
-        </CollapsibleTrigger>
-      </div>
-
-      <CollapsibleContent className="flex min-h-0 flex-1 flex-col">
-        {virtualized ? (
-          <VirtualizedLayerList {...rowListProps} />
-        ) : (
-          <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-1.5">
-            {onReorder ? (
-              <ReorderableLayerList {...rowListProps} onReorder={onReorder} />
-            ) : (
-              <PlainLayerList {...rowListProps} />
-            )}
-          </div>
-        )}
-        {footer && (
-          <div className="border-t px-2 py-1.5 text-xs text-muted-foreground">
-            {footer}
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+      {footer && (
+        <div className="border-t px-2 py-1.5 text-xs text-muted-foreground">
+          {footer}
+        </div>
+      )}
+    </div>
   );
 }

@@ -29,7 +29,10 @@ export type {
   DrawTool
 } from "./components/draw-overlay.js";
 
-export { LayerTreePanel } from "./components/layer-tree-panel.js";
+export {
+  LAYER_TREE_VIRTUALIZE_THRESHOLD,
+  LayerTreePanel
+} from "./components/layer-tree-panel.js";
 export type {
   LayerKind,
   LayerNode,

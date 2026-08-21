@@ -24,13 +24,23 @@ cp apps/dashboard/.env.example apps/dashboard/.env.local
 # DATABASE_URL=postgres://donve:donve@localhost:5432/donve  (đúng user/pass/db mặc định trong docker-compose.yml)
 # BETTER_AUTH_SECRET: chuỗi random bất kỳ (openssl rand -hex 32)
 # RESEND_API_KEY: để trống là được — flow verify/invite email sẽ log ra console thay vì gửi thật
-bun run --filter=@dv/db db:migrate
-bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + apps/dashboard (:5173)
+DATABASE_URL=postgres://donve:donve@localhost:5432/donve bun run --filter=@dv/db db:migrate
+# ^ packages/db đọc thẳng process.env.DATABASE_URL (drizzle.config.ts) — không tự đọc apps/api/.env.local, nên phải set inline như trên
+bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + apps/dashboard (:5173) + apps/edge-router (wrangler dev, :8787)
 ```
+
+> `apps/edge-router` chạy qua `wrangler dev` (local simulated KV/R2, không cần tài khoản CF) — `src/index.ts` hiện mới là placeholder (KV lookup + R2 serve + Cache API + `/e/*` beacon chưa implement, xem `docs/architecture/architecture.md` §5), nên request thật sẽ chưa trả gì cho tới khi route được viết. `wrangler.jsonc` dùng binding id giả (`dev-placeholder`) chỉ để `wrangler dev` boot được — không cần thay cho tới khi bắt đầu implement routing thật.
 
 > `packages/db` có 2 driver: `neon-http` (dùng khi deploy CF Workers, đọc `DATABASE_URL` dạng Neon) và `postgres-js` (dùng cho Bun/VPS/local, đọc `DATABASE_URL` Postgres thường) — driver được chọn qua env, không đổi code khi đổi môi trường. Container Postgres ở trên đã đủ để chạy toàn bộ flow auth/org (`/api/auth/*`, không rate-limit) hoàn toàn offline, không cần Neon/Upstash.
 >
 > Container Redis hiện **chưa được driver nào dùng** — `packages/drivers` mới có impl Upstash (REST, cần `UPSTASH_REDIS_URL`/`UPSTASH_REDIS_TOKEN` thật) cho cache/realtime và QStash cho jobs; driver ioredis/BullMQ local là việc của Phase 7 (`prompt-playbook.md`). Container này chỉ để sẵn hình dạng stack cho Phase 7, không tắt gì hôm nay — 2 route duy nhất cần Upstash thật là `/public/*` và `/webhooks/*` (rate limit), chưa tồn tại ở Phase 0 nên không cản trở việc verify DoD dưới đây.
+
+## Debug lỗi thường gặp khi chạy local
+
+- **Request từ dashboard trả 404, URL có dạng `localhost:5173/api/...`**: `apps/dashboard/.env.local` sai `VITE_API_URL` (đang trỏ vào chính Vite dev server thay vì API `:3000`). Sửa lại `VITE_API_URL=http://localhost:3000` rồi restart `bun run dev` — Vite không luôn hot-reload biến `import.meta.env` giữa chừng.
+- **API log `password authentication failed for user "<tên máy bạn>"`**: `apps/api/.env.local` chưa tồn tại hoặc `DATABASE_URL` để trống — driver `postgres-js` fallback về user hệ điều hành thay vì user `donve` trong docker-compose. Tạo file từ `cp apps/api/.env.example apps/api/.env.local` và điền `DATABASE_URL=postgres://donve:donve@localhost:5432/donve`.
+- **`bun run --filter=@dv/db db:migrate` báo `url: undefined`**: `packages/db/drizzle.config.ts` đọc thẳng `process.env.DATABASE_URL`, không tự đọc `apps/api/.env.local` — phải set inline như lệnh ở mục "Chạy local dev" trên.
+- **`apps/edge-router` (`wrangler dev`) báo "Missing entry-point"**: thiếu `wrangler.jsonc` — đã có sẵn trong repo, nếu vẫn gặp nghĩa là file bị xoá/chưa pull.
 
 ## Chạy test
 

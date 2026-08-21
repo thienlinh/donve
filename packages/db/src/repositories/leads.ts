@@ -1,11 +1,93 @@
-import { and, eq, isNull } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  lte,
+  or,
+  sql
+} from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
 import { withOrgScope } from "../org-scope.js";
-import { leads } from "../schema/crm.js";
+import { leads, orders } from "../schema/crm.js";
 import { createOrgScopedRepository } from "./scoped-repository.js";
 
 const base = createOrgScopedRepository(leads);
+
+const PAID_ORDER_STATUSES = ["paid", "fulfilled"] as const;
+
+export interface LeadListFilters {
+  campaignId?: string;
+  productId?: string;
+  stage?: string;
+  utmSource?: string;
+  /** `"unassigned"` matches `assigneeId IS NULL`. */
+  assigneeId?: string;
+  paid?: boolean;
+  dateFrom?: Date;
+  dateTo?: Date;
+  search?: string;
+  page: number;
+  pageSize: number;
+}
+
+function listFilterConditions(orgId: string, filters: LeadListFilters) {
+  const conditions = [eq(leads.orgId, orgId), isNull(leads.deletedAt)];
+
+  if (filters.campaignId) {
+    conditions.push(eq(leads.campaignId, filters.campaignId));
+  }
+  if (filters.stage) {
+    conditions.push(eq(leads.stage, filters.stage));
+  }
+  if (filters.utmSource) {
+    conditions.push(sql`${leads.utm}->>'source' = ${filters.utmSource}`);
+  }
+  if (filters.assigneeId === "unassigned") {
+    conditions.push(isNull(leads.assigneeId));
+  } else if (filters.assigneeId) {
+    conditions.push(eq(leads.assigneeId, filters.assigneeId));
+  }
+  if (filters.dateFrom) {
+    conditions.push(gte(leads.createdAt, filters.dateFrom));
+  }
+  if (filters.dateTo) {
+    conditions.push(lte(leads.createdAt, filters.dateTo));
+  }
+  if (filters.search) {
+    const term = `%${filters.search}%`;
+    conditions.push(
+      // oxlint-disable-next-line no-non-null-assertion -- `or()` with 1+ args always returns a SQL node
+      or(
+        ilike(leads.fullName, term),
+        ilike(leads.phone, term),
+        ilike(leads.email, term)
+      )!
+    );
+  }
+  if (filters.productId) {
+    conditions.push(
+      inArray(
+        leads.id,
+        sql`(select ${orders.leadId} from ${orders} where ${orders.orgId} = ${orgId} and ${orders.productId} = ${filters.productId})`
+      )
+    );
+  }
+  if (filters.paid !== undefined) {
+    const membership = sql`(select ${orders.leadId} from ${orders} where ${orders.orgId} = ${orgId} and ${orders.status} in ${PAID_ORDER_STATUSES})`;
+    conditions.push(
+      filters.paid
+        ? inArray(leads.id, membership)
+        : sql`${leads.id} not in ${membership}`
+    );
+  }
+
+  return and(...conditions);
+}
 
 export const leadsRepository = {
   ...base,
@@ -29,5 +111,89 @@ export const leadsRepository = {
           .limit(1)
     );
     return rows[0];
+  },
+
+  /** FR-E-01 — filtered, searched, paginated lead list. Two round trips (rows + count) since
+   * `withOrgScope` only allows a single query per call (see org-scope.js doc comment). */
+  async listFiltered(db: Db, orgId: string, filters: LeadListFilters) {
+    const where = listFilterConditions(orgId, filters);
+    const [rows, countRows] = await Promise.all([
+      withOrgScope<(typeof leads.$inferSelect)[]>(db, orgId, (qb) =>
+        qb
+          .select()
+          .from(leads)
+          .where(where)
+          .orderBy(desc(leads.createdAt))
+          .limit(filters.pageSize)
+          .offset((filters.page - 1) * filters.pageSize)
+      ),
+      withOrgScope<{ count: number }[]>(db, orgId, (qb) =>
+        qb
+          .select({ count: sql<number>`count(*)::int` })
+          .from(leads)
+          .where(where)
+      )
+    ]);
+    return { rows, total: countRows[0]?.count ?? 0 };
+  },
+
+  /** FR-E-07 — same filters as `listFiltered`, no pagination.
+   * ponytail: capped at 5000 rows, same reasoning as the lead-digest page cap —
+   * a single CSV export past that size wants a background job, not this endpoint. */
+  async listForExport(
+    db: Db,
+    orgId: string,
+    filters: Omit<LeadListFilters, "page" | "pageSize">
+  ) {
+    const where = listFilterConditions(orgId, {
+      ...filters,
+      page: 1,
+      pageSize: 0
+    });
+    return withOrgScope<(typeof leads.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(leads)
+        .where(where)
+        .orderBy(desc(leads.createdAt))
+        .limit(5000)
+    );
+  },
+
+  /** NFR-10 — right to erasure, triggered from an ops-handled deletion/export request
+   * (email SLA 72h) or self-serve. Keeps the row (and orders/payments, which stay
+   * intact as accounting evidence per NFR-11) but scrubs the personal-data columns.
+   * `phone` can't be nulled (NOT NULL + unique per org while active), so it gets a
+   * placeholder that can't collide with a real phone number. */
+  async anonymize(db: Db, orgId: string, id: string) {
+    return base.update(db, orgId, id, {
+      phone: `anonymized-${id}`,
+      email: null,
+      customFields: {},
+      anonymizedAt: new Date()
+    });
+  },
+
+  /** NFR-11 — candidates for the periodic retention job: never `paid`/`fulfilled`,
+   * not already anonymized/deleted, untouched for at least `cutoff`.
+   * ponytail: capped at 500/run, same as the lead-digest page cap — a daily job
+   * catches up over subsequent runs instead of needing a pagination loop here. */
+  async listRetentionCandidates(db: Db, orgId: string, cutoff: Date) {
+    const paidLeadIds = sql`(select ${orders.leadId} from ${orders} where ${orders.orgId} = ${orgId} and ${orders.status} in ${PAID_ORDER_STATUSES})`;
+    return withOrgScope<(typeof leads.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(leads)
+        .where(
+          and(
+            eq(leads.orgId, orgId),
+            isNull(leads.deletedAt),
+            isNull(leads.anonymizedAt),
+            lte(leads.updatedAt, cutoff),
+            sql`${leads.id} not in ${paidLeadIds}`
+          )
+        )
+        .limit(500)
+    );
   }
 };

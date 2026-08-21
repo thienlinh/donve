@@ -26,3 +26,7 @@ export const studioCommentKeys = {
 export const chatMessageKeys = {
   list: (landingPageId: string) => ["chat-messages", landingPageId] as const
 };
+
+export const deploymentKeys = {
+  list: (landingPageId: string) => ["deployments", landingPageId] as const
+};

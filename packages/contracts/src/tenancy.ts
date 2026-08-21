@@ -26,11 +26,24 @@ const pipelineStageSchema = z.object({
   color: z.string()
 });
 
+export const leadDigestFrequencyValues = ["hourly", "daily"] as const;
+export const leadDigestFrequencySchema = z.enum(leadDigestFrequencyValues);
+export type LeadDigestFrequency = z.infer<typeof leadDigestFrequencySchema>;
+
 /** organizations.settings — brand tokens, pipeline stages, timezone; open-ended beyond that. */
 export const orgSettingsSchema = z
   .object({
     pipeline: z.array(pipelineStageSchema).optional(),
-    timezone: z.string().optional()
+    timezone: z.string().optional(),
+    /** FR-I-03 — new-lead digest batching window; defaults to hourly when unset. */
+    leadDigestFrequency: leadDigestFrequencySchema.optional(),
+    /** NFR-11 — org opt-out of the 12-month unpaid-lead anonymize job; default enabled. */
+    leadRetentionAnonymizeDisabled: z.boolean().optional(),
+    /** FR-B-24 — brand tokens (colors/fonts) fed into the AI prompt (studio-ai's
+     * compilePrompt/compileGeneratePrompt). Written by the Brand kit section of Org
+     * Settings (primaryColor/secondaryColor/headingFont/bodyFont); `catchall` above
+     * still allows ad-hoc extra keys if a future UI wants to add more tokens. */
+    designTokens: z.record(z.string(), z.string()).optional()
   })
   .catchall(z.unknown());
 export type OrgSettings = z.infer<typeof orgSettingsSchema>;

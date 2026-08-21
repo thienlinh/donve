@@ -89,11 +89,16 @@ function isSuccessfulPatchOutput(output: unknown): output is PatchToolOutput {
   );
 }
 
+type PatchSummaryInfo = { summary: string; pageVersionId: string };
+
 /** Live stream: a `tool-apply_patch`/`tool-apply_full_html` part with a successful output.
  * Reloaded history: the same result, persisted server-side as a `data-patch-summary` part. */
-function patchSummaryFromPart(part: UIMessage["parts"][number]): string | null {
+function patchSummaryFromPart(
+  part: UIMessage["parts"][number]
+): PatchSummaryInfo | null {
   if (part.type === "data-patch-summary") {
-    return (part.data as { summary: string }).summary;
+    const data = part.data as { pageVersionId: string; summary: string };
+    return { summary: data.summary, pageVersionId: data.pageVersionId };
   }
   if (
     (part.type === "tool-apply_patch" ||
@@ -101,32 +106,55 @@ function patchSummaryFromPart(part: UIMessage["parts"][number]): string | null {
     "output" in part &&
     isSuccessfulPatchOutput(part.output)
   ) {
-    return part.output.summary;
+    return {
+      summary: part.output.summary,
+      pageVersionId: part.output.pageVersionId
+    };
   }
   return null;
 }
 
-function ChatMessageItem({ message }: { message: UIMessage }) {
+function ChatMessageItem({
+  message,
+  onViewVersion
+}: {
+  message: UIMessage;
+  /** Jumps the version-history panel to (and highlights) the version this message's
+   * apply_patch/apply_full_html call produced — see studio-page.tsx's cross-panel state. */
+  onViewVersion?: (versionId: string) => void;
+}) {
   const hasComment = message.parts.some(
     (part) => part.type === "data-comment-context"
   );
-  const patchSummary = message.parts
+  const patchInfo = message.parts
     .map(patchSummaryFromPart)
-    .find((summary) => summary !== null);
+    .find((info) => info !== null);
 
   return (
-    <Message from={message.role === "user" ? "user" : "assistant"}>
+    <Message
+      id={`chat-message-${message.id}`}
+      from={message.role === "user" ? "user" : "assistant"}
+    >
       {hasComment && (
         <Badge className="w-fit gap-1" variant="secondary">
           <MessageSquare className="size-3" />
           {m.studioCommentChatChip()}
         </Badge>
       )}
-      {patchSummary && (
+      {patchInfo && (
         <Badge className="w-fit gap-1" variant="secondary">
           <Wand2 className="size-3" />
-          {patchSummary}
+          {patchInfo.summary}
         </Badge>
+      )}
+      {patchInfo && onViewVersion && (
+        <button
+          type="button"
+          className="w-fit text-xs text-primary underline-offset-2 hover:underline"
+          onClick={() => onViewVersion(patchInfo.pageVersionId)}
+        >
+          {m.studioChatViewVersionLink()}
+        </button>
       )}
       {message.parts.map((part, index) => {
         if (part.type === "text") {
@@ -166,12 +194,28 @@ export type ChatPanelProps = {
   /** `apply_full_html` replaced the page server-side — caller refetches to pick up the new
    * htmlKey (there's no incremental DOM patch for a full-document replace). */
   onFullHtmlApplied?: () => void;
+  /** FR-B-31: fires once as if the user had typed it (the "chuẩn hoá phễu" wizard's banner
+   * CTA) — same `sendMessage` path as `handleSuggestion`, just triggered by a prop instead of
+   * a click inside this component. `autoPromptSentRef` guards against re-sending the same
+   * text on every re-render; the caller clears the prop once handled. */
+  autoPrompt?: string | null;
+  /** Jumps the version-history panel to (and highlights) the version an assistant message
+   * produced — see studio-page.tsx's cross-panel state, same idea as canvas/layer-tree hover. */
+  onViewVersion?: (versionId: string) => void;
+  /** Set by version-history's "view chat" action — scrolls the matching message into view.
+   * Same one-shot-prop pattern as `autoPrompt` above; caller clears it once handled. */
+  scrollToMessageId?: string | null;
+  onScrollToMessageHandled?: () => void;
 };
 
 export function ChatPanel({
   landingPageId,
   onApplyPatch,
-  onFullHtmlApplied
+  onFullHtmlApplied,
+  autoPrompt,
+  onViewVersion,
+  scrollToMessageId,
+  onScrollToMessageHandled
 }: ChatPanelProps) {
   const messagesQuery = useQuery({
     queryKey: chatMessageKeys.list(landingPageId),
@@ -247,6 +291,27 @@ export function ChatPanel({
     [sendMessage]
   );
 
+  const autoPromptSentRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!autoPrompt || autoPromptSentRef.current === autoPrompt) return;
+    autoPromptSentRef.current = autoPrompt;
+    sendMessage({ text: autoPrompt });
+  }, [autoPrompt, sendMessage]);
+
+  // Version-history's "view chat" action (studio-page.tsx) — jump to the message that
+  // produced a given version. `scrollIntoView` needs the message's element already painted,
+  // hence the rAF; `onScrollToMessageHandled` clears the one-shot prop once consumed.
+  useEffect(() => {
+    if (!scrollToMessageId) return;
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .getElementById(`chat-message-${scrollToMessageId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    onScrollToMessageHandled?.();
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrollToMessageId, onScrollToMessageHandled]);
+
   const isEmpty = messages.length === 0;
 
   return (
@@ -267,7 +332,11 @@ export function ChatPanel({
         <Conversation>
           <ConversationContent>
             {messages.map((message) => (
-              <ChatMessageItem key={message.id} message={message} />
+              <ChatMessageItem
+                key={message.id}
+                message={message}
+                onViewVersion={onViewVersion}
+              />
             ))}
           </ConversationContent>
           <ConversationScrollButton />

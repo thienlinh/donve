@@ -43,16 +43,54 @@ export const customDomainStatusValues = [
 export const customDomainStatusSchema = z.enum(customDomainStatusValues);
 export type CustomDomainStatus = z.infer<typeof customDomainStatusSchema>;
 
+/** Cloudflare for SaaS's DCV instructions, shown as-is so the tenant knows exactly what DNS
+ * record to add — `cnameTarget` is the platform's fixed fallback origin (same for every
+ * tenant); `ownershipVerification` is per-hostname, returned only while still pending. */
+export const customDomainVerificationSchema = z
+  .object({
+    cnameTarget: z.string().optional(),
+    ownershipVerification: z
+      .object({ type: z.string(), name: z.string(), value: z.string() })
+      .optional(),
+    sslStatus: z.string().optional()
+  })
+  .catchall(z.unknown())
+  .default({});
+export type CustomDomainVerification = z.infer<
+  typeof customDomainVerificationSchema
+>;
+
 export const customDomainSchema = z.object({
   id: ulidSchema,
   orgId: orgIdSchema,
+  landingPageId: ulidSchema,
   hostname: z.string(),
   status: customDomainStatusSchema,
   /** Cloudflare for SaaS custom hostname id. */
   cfHostnameId: z.string().nullable(),
+  verification: customDomainVerificationSchema,
   createdAt: z.coerce.date()
 });
 export type CustomDomain = z.infer<typeof customDomainSchema>;
+
+// Same lowercase-hostname shape as a subdomain claim, minus the reserved-word/length rules
+// that only make sense for a platform-issued subdomain — a custom domain is the tenant's own.
+export const createCustomDomainInputSchema = z.object({
+  hostname: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3)
+    .max(253)
+    .regex(
+      /^(?=.{3,253}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/,
+      "Enter a valid domain, e.g. shop.yourbrand.com"
+    ),
+  landingPageId: ulidSchema
+});
+export type CreateCustomDomainInput = z.infer<
+  typeof createCustomDomainInputSchema
+>;
 
 export const publishOutboxStatusValues = [
   "pending",
@@ -61,6 +99,53 @@ export const publishOutboxStatusValues = [
 ] as const;
 export const publishOutboxStatusSchema = z.enum(publishOutboxStatusValues);
 export type PublishOutboxStatus = z.infer<typeof publishOutboxStatusSchema>;
+
+// Reserved so a tenant can't claim infra-looking subdomains (architecture.md §7 "subdomain
+// takeover / trùng"). Same host string used in wrangler/env vars — kept in sync by hand.
+const RESERVED_SUBDOMAINS = new Set([
+  "www",
+  "api",
+  "app",
+  "admin",
+  "staging",
+  "mail",
+  "smtp",
+  "pop",
+  "imap",
+  "ftp",
+  "cdn",
+  "static",
+  "assets",
+  "blog",
+  "dashboard",
+  "dev",
+  "test",
+  "ns1",
+  "ns2",
+  "mx",
+  "autodiscover",
+  "root",
+  "support",
+  "status",
+  "docs"
+]);
+
+export const publishLandingPageInputSchema = z.object({
+  subdomain: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3)
+    .max(63)
+    .regex(
+      /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/,
+      "Subdomain must be lowercase letters, digits, hyphens; no leading/trailing hyphen"
+    )
+    .refine((v) => !RESERVED_SUBDOMAINS.has(v), "Subdomain is reserved")
+});
+export type PublishLandingPageInput = z.infer<
+  typeof publishLandingPageInputSchema
+>;
 
 export const publishOutboxSchema = z.object({
   id: ulidSchema,

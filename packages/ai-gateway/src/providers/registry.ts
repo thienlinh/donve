@@ -1,4 +1,6 @@
 import { createAnthropicProvider } from "./anthropic.js";
+import { createGroqProvider } from "./groq.js";
+import { createNvidiaProvider } from "./nvidia.js";
 import { createOpenAIProvider } from "./openai.js";
 import { createOpenRouterProvider } from "./openrouter.js";
 import type { AIProvider, ByokProviderId } from "./types.js";
@@ -6,7 +8,9 @@ import type { AIProvider, ByokProviderId } from "./types.js";
 const providers: Record<ByokProviderId, AIProvider> = {
   openrouter: createOpenRouterProvider(),
   anthropic: createAnthropicProvider(),
-  openai: createOpenAIProvider()
+  openai: createOpenAIProvider(),
+  groq: createGroqProvider(),
+  nvidia: createNvidiaProvider()
 };
 
 /** Looks up the concrete provider for `aiConnections.provider` (never "platform"/"workers-ai" — those are routing, not a stored connection). */

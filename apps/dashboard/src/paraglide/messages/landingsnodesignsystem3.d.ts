@@ -3,7 +3,7 @@ export type Landingsnodesignsystem3Inputs = {};
 /**
  * | output |
  * | --- |
- * | "No design system" |
+ * | "No Brand Kit yet — set one up" |
  *
  * @param {Landingsnodesignsystem3Inputs} inputs
  * @param {{ locale?: "vi" | "en" }} options

@@ -95,6 +95,8 @@ export function createAuth(config: AuthConfig) {
     }),
     plugins: [
       organization({
+        // FR-A-04: spec requires invites to expire after 7 days, not better-auth's 48h default.
+        invitationExpiresIn: 60 * 60 * 24 * 7,
         ac: accessControl,
         roles: {
           owner: ownerRole,

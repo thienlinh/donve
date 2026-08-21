@@ -1,4 +1,5 @@
 import { Button } from "@dv/ui/components/shadcn/button";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
@@ -75,7 +76,13 @@ function InvitationRow({
             invitationId: invitation.id
           });
     setIsPending(null);
-    if (error) return;
+    if (error) {
+      toast.add({
+        title: m.membersInvitationRespondErrorToast(),
+        type: "error"
+      });
+      return;
+    }
     await onSettled();
     if (action === "accept") onAccepted();
   };

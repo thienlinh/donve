@@ -8,7 +8,11 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules"
   },
+  "dependencies": {
+    "@dv/contracts": "workspace:*"
+  },
   "devDependencies": {
+    "@cloudflare/workers-types": "catalog:server",
     "@dv/config": "workspace:*",
     "typescript": "catalog:",
     "wrangler": "catalog:server"

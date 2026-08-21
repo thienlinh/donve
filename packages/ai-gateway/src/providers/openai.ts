@@ -10,6 +10,7 @@ import type {
   AIProvider,
   ChatRequest,
   DecryptedKey,
+  ModelOption,
   TokenUsage
 } from "./types.js";
 
@@ -33,12 +34,16 @@ export function createOpenAIProvider(): AIProvider {
     },
 
     validateKey(key: string) {
+      // No description: OpenAI's `owned_by` is "openai"/"system" for every model, same value
+      // regardless of which model it is — not worth surfacing as a per-model hint.
       return validateKeyViaModelsEndpoint(
         "https://api.openai.com/v1/models",
         { Authorization: `Bearer ${key}` },
-        (body) =>
+        (body): ModelOption[] =>
           Array.isArray((body as { data?: unknown }).data)
-            ? (body as { data: { id: string }[] }).data.map((m) => m.id)
+            ? (body as { data: { id: string }[] }).data.map((m) => ({
+                id: m.id
+              }))
             : []
       );
     },

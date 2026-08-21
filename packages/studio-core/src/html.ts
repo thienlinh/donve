@@ -18,6 +18,14 @@ export function applyOpsToHtml(html: string, ops: PatchOp[]): string {
   return (document as unknown as { toString(): string }).toString();
 }
 
+export class InvalidGeneratedHtmlError extends Error {
+  constructor() {
+    super(
+      "The AI returned content that isn't a parseable HTML document — nothing to stamp."
+    );
+  }
+}
+
 /**
  * Stamps stable `data-cc-id`s onto a raw HTML document and returns the serialized result
  * (FR-B-21) — run once on the AI's freshly-generated HTML before it's ever persisted, so
@@ -25,6 +33,12 @@ export function applyOpsToHtml(html: string, ops: PatchOp[]): string {
  */
 export function stampSrcmap(html: string): string {
   const { document } = parseHTML(html);
+  // linkedom returns a Document with no `documentElement` for input that isn't real HTML at
+  // all (e.g. the model returning an empty string, or prose instead of markup) — without this
+  // check, `buildSrcmap` throws linkedom's own `null.tagName` internals, which is meaningless
+  // to a caller and unactionable to a user (confirmed live: this is exactly what surfaced when
+  // a free-tier BYOK model occasionally returned unparseable output).
+  if (!document.documentElement) throw new InvalidGeneratedHtmlError();
   buildSrcmap(document.documentElement);
   return (document as unknown as { toString(): string }).toString();
 }
@@ -33,6 +47,34 @@ export interface SrcmapEntry {
   id: string;
   tag: string;
   text: string;
+}
+
+export interface FunnelGaps {
+  /** No `form[data-dv-form="lead"]` — the runtime script (apps/landing-runtime) has nothing
+   * to bind a submit handler to, so the page can't capture leads at all. */
+  missingLeadForm: boolean;
+  /** No `<title>` and/or no `<meta name="description">` — the two tags AI generate always
+   * fills in but an external import commonly omits or leaves generic. */
+  missingSeoMeta: boolean;
+}
+
+/**
+ * FR-B-31: run once right after import to decide whether the Studio should offer the
+ * "chuẩn hoá phễu" wizard — AI attaching the platform's standard lead form and/or filling in
+ * missing SEO meta. Read-only: never mutates `html`.
+ */
+export function detectFunnelGaps(html: string): FunnelGaps {
+  const { document } = parseHTML(html);
+  const missingLeadForm =
+    document.querySelector('form[data-dv-form="lead"]') === null;
+  const title = document.querySelector("title")?.textContent?.trim() ?? "";
+  const description =
+    document
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content")
+      ?.trim() ?? "";
+  const missingSeoMeta = title === "" || description === "";
+  return { missingLeadForm, missingSeoMeta };
 }
 
 /** Plain JSON view of a srcmap-tagged document's ids, for the read-only Design Files

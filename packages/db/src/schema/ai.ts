@@ -21,7 +21,7 @@ export const aiConnections = pgTable(
     id: id(),
     orgId: text("org_id").notNull(),
     provider: text("provider", {
-      enum: ["anthropic", "openai", "openrouter", "platform"]
+      enum: ["anthropic", "openai", "openrouter", "groq", "nvidia", "platform"]
     }).notNull(),
     // null when provider=platform
     encryptedKey: text("encrypted_key"),
@@ -109,11 +109,18 @@ export const promptTestRuns = pgTable(
   ]
 ).enableRLS();
 
+/**
+ * Per-landing override of a skill's org-level `isActiveDefault` (FR-F, Studio "skills for this
+ * page" control). A row's absence means "use the org default" — presence always means an
+ * explicit override, on or off, of just that one skill; it never replaces the rest of the
+ * org's default set the way an all-or-nothing selection table would.
+ */
 export const landingSkills = pgTable(
   "landing_skills",
   {
     landingPageId: text("landing_page_id").notNull(),
-    skillId: text("skill_id").notNull()
+    skillId: text("skill_id").notNull(),
+    enabled: boolean("enabled").notNull()
   },
   (t) => [uniqueIndex("uq_landing_skill").on(t.landingPageId, t.skillId)]
 );

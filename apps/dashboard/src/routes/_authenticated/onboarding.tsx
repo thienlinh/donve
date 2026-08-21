@@ -10,6 +10,7 @@ import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -35,6 +36,7 @@ function slugify(name: string): string {
 
 function OnboardingPage() {
   const navigate = useNavigate();
+  const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -42,17 +44,22 @@ function OnboardingPage() {
   } = useForm({ resolver: zodResolver(onboardingSchema) });
 
   const onSubmit = handleSubmit(async ({ name }) => {
+    setServerError(null);
     const { data: org, error } = await authClient.organization.create({
       name,
+      // oxlint-disable-next-line react/purity -- runs inside the submit handler (an event), not render
       slug: `${slugify(name)}-${Date.now().toString(36)}`
     });
-    if (error || !org) return;
+    if (error || !org) {
+      setServerError(error?.message ?? m.onboardingCreateError());
+      return;
+    }
     await authClient.organization.setActive({ organizationId: org.id });
     await navigate({ to: "/landings" });
   });
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-lg">{m.onboardingTitle()}</CardTitle>
@@ -69,6 +76,9 @@ function OnboardingPage() {
                 </p>
               )}
             </div>
+            {serverError && (
+              <p className="text-xs text-destructive">{serverError}</p>
+            )}
             <Button
               type="submit"
               disabled={isSubmitting}

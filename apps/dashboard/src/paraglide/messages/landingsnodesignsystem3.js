@@ -7,18 +7,18 @@ import { getLocale, experimentalStaticLocale } from "../runtime.js";
 
 const vi_landingsnodesignsystem3 =
   /** @type {(inputs: Landingsnodesignsystem3Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `Không dùng design system`;
+    return /** @type {LocalizedString} */ `Chưa có Brand Kit — thiết lập ngay`;
   };
 
 const en_landingsnodesignsystem3 =
   /** @type {(inputs: Landingsnodesignsystem3Inputs) => LocalizedString} */ () => {
-    return /** @type {LocalizedString} */ `No design system`;
+    return /** @type {LocalizedString} */ `No Brand Kit yet — set one up`;
   };
 
 /**
  * | output |
  * | --- |
- * | "No design system" |
+ * | "No Brand Kit yet — set one up" |
  *
  * @param {Landingsnodesignsystem3Inputs} inputs
  * @param {{ locale?: "vi" | "en" }} options

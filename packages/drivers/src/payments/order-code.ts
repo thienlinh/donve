@@ -6,11 +6,19 @@ const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const DATA_LENGTH = 6;
 
 // Typo-correction table for FR-D-05 step 2 — characters visually confusable when handwritten
-// or misread from a bank app, mapped to the alphabet's canonical form.
-const CONFUSABLES: Record<string, string> = {
+// or misread from a bank app, mapped to the alphabet's canonical form. Split in two because
+// O/I/L can never be genuine alphabet characters (Crockford32 excludes them), so substituting
+// them is always safe — but S and B are themselves valid, fairly common alphabet letters, so a
+// real code can legitimately contain a literal "S" or "B" with no typo involved. Blindly
+// substituting those unconditionally corrupts otherwise-correct codes (found live: ~40% of
+// random codes containing a literal S/B failed to match at all) — they need to be tried both
+// ways instead of forced one way, see `normalizeConfusables` below.
+const UNAMBIGUOUS_CONFUSABLES: Record<string, string> = {
   O: "0",
   I: "1",
-  L: "1",
+  L: "1"
+};
+const AMBIGUOUS_CONFUSABLES: Record<string, string> = {
   S: "5",
   B: "8"
 };
@@ -26,6 +34,13 @@ function computeChecksum(data: string): string {
     sum += charValue(data.charAt(i)) * (i + 1);
   }
   return ALPHABET.charAt(sum % 31);
+}
+
+/** Random 6-char data payload for a new order code — caller appends via `encodeOrderCode`. */
+export function generateOrderCodeData(): string {
+  const bytes = new Uint8Array(DATA_LENGTH);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => ALPHABET[byte % ALPHABET.length]).join("");
 }
 
 export function encodeOrderCode(data: string): string {
@@ -50,11 +65,37 @@ export function isValidOrderCode(code: string): boolean {
   return computeChecksum(data) === checksum;
 }
 
-function normalizeConfusables(code: string): string {
-  return code
+/**
+ * Every plausible correction of `code`: unambiguous confusables (O/I/L) are always substituted
+ * since they can never be a real alphabet character; ambiguous ones (S/B) are tried both as
+ * literal and as their digit substitute, since a real code can legitimately contain either.
+ * Returns one candidate per combination of ambiguous-position choices (2^k for k ambiguous
+ * chars in a 6-char code — at most 64, cheap).
+ */
+function normalizeConfusablesCandidates(code: string): string[] {
+  const base = code
     .split("")
-    .map((char) => CONFUSABLES[char] ?? char)
-    .join("");
+    .map((char) => UNAMBIGUOUS_CONFUSABLES[char] ?? char);
+
+  const ambiguousPositions = base
+    .map((char, index) => (AMBIGUOUS_CONFUSABLES[char] ? index : -1))
+    .filter((index) => index !== -1);
+
+  const candidates: string[] = [];
+  const combinations = 1 << ambiguousPositions.length;
+  for (let mask = 0; mask < combinations; mask++) {
+    const chars = [...base];
+    ambiguousPositions.forEach((position, bit) => {
+      if (mask & (1 << bit)) {
+        const current = chars[position];
+        if (current) {
+          chars[position] = AMBIGUOUS_CONFUSABLES[current] ?? current;
+        }
+      }
+    });
+    candidates.push(chars.join(""));
+  }
+  return candidates;
 }
 
 export interface ExtractedOrderCodes {
@@ -89,9 +130,10 @@ export function extractOrderCodes(
       exact.add(code);
       continue;
     }
-    const normalized = normalizeConfusables(code);
-    if (normalized !== code && isValidOrderCode(normalized)) {
-      corrected.add(normalized);
+    for (const candidate of normalizeConfusablesCandidates(code)) {
+      if (candidate !== code && isValidOrderCode(candidate)) {
+        corrected.add(candidate);
+      }
     }
   }
 

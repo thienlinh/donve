@@ -281,15 +281,19 @@ export const Persona: FC<PersonaProps> = memo(
     // property assignment — this is the intended Rive API, not a React anti-pattern.
     useEffect(() => {
       if (listeningInput) {
+        // oxlint-disable-next-line react/immutability -- see comment above, Rive owns this object
         listeningInput.value = state === "listening";
       }
       if (thinkingInput) {
+        // oxlint-disable-next-line react/immutability -- see comment above, Rive owns this object
         thinkingInput.value = state === "thinking";
       }
       if (speakingInput) {
+        // oxlint-disable-next-line react/immutability -- see comment above, Rive owns this object
         speakingInput.value = state === "speaking";
       }
       if (asleepInput) {
+        // oxlint-disable-next-line react/immutability -- see comment above, Rive owns this object
         asleepInput.value = state === "asleep";
       }
     }, [state, listeningInput, thinkingInput, speakingInput, asleepInput]);

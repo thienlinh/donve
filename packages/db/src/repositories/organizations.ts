@@ -37,5 +37,18 @@ export const organizationsRepository = {
       .where(eq(organizations.slug, slug))
       .limit(1);
     return rows[0];
+  },
+
+  async update(
+    db: Db,
+    orgId: string,
+    values: Partial<typeof organizations.$inferInsert>
+  ) {
+    const rows = await db.raw
+      .update(organizations)
+      .set(values)
+      .where(eq(organizations.id, orgId))
+      .returning();
+    return rows[0];
   }
 };

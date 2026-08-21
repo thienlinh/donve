@@ -10,6 +10,7 @@ import type {
   AIProvider,
   ChatRequest,
   DecryptedKey,
+  ModelOption,
   TokenUsage
 } from "./types.js";
 
@@ -36,9 +37,11 @@ export function createAnthropicProvider(): AIProvider {
       return validateKeyViaModelsEndpoint(
         "https://api.anthropic.com/v1/models",
         { "x-api-key": key, "anthropic-version": "2023-06-01" },
-        (body) =>
+        (body): ModelOption[] =>
           Array.isArray((body as { data?: unknown }).data)
-            ? (body as { data: { id: string }[] }).data.map((m) => m.id)
+            ? (
+                body as { data: { id: string; display_name?: string }[] }
+              ).data.map((m) => ({ id: m.id, description: m.display_name }))
             : []
       );
     },

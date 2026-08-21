@@ -1,13 +1,17 @@
 import {
+  deploymentSchema,
   generateLandingPageInputSchema,
+  importLandingPageResponseSchema,
   landingPageDetailSchema,
   landingPageListItemSchema,
   landingPageSchema,
+  orgSettingsSchema,
   pageAssetSchema,
-  pageVersionSchema
+  pageVersionSchema,
+  publishLandingPageInputSchema
 } from "@dv/contracts";
 import {
-  aiConnectionsRepository,
+  auditLogsRepository,
   campaignsRepository,
   chatMessagesRepository,
   deploymentsRepository,
@@ -19,19 +23,40 @@ import {
 } from "@dv/db";
 import { compileGeneratePrompt } from "@dv/studio-ai";
 import {
-  sanitizeLandingHtml,
+  applyLayerNames,
+  autoNameLayers,
+  detectFunnelGaps,
+  InvalidGeneratedHtmlError,
   srcmapToJson,
   stampSrcmap
 } from "@dv/studio-core";
+import { sanitizeLandingHtml } from "@dv/studio-core/sanitize";
 import { Hono, type Context } from "hono";
+import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 
-import { runModelCompletion } from "../../lib/ai-gateway.js";
+import {
+  resolveGenerateConnectionId,
+  runModelCompletion
+} from "../../lib/ai-gateway.js";
 import { createDbFromEnv } from "../../lib/db.js";
 import { ApiError } from "../../lib/errors.js";
+import {
+  extractInlineImportAssets,
+  type ZipAsset
+} from "../../lib/import-assets.js";
+import { nameGenericLayers } from "../../lib/import-naming.js";
+import { parseZipImport } from "../../lib/import-zip.js";
+import { log } from "../../lib/logger.js";
+import {
+  publishLandingPage,
+  rollbackDeployment,
+  unpublishLandingPage
+} from "../../lib/publish.js";
+import { readCappedBytes, safeFetch } from "../../lib/safe-fetch.js";
 import { createStorageFromEnv } from "../../lib/storage.js";
 import { requireChatSessionId } from "../../lib/studio-chat.js";
-import type { AppEnv } from "../../types.js";
+import type { AppEnv, Bindings } from "../../types.js";
 
 export const landingsRoutes = new Hono<AppEnv>();
 
@@ -100,6 +125,165 @@ landingsRoutes.post("/", async (c) => {
   });
 
   return c.json(landingPageSchema.parse(landingPage), 201);
+});
+
+const MAX_IMPORT_FILE_BYTES = 20 * 1024 * 1024;
+
+// FR-B-30: paste HTML / upload .html or .zip / paste a public artifact link → sanitize → tách
+// inline assets → generate srcmap → auto-name layers (heuristic + AI) → open in Studio. Always
+// multipart: the "paste HTML"/"paste link" cases have no binary payload, but the file-upload
+// case does, so one request shape covers all three instead of branching on content-type.
+landingsRoutes.post("/import", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const form = await c.req.formData();
+
+  const mode = form.get("mode");
+  if (mode !== "html" && mode !== "url" && mode !== "file") {
+    throw new ApiError(400, "invalid_import_mode");
+  }
+
+  let rawHtml: string;
+  let zipAssets: ZipAsset[] = [];
+
+  if (mode === "html") {
+    const html = form.get("html");
+    if (typeof html !== "string" || !html.trim()) {
+      throw new ApiError(400, "html_required");
+    }
+    if (html.length > MAX_IMPORT_FILE_BYTES) {
+      throw new ApiError(413, "html_too_large");
+    }
+    rawHtml = html;
+  } else if (mode === "url") {
+    const url = form.get("url");
+    if (typeof url !== "string" || !url.trim()) {
+      throw new ApiError(400, "url_required");
+    }
+    // architecture.md §7: the pasted "artifact công khai" link is server-fetched, so it goes
+    // through the same SSRF-checked fetch as an external <img src> found inside imported HTML.
+    const res = await safeFetch(url);
+    if (!res.ok) throw new ApiError(502, "import_url_fetch_failed");
+    rawHtml = new TextDecoder().decode(
+      await readCappedBytes(res, MAX_IMPORT_FILE_BYTES)
+    );
+  } else {
+    const file = form.get("file");
+    if (!(file instanceof File)) throw new ApiError(400, "file_required");
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      throw new ApiError(413, "file_too_large");
+    }
+    if (file.name.toLowerCase().endsWith(".zip")) {
+      const parsed = parseZipImport(new Uint8Array(await file.arrayBuffer()));
+      rawHtml = parsed.html;
+      zipAssets = parsed.assets;
+    } else {
+      rawHtml = await file.text();
+    }
+  }
+
+  let html: string;
+  try {
+    // Same sanitize-then-stamp order as /generate — imported HTML is exactly as untrusted as
+    // AI output (architecture.md §7 "HTML AI/import chứa script độc").
+    html = stampSrcmap(sanitizeLandingHtml(rawHtml));
+  } catch (err) {
+    if (err instanceof InvalidGeneratedHtmlError) {
+      throw new ApiError(422, "import_html_invalid", err.message);
+    }
+    throw err;
+  }
+
+  const rawName = form.get("name");
+  const name =
+    typeof rawName === "string" && rawName.trim()
+      ? rawName.trim()
+      : "Imported page";
+
+  const landingPage = await landingPagesRepository.insert(db, orgId, {
+    name,
+    campaignId: null,
+    source: "import"
+  });
+  if (!landingPage) throw new ApiError(500, "landing_page_create_failed");
+
+  const { html: htmlWithAssets } = await extractInlineImportAssets(
+    db,
+    c.env,
+    orgId,
+    landingPage.id,
+    html,
+    zipAssets
+  );
+
+  // Heuristic naming always runs; the AI pass only covers the generic containers the
+  // heuristic couldn't confidently label, and is skipped entirely (not a hard failure) when
+  // the org has no usable AI connection/trial left.
+  const { html: heuristicHtml, genericTargets } =
+    autoNameLayers(htmlWithAssets);
+  let finalHtml = heuristicHtml;
+  try {
+    const connectionId = await resolveGenerateConnectionId(db, orgId);
+    const names = await nameGenericLayers(
+      db,
+      c.env,
+      orgId,
+      connectionId,
+      genericTargets
+    );
+    if (names.length > 0) finalHtml = applyLayerNames(heuristicHtml, names);
+  } catch {
+    // no AI connection/trial available — heuristic names stand.
+  }
+
+  const storage = createStorageFromEnv(c.env);
+  const seq = 1;
+  const htmlKey = `landing-pages/${landingPage.id}/v${seq}/index.html`;
+  const srcmapKey = `landing-pages/${landingPage.id}/v${seq}/index.html.srcmap.json`;
+  await storage.put({
+    key: htmlKey,
+    body: finalHtml,
+    contentType: "text/html"
+  });
+  await storage.put({
+    key: srcmapKey,
+    body: JSON.stringify(srcmapToJson(finalHtml), null, 2),
+    contentType: "application/json"
+  });
+
+  const version = await pageVersionsRepository.insert(db, orgId, {
+    landingPageId: landingPage.id,
+    seq,
+    htmlKey,
+    srcmapKey,
+    origin: "import",
+    patch: null,
+    chatMessageId: null,
+    label: null,
+    createdBy: null
+  });
+  if (!version) throw new ApiError(500, "page_version_create_failed");
+
+  const updated = await landingPagesRepository.update(
+    db,
+    orgId,
+    landingPage.id,
+    { currentVersionId: version.id }
+  );
+  if (!updated) throw new ApiError(500, "landing_page_create_failed");
+
+  // FR-B-31: computed from the already-in-memory final HTML — no extra fetch/round-trip,
+  // just tells the wizard whether to offer AI-standardizing the form/SEO meta.
+  const funnelGaps = detectFunnelGaps(finalHtml);
+
+  return c.json(
+    importLandingPageResponseSchema.parse({
+      ...updated,
+      currentVersion: version,
+      funnelGaps
+    }),
+    201
+  );
 });
 
 const updateLandingPageSchema = z.object({
@@ -310,72 +494,37 @@ function findImagePlaceholders(
   return placeholders;
 }
 
-// FR-B-21: the very first version for a page created via the prompt bar (Phase 1 only created
-// the empty record). Studio's pending-skeleton state (studio-page.tsx) calls this once on
-// mount. FR-B-32/33: the model is instructed (compileGeneratePrompt) to prefer tenant images,
-// otherwise leave a `data-cc-need-image` placeholder rather than invent/hotlink a stock URL —
-// after landing the version, we ask in chat before ever inserting one (apply happens through
-// the separate confirm-first `/api/studio/images/apply` endpoint, never automatically here).
-landingsRoutes.post("/:id/generate", async (c) => {
-  const db = createDbFromEnv(c.env);
-  const orgId = requireOrgId(c);
-  const id = c.req.param("id");
-  const { prompt } = generateLandingPageInputSchema.parse(await c.req.json());
-
-  const landingPage = await requireLandingPage(db, orgId, id);
-  if (landingPage.currentVersionId) {
-    throw new ApiError(400, "landing_page_already_generated");
-  }
-
-  // Same trial/platform/BYOK resolution as POST /api/ai/generate (FR-H-05): a brand-new
-  // org has no `aiConnections` row at all, so it must fall through to the free Workers AI
-  // trial rather than hard-requiring BYOK — this used to always throw `no_ai_connection`
-  // for every new signup, blocking the very first landing page.
-  const connections = await aiConnectionsRepository.list(db, orgId);
-  const defaultConnection = connections.find((row) => row.isDefault);
-  let connectionId: string;
-  if (defaultConnection?.provider === "platform") {
-    connectionId = "platform";
-  } else if (defaultConnection?.encryptedKey) {
-    connectionId = defaultConnection.id;
-  } else {
-    const org = await organizationsRepository.findById(db, orgId);
-    if (!org || org.trialUsesRemaining <= 0) {
-      throw new ApiError(400, "no_ai_connection");
+/**
+ * Everything after the model call resolves, for the very first version of a page (seq=1):
+ * sanitize/stamp, store, land the `pageVersions` row, advance the page, and (FR-B-32/33)
+ * nudge the user in chat if the model left any `data-cc-need-image` placeholders. Shared by
+ * the non-streaming and streaming `/generate` handlers so they can't drift apart.
+ */
+async function persistFirstGeneratedVersion(
+  db: ReturnType<typeof createDbFromEnv>,
+  env: Bindings,
+  orgId: string,
+  landingPage: Awaited<ReturnType<typeof requireLandingPage>>,
+  rawText: string
+) {
+  let html: string;
+  try {
+    html = stampSrcmap(sanitizeLandingHtml(extractHtml(rawText)));
+  } catch (err) {
+    // Surfaced as a clean, client-safe 422 instead of the raw parser error (`err.message` is
+    // masked entirely for a 500 — see errorHandler.ts) — the retry button on the studio empty
+    // state is the actual fix here, not anything this route can do about a model's one-off bad
+    // output, but the user needs a real explanation to know that's what happened.
+    if (err instanceof InvalidGeneratedHtmlError) {
+      throw new ApiError(422, "model_output_invalid", err.message);
     }
-    connectionId = "trial";
+    throw err;
   }
 
-  const [skills, tenantAssets] = await Promise.all([
-    skillsRepository.listEnabledForLandingPage(db, orgId, id),
-    pageAssetsRepository.listByLandingPage(db, orgId, id)
-  ]);
-
-  const system = compileGeneratePrompt({
-    skills: skills.map((s) => ({ name: s.name, content: s.content })),
-    tenantImages: tenantAssets.map((asset) => ({
-      url: `/api/landings/${id}/assets/${asset.id}/file`,
-      description: asset.fileName
-    }))
-  });
-
-  const result = await runModelCompletion(
-    db,
-    c.env,
-    orgId,
-    connectionId,
-    "generate",
-    [
-      { role: "system", content: system },
-      { role: "user", content: prompt }
-    ]
-  );
-  const html = stampSrcmap(sanitizeLandingHtml(extractHtml(result.text)));
-
-  const storage = createStorageFromEnv(c.env);
+  const storage = createStorageFromEnv(env);
   const seq = 1;
-  const htmlKey = `landing-pages/${id}/v${seq}/index.html`;
-  const srcmapKey = `landing-pages/${id}/v${seq}/index.html.srcmap.json`;
+  const htmlKey = `landing-pages/${landingPage.id}/v${seq}/index.html`;
+  const srcmapKey = `landing-pages/${landingPage.id}/v${seq}/index.html.srcmap.json`;
   await storage.put({ key: htmlKey, body: html, contentType: "text/html" });
   await storage.put({
     key: srcmapKey,
@@ -384,7 +533,7 @@ landingsRoutes.post("/:id/generate", async (c) => {
   });
 
   const version = await pageVersionsRepository.insert(db, orgId, {
-    landingPageId: id,
+    landingPageId: landingPage.id,
     seq,
     htmlKey,
     srcmapKey,
@@ -398,7 +547,7 @@ landingsRoutes.post("/:id/generate", async (c) => {
 
   // Usage/billing is already recorded inside `runModelCompletion` (trial debit, platform
   // credit debit, or BYOK usage insert) — nothing left to do here but advance the page.
-  await landingPagesRepository.update(db, orgId, id, {
+  await landingPagesRepository.update(db, orgId, landingPage.id, {
     currentVersionId: version.id
   });
 
@@ -424,7 +573,152 @@ landingsRoutes.post("/:id/generate", async (c) => {
     });
   }
 
+  return version;
+}
+
+// FR-B-21: the very first version for a page created via the prompt bar (Phase 1 only created
+// the empty record). Studio's pending-skeleton state (studio-page.tsx) calls this once on
+// mount. FR-B-32/33: the model is instructed (compileGeneratePrompt) to prefer tenant images,
+// otherwise leave a `data-cc-need-image` placeholder rather than invent/hotlink a stock URL —
+// after landing the version, we ask in chat before ever inserting one (apply happens through
+// the separate confirm-first `/api/studio/images/apply` endpoint, never automatically here).
+landingsRoutes.post("/:id/generate", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  const { prompt } = generateLandingPageInputSchema.parse(await c.req.json());
+
+  const landingPage = await requireLandingPage(db, orgId, id);
+  if (landingPage.currentVersionId) {
+    throw new ApiError(400, "landing_page_already_generated");
+  }
+
+  const [connectionId, skills, tenantAssets, org] = await Promise.all([
+    resolveGenerateConnectionId(db, orgId),
+    skillsRepository.listEnabledForLandingPage(db, orgId, id),
+    pageAssetsRepository.listByLandingPage(db, orgId, id),
+    organizationsRepository.findById(db, orgId)
+  ]);
+  // FR-B-24: org.settings.designTokens (no settings UI writes it yet — see contracts/tenancy.ts).
+  const { designTokens } = orgSettingsSchema.parse(org?.settings ?? {});
+
+  const system = compileGeneratePrompt({
+    skills: skills.map((s) => ({ name: s.name, content: s.content })),
+    tenantImages: tenantAssets.map((asset) => ({
+      url: `/api/landings/${id}/assets/${asset.id}/file`,
+      description: asset.fileName
+    })),
+    designTokens
+  });
+
+  const result = await runModelCompletion(
+    db,
+    c.env,
+    orgId,
+    connectionId,
+    "generate",
+    [
+      { role: "system", content: system },
+      { role: "user", content: prompt }
+    ]
+  );
+  const version = await persistFirstGeneratedVersion(
+    db,
+    c.env,
+    orgId,
+    landingPage,
+    result.text
+  );
+
   return c.json(pageVersionSchema.parse(version), 201);
+});
+
+/**
+ * Streaming twin of POST /:id/generate (FR-B-21) — same connection resolution and
+ * post-processing, but relays each text chunk to the browser as SSE so the studio UI can show
+ * live progress instead of a silent multi-minute wait (a full generate can easily take minutes
+ * on a slow BYOK model, with the non-streaming endpoint giving zero feedback until it's done).
+ */
+landingsRoutes.post("/:id/generate/stream", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  const { prompt } = generateLandingPageInputSchema.parse(await c.req.json());
+
+  const landingPage = await requireLandingPage(db, orgId, id);
+  if (landingPage.currentVersionId) {
+    throw new ApiError(400, "landing_page_already_generated");
+  }
+
+  const [connectionId, skills, tenantAssets, org] = await Promise.all([
+    resolveGenerateConnectionId(db, orgId),
+    skillsRepository.listEnabledForLandingPage(db, orgId, id),
+    pageAssetsRepository.listByLandingPage(db, orgId, id),
+    organizationsRepository.findById(db, orgId)
+  ]);
+  // FR-B-24: org.settings.designTokens (no settings UI writes it yet — see contracts/tenancy.ts).
+  const { designTokens } = orgSettingsSchema.parse(org?.settings ?? {});
+
+  const system = compileGeneratePrompt({
+    skills: skills.map((s) => ({ name: s.name, content: s.content })),
+    tenantImages: tenantAssets.map((asset) => ({
+      url: `/api/landings/${id}/assets/${asset.id}/file`,
+      description: asset.fileName
+    })),
+    designTokens
+  });
+
+  return streamSSE(c, async (stream) => {
+    // Headers are already sent once streaming starts — a thrown ApiError past this point can't
+    // become a normal JSON error response, so relay it as one last SSE event instead, caught
+    // locally rather than via streamSSE's `onError` (which unconditionally writes its own
+    // second, plain-text "error" event right after any custom one — this way there's exactly
+    // one). The studio client (studio-page.tsx) reads `code` the same way it reads a failed
+    // non-streaming call's response body.
+    try {
+      const result = await runModelCompletion(
+        db,
+        c.env,
+        orgId,
+        connectionId,
+        "generate",
+        [
+          { role: "system", content: system },
+          { role: "user", content: prompt }
+        ],
+        (delta) => stream.writeSSE({ event: "delta", data: delta })
+      );
+      const version = await persistFirstGeneratedVersion(
+        db,
+        c.env,
+        orgId,
+        landingPage,
+        result.text
+      );
+      await stream.writeSSE({
+        event: "done",
+        data: JSON.stringify(pageVersionSchema.parse(version))
+      });
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : "internal_error";
+      const message = err instanceof Error ? err.message : String(err);
+      // Errors caught here never reach Hono's own error-handling middleware (this response
+      // already started streaming), so without an explicit log call a real server-side crash
+      // is otherwise completely silent — only visible as a client-reported message, with
+      // nothing in the server's own logs to correlate it against.
+      log("error", {
+        requestId: c.get("requestId"),
+        orgId,
+        status: 200,
+        code,
+        message
+      });
+      await stream.writeSSE({
+        event: "error",
+        data: JSON.stringify({ code, message })
+      });
+    }
+  });
 });
 
 // Design Files tab, version history (FR-B-27) — newest first, includes the current version.
@@ -643,10 +937,62 @@ landingsRoutes.get("/:id/assets/:assetId/file", async (c) => {
   });
 });
 
-const MAX_ASSET_BYTES = 20 * 1024 * 1024;
+// FR-B-29: poster/thumbnail for a video asset — same authenticated-stream shape as the
+// `/file` route above, just reading `posterKey` instead of `r2Key`.
+landingsRoutes.get("/:id/assets/:assetId/poster", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  await requireLandingPage(db, orgId, id);
 
-// FR-B-29: image compression + WebP/AVIF conversion happens client-side before this call —
-// the file arriving here is already the variant to store, so the API just persists it as-is.
+  const asset = await pageAssetsRepository.findById(
+    db,
+    orgId,
+    c.req.param("assetId")
+  );
+  if (!asset || asset.landingPageId !== id || !asset.posterKey)
+    throw new ApiError(404, "asset_poster_not_found");
+
+  const storage = createStorageFromEnv(c.env);
+  const object = await storage.get(asset.posterKey);
+  if (!object) throw new ApiError(404, "asset_poster_not_found");
+
+  return new Response(object.body, {
+    headers: { "content-type": object.contentType ?? "image/jpeg" }
+  });
+});
+
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif"
+]);
+const ALLOWED_VIDEO_MIME = new Set(["video/mp4", "video/webm"]);
+
+/** Uploads one file's bytes to R2 under `landing-pages/:id/assets/...` and returns its key —
+ * shared by the main asset upload and its optional poster field below. */
+async function putAssetBytes(
+  storage: ReturnType<typeof createStorageFromEnv>,
+  landingPageId: string,
+  file: File
+): Promise<string> {
+  const key = `landing-pages/${landingPageId}/assets/${crypto.randomUUID()}-${file.name}`;
+  await storage.put({
+    key,
+    body: await file.arrayBuffer(),
+    contentType: file.type || "application/octet-stream"
+  });
+  return key;
+}
+
+// FR-B-29: image compression + WebP/AVIF conversion (or, for video, first-frame poster
+// extraction) happens client-side before this call — the file arriving here is already the
+// variant to store, so the API just validates + persists it as-is. Video keeps its own,
+// higher size cap since it's never compressed the way images are.
 landingsRoutes.post("/:id/assets", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
@@ -656,29 +1002,159 @@ landingsRoutes.post("/:id/assets", async (c) => {
   const form = await c.req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) throw new ApiError(400, "file_required");
-  if (file.size > MAX_ASSET_BYTES) throw new ApiError(413, "file_too_large");
+
+  const isVideo = ALLOWED_VIDEO_MIME.has(file.type);
+  const isImage = ALLOWED_IMAGE_MIME.has(file.type);
+  if (!isVideo && !isImage) throw new ApiError(400, "unsupported_file_type");
+  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (file.size > maxBytes) throw new ApiError(413, "file_too_large");
 
   const rawFileName = form.get("fileName");
   const fileName = typeof rawFileName === "string" ? rawFileName : file.name;
   const storage = createStorageFromEnv(c.env);
-  const r2Key = `landing-pages/${id}/assets/${crypto.randomUUID()}-${fileName}`;
-  await storage.put({
-    key: r2Key,
-    body: await file.arrayBuffer(),
-    contentType: file.type || "application/octet-stream"
-  });
+  const r2Key = await putAssetBytes(storage, id, file);
+
+  // Optional poster field, only meaningful alongside a video upload — the client extracts the
+  // first frame itself (no server-side video decoding) and sends it as a second multipart part.
+  const poster = form.get("poster");
+  let posterKey: string | null = null;
+  if (isVideo && poster instanceof File) {
+    if (!ALLOWED_IMAGE_MIME.has(poster.type)) {
+      throw new ApiError(400, "unsupported_poster_type");
+    }
+    if (poster.size > MAX_IMAGE_BYTES)
+      throw new ApiError(413, "file_too_large");
+    posterKey = await putAssetBytes(storage, id, poster);
+  }
 
   const asset = await pageAssetsRepository.insert(db, orgId, {
     landingPageId: id,
     fileName,
     r2Key,
+    posterKey,
     mime: file.type || "application/octet-stream",
     sizeBytes: file.size,
     variants: {},
     source: "user_upload",
     license: {},
-    unverifiedSource: false
+    unverifiedSource: false,
+    usageConfirmed: false
   });
 
   return c.json(pageAssetSchema.parse(asset), 201);
+});
+
+const confirmAssetUsageSchema = z.object({ usageConfirmed: z.literal(true) });
+
+// FR-B-35: the only way `pageAssets.usageConfirmed` ever flips true — tenant ticks "Tôi có
+// quyền sử dụng ảnh này" for one flagged (unverifiedSource) asset. Publish (lib/publish.ts)
+// blocks while any unverifiedSource asset on the page still has this false; copyright
+// responsibility shifts to the tenant once they confirm, the platform only warns.
+landingsRoutes.patch("/:id/assets/:assetId", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  const assetId = c.req.param("assetId");
+  confirmAssetUsageSchema.parse(await c.req.json());
+  await requireLandingPage(db, orgId, id);
+
+  const existing = await pageAssetsRepository.findById(db, orgId, assetId);
+  if (!existing || existing.landingPageId !== id) {
+    throw new ApiError(404, "asset_not_found");
+  }
+
+  const asset = await pageAssetsRepository.update(db, orgId, assetId, {
+    usageConfirmed: true
+  });
+  return c.json(pageAssetSchema.parse(asset));
+});
+
+// Publish (architecture.md §5.2, outbox pattern) — build_deploy pipeline runs inline in the
+// request rather than a separate queued job (no job-queue infra wired up yet, see
+// packages/drivers/src/jobs). That's fine for the pattern's actual guarantee: the outbox row
+// is what makes a mid-pipeline crash recoverable, not which process runs the pipeline.
+landingsRoutes.post("/:id/publish", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  const body = publishLandingPageInputSchema.parse(await c.req.json());
+
+  const { deployment, live } = await publishLandingPage(
+    db,
+    c.env,
+    orgId,
+    id,
+    body.subdomain
+  );
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId: c.get("userId"),
+    action: "landing_page.publish",
+    targetType: "landing_page",
+    targetId: id,
+    meta: { subdomain: body.subdomain, live }
+  });
+
+  return c.json(
+    { deployment: deploymentSchema.parse(deployment), live },
+    live ? 200 : 202
+  );
+});
+
+// Deploy history for the current hostname (rollback target picker).
+landingsRoutes.get("/:id/deployments", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  await requireLandingPage(db, orgId, id);
+
+  const all = await deploymentsRepository.list(db, orgId);
+  const deployments = all
+    .filter((deployment) => deployment.landingPageId === id)
+    .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  return c.json({ deployments: z.array(deploymentSchema).parse(deployments) });
+});
+
+// Rollback goes through the same outbox mechanism as publish, per architecture.md §5.2 —
+// not a direct KV/pointer write.
+landingsRoutes.post("/:id/deployments/:deploymentId/rollback", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  await requireLandingPage(db, orgId, id);
+
+  const deploymentId = c.req.param("deploymentId");
+  const live = await rollbackDeployment(db, c.env, orgId, id, deploymentId);
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId: c.get("userId"),
+    action: "landing_page.rollback",
+    targetType: "landing_page",
+    targetId: id,
+    meta: { deploymentId, live }
+  });
+
+  return c.json({ live }, live ? 200 : 202);
+});
+
+// Unpublish (FR-G-02) — removes the hostname pointer directly, no outbox row (see
+// lib/publish.ts unpublishLandingPage doc comment for why it doesn't fit that shape).
+landingsRoutes.post("/:id/unpublish", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  await requireLandingPage(db, orgId, id);
+
+  const deployment = await unpublishLandingPage(db, c.env, orgId, id);
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId: c.get("userId"),
+    action: "landing_page.unpublish",
+    targetType: "landing_page",
+    targetId: id,
+    meta: {}
+  });
+
+  return c.json({ deployment: deploymentSchema.parse(deployment) }, 200);
 });

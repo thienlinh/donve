@@ -74,40 +74,67 @@ export const skillsRepository = {
   },
 
   /**
-   * Skills a landing page actually generates/patches with (FR-B-24): the explicit
-   * `landingSkills` selection if one exists, else every default-active skill.
+   * Every skill's per-landing-page override row (FR-B-24), keyed by skillId — an absent entry
+   * means "no override, use the skill's org default".
+   */
+  async listOverridesForLandingPage(
+    db: Db,
+    orgId: string,
+    landingPageId: string
+  ): Promise<Map<string, boolean>> {
+    const rows = await withOrgScope<{ skillId: string; enabled: boolean }[]>(
+      db,
+      orgId,
+      (qb) =>
+        qb
+          .select({
+            skillId: landingSkills.skillId,
+            enabled: landingSkills.enabled
+          })
+          .from(landingSkills)
+          .innerJoin(skills, eq(skills.id, landingSkills.skillId))
+          .where(
+            and(eq(landingSkills.landingPageId, landingPageId), ownedBy(orgId))
+          )
+    );
+    return new Map(rows.map((r) => [r.skillId, r.enabled]));
+  },
+
+  /**
+   * Skills a landing page actually generates/patches with (FR-B-24): every org skill whose
+   * per-landing override says on, or — absent an override — whose org-level `isActiveDefault`
+   * is on.
    */
   async listEnabledForLandingPage(
     db: Db,
     orgId: string,
     landingPageId: string
   ): Promise<SkillRow[]> {
-    const selected = await withOrgScope<SkillRow[]>(db, orgId, (qb) =>
-      qb
-        .select({
-          id: skills.id,
-          orgId: skills.orgId,
-          slug: skills.slug,
-          name: skills.name,
-          content: skills.content,
-          version: skills.version,
-          isActiveDefault: skills.isActiveDefault,
-          createdAt: skills.createdAt,
-          updatedAt: skills.updatedAt
-        })
-        .from(landingSkills)
-        .innerJoin(skills, eq(skills.id, landingSkills.skillId))
-        .where(
-          and(eq(landingSkills.landingPageId, landingPageId), ownedBy(orgId))
-        )
+    const [all, overrides] = await Promise.all([
+      this.list(db, orgId),
+      this.listOverridesForLandingPage(db, orgId, landingPageId)
+    ]);
+    return all.filter(
+      (skill) => overrides.get(skill.id) ?? skill.isActiveDefault
     );
-    if (selected.length > 0) return selected;
+  },
 
-    return withOrgScope<SkillRow[]>(db, orgId, (qb) =>
+  /** Sets (or overwrites) this landing page's override of one skill's enabled state. */
+  async setLandingOverride(
+    db: Db,
+    orgId: string,
+    landingPageId: string,
+    skillId: string,
+    enabled: boolean
+  ): Promise<void> {
+    await withOrgScope<void>(db, orgId, (qb) =>
       qb
-        .select()
-        .from(skills)
-        .where(and(eq(skills.isActiveDefault, true), ownedBy(orgId)))
+        .insert(landingSkills)
+        .values({ landingPageId, skillId, enabled })
+        .onConflictDoUpdate({
+          target: [landingSkills.landingPageId, landingSkills.skillId],
+          set: { enabled }
+        })
     );
   }
 };

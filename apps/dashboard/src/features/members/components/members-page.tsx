@@ -20,8 +20,14 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import { Empty, EmptyHeader, EmptyTitle } from "@dv/ui/components/shadcn/empty";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle
+} from "@dv/ui/components/shadcn/empty";
 import { Spinner } from "@dv/ui/components/shadcn/spinner";
+import { Switch } from "@dv/ui/components/shadcn/switch";
 import {
   Table,
   TableBody,
@@ -30,6 +36,8 @@ import {
   TableHeader,
   TableRow
 } from "@dv/ui/components/shadcn/table";
+import { toast } from "@dv/ui/components/shadcn/toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -38,6 +46,11 @@ import {
   useActiveOrganization,
   useSession
 } from "@/features/auth/auth-client";
+import {
+  fetchSalesConfigList,
+  updateMemberSalesConfig
+} from "@/features/leads/api";
+import { leadKeys } from "@/features/leads/query-keys";
 import * as m from "@/paraglide/messages.js";
 
 import { roleBadgeVariant, roleLabel } from "../role-labels";
@@ -45,20 +58,30 @@ import { InviteMemberDialog } from "./invite-member-dialog";
 
 export function MembersPage() {
   const { data: session } = useSession();
-  const { data: activeOrganization, isPending } = useActiveOrganization();
+  const {
+    data: activeOrganization,
+    isPending,
+    error
+  } = useActiveOrganization();
 
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
   );
   const canManage =
     myMembership?.role === "owner" || myMembership?.role === "admin";
+
+  const { data: salesConfigList } = useQuery({
+    queryKey: leadKeys.salesConfig(),
+    queryFn: fetchSalesConfigList,
+    enabled: canManage
+  });
   const pendingInvitations =
     activeOrganization?.invitations.filter(
       (invitation) => invitation.status === "pending"
     ) ?? [];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-1 flex-col gap-6 p-6">
       <Card>
         <CardHeader>
           <CardTitle>{m.membersTitle()}</CardTitle>
@@ -76,12 +99,26 @@ export function MembersPage() {
             </div>
           )}
 
+          {error && (
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>{m.membersLoadErrorTitle()}</EmptyTitle>
+                {error.message && (
+                  <EmptyDescription>{error.message}</EmptyDescription>
+                )}
+              </EmptyHeader>
+            </Empty>
+          )}
+
           {activeOrganization && (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{m.membersColumnMember()}</TableHead>
                   <TableHead>{m.membersColumnRole()}</TableHead>
+                  {canManage && (
+                    <TableHead>{m.membersColumnSeeAllLeads()}</TableHead>
+                  )}
                   {canManage && (
                     <TableHead className="text-end">
                       {m.membersColumnActions()}
@@ -116,6 +153,20 @@ export function MembersPage() {
                         {roleLabel(member.role)}
                       </Badge>
                     </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        {member.role === "sales" && (
+                          <SeeAllLeadsToggle
+                            membershipId={member.id}
+                            seeAllLeads={
+                              salesConfigList?.members.find(
+                                (row) => row.membershipId === member.id
+                              )?.seeAllLeads ?? false
+                            }
+                          />
+                        )}
+                      </TableCell>
+                    )}
                     {canManage && (
                       <TableCell className="text-end">
                         {member.role !== "owner" &&
@@ -164,27 +215,39 @@ export function MembersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendingInvitations.map((invitation) => (
-                    <TableRow key={invitation.id}>
-                      <TableCell className="font-medium">
-                        {invitation.email}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={roleBadgeVariant[invitation.role]}>
-                          {roleLabel(invitation.role)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(invitation.expiresAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-end">
-                        <CancelInviteAction
-                          invitationId={invitation.id}
-                          email={invitation.email}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {pendingInvitations.map((invitation) => {
+                    const expiresAt = new Date(invitation.expiresAt);
+                    // oxlint-disable-next-line react-doctor/rendering-hydration-mismatch-time, react/purity -- this dashboard is a client-only Vite SPA (tech-stack.md), never server-rendered, so there's no hydration pass for `Date.now()` to mismatch against; re-evaluating "expired" on each render is the intended behavior here.
+                    const isExpired = expiresAt.getTime() < Date.now();
+                    return (
+                      <TableRow key={invitation.id}>
+                        <TableCell className="font-medium">
+                          {invitation.email}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={roleBadgeVariant[invitation.role]}>
+                            {roleLabel(invitation.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="flex items-center gap-2">
+                            {expiresAt.toLocaleDateString()}
+                            {isExpired && (
+                              <Badge variant="destructive">
+                                {m.membersInvitationExpiredBadge()}
+                              </Badge>
+                            )}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <CancelInviteAction
+                            invitationId={invitation.id}
+                            email={invitation.email}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -192,6 +255,33 @@ export function MembersPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+/** FR-E-04 — off by default (sales sees only assigned leads); on lets them see the whole org's leads. */
+function SeeAllLeadsToggle({
+  membershipId,
+  seeAllLeads
+}: {
+  membershipId: string;
+  seeAllLeads: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const toggle = useMutation({
+    mutationFn: (next: boolean) =>
+      updateMemberSalesConfig(membershipId, { seeAllLeads: next }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: leadKeys.salesConfig() }),
+    onError: () =>
+      toast.add({ title: m.membersSeeAllLeadsErrorToast(), type: "error" })
+  });
+
+  return (
+    <Switch
+      checked={seeAllLeads}
+      disabled={toggle.isPending}
+      onCheckedChange={(next) => toggle.mutate(next)}
+    />
   );
 }
 
@@ -221,6 +311,10 @@ function RemoveMemberAction({
       return;
     }
     setOpen(false);
+    toast.add({
+      title: m.membersRemoveSuccessToast({ member: memberLabel }),
+      type: "success"
+    });
   };
 
   return (
@@ -283,6 +377,10 @@ function CancelInviteAction({
       return;
     }
     setOpen(false);
+    toast.add({
+      title: m.membersCancelInviteSuccessToast({ email }),
+      type: "success"
+    });
   };
 
   return (

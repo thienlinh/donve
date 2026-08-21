@@ -18,10 +18,21 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as VerifiedRouteImport } from './routes/verified'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AuthenticatedAiConnectionsRouteImport } from './routes/_authenticated/ai-connections'
+import { Route as AuthenticatedCampaignsRouteImport } from './routes/_authenticated/campaigns'
+import { Route as AuthenticatedDomainsRouteImport } from './routes/_authenticated/domains'
+import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPaymentConnectionsRouteImport } from './routes/_authenticated/payment-connections'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
+import { Route as AuthenticatedReconciliationRouteImport } from './routes/_authenticated/reconciliation'
+import { Route as AuthenticatedRefundRequestsRouteImport } from './routes/_authenticated/refund-requests'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 import { Route as AuthenticatedLandingsIndexRouteImport } from './routes/_authenticated/landings.index'
+import { Route as AuthenticatedPromptTemplatesIndexRouteImport } from './routes/_authenticated/prompt-templates.index'
+import { Route as AuthenticatedPromptTemplatesIdRouteImport } from './routes/_authenticated/prompt-templates.$id'
 import { Route as AuthenticatedLandingsIdStudioRouteImport } from './routes/_authenticated/landings.$id.studio'
 
 const IndexRoute = IndexRouteImport.update({
@@ -69,6 +80,21 @@ const AuthenticatedAiConnectionsRoute =
     path: '/ai-connections',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCampaignsRoute = AuthenticatedCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDomainsRoute = AuthenticatedDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -79,15 +105,60 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPaymentConnectionsRoute =
+  AuthenticatedPaymentConnectionsRouteImport.update({
+    id: '/payment-connections',
+    path: '/payment-connections',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
   id: '/platform',
   path: '/platform',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReconciliationRoute =
+  AuthenticatedReconciliationRouteImport.update({
+    id: '/reconciliation',
+    path: '/reconciliation',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedRefundRequestsRoute =
+  AuthenticatedRefundRequestsRouteImport.update({
+    id: '/refund-requests',
+    path: '/refund-requests',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedLandingsIndexRoute =
   AuthenticatedLandingsIndexRouteImport.update({
     id: '/landings/',
     path: '/landings/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPromptTemplatesIndexRoute =
+  AuthenticatedPromptTemplatesIndexRouteImport.update({
+    id: '/prompt-templates/',
+    path: '/prompt-templates/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPromptTemplatesIdRoute =
+  AuthenticatedPromptTemplatesIdRouteImport.update({
+    id: '/prompt-templates/$id',
+    path: '/prompt-templates/$id',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedLandingsIdStudioRoute =
@@ -106,10 +177,21 @@ export interface FileRoutesByFullPath {
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
   '/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/campaigns': typeof AuthenticatedCampaignsRoute
+  '/domains': typeof AuthenticatedDomainsRoute
+  '/leads': typeof AuthenticatedLeadsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/payment-connections': typeof AuthenticatedPaymentConnectionsRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/reconciliation': typeof AuthenticatedReconciliationRoute
+  '/refund-requests': typeof AuthenticatedRefundRequestsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/skills': typeof AuthenticatedSkillsRoute
+  '/prompt-templates/$id': typeof AuthenticatedPromptTemplatesIdRoute
   '/landings/': typeof AuthenticatedLandingsIndexRoute
+  '/prompt-templates/': typeof AuthenticatedPromptTemplatesIndexRoute
   '/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRoutesByTo {
@@ -121,10 +203,21 @@ export interface FileRoutesByTo {
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
   '/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/campaigns': typeof AuthenticatedCampaignsRoute
+  '/domains': typeof AuthenticatedDomainsRoute
+  '/leads': typeof AuthenticatedLeadsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/payment-connections': typeof AuthenticatedPaymentConnectionsRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/reconciliation': typeof AuthenticatedReconciliationRoute
+  '/refund-requests': typeof AuthenticatedRefundRequestsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/skills': typeof AuthenticatedSkillsRoute
+  '/prompt-templates/$id': typeof AuthenticatedPromptTemplatesIdRoute
   '/landings': typeof AuthenticatedLandingsIndexRoute
+  '/prompt-templates': typeof AuthenticatedPromptTemplatesIndexRoute
   '/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRoutesById {
@@ -138,10 +231,21 @@ export interface FileRoutesById {
   '/verified': typeof VerifiedRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authenticated/ai-connections': typeof AuthenticatedAiConnectionsRoute
+  '/_authenticated/campaigns': typeof AuthenticatedCampaignsRoute
+  '/_authenticated/domains': typeof AuthenticatedDomainsRoute
+  '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/payment-connections': typeof AuthenticatedPaymentConnectionsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRoute
+  '/_authenticated/reconciliation': typeof AuthenticatedReconciliationRoute
+  '/_authenticated/refund-requests': typeof AuthenticatedRefundRequestsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/skills': typeof AuthenticatedSkillsRoute
+  '/_authenticated/prompt-templates/$id': typeof AuthenticatedPromptTemplatesIdRoute
   '/_authenticated/landings/': typeof AuthenticatedLandingsIndexRoute
+  '/_authenticated/prompt-templates/': typeof AuthenticatedPromptTemplatesIndexRoute
   '/_authenticated/landings/$id/studio': typeof AuthenticatedLandingsIdStudioRoute
 }
 export interface FileRouteTypes {
@@ -155,10 +259,21 @@ export interface FileRouteTypes {
     | '/verified'
     | '/verify-email'
     | '/ai-connections'
+    | '/campaigns'
+    | '/domains'
+    | '/leads'
     | '/members'
     | '/onboarding'
+    | '/payment-connections'
     | '/platform'
+    | '/products'
+    | '/reconciliation'
+    | '/refund-requests'
+    | '/settings'
+    | '/skills'
+    | '/prompt-templates/$id'
     | '/landings/'
+    | '/prompt-templates/'
     | '/landings/$id/studio'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -170,10 +285,21 @@ export interface FileRouteTypes {
     | '/verified'
     | '/verify-email'
     | '/ai-connections'
+    | '/campaigns'
+    | '/domains'
+    | '/leads'
     | '/members'
     | '/onboarding'
+    | '/payment-connections'
     | '/platform'
+    | '/products'
+    | '/reconciliation'
+    | '/refund-requests'
+    | '/settings'
+    | '/skills'
+    | '/prompt-templates/$id'
     | '/landings'
+    | '/prompt-templates'
     | '/landings/$id/studio'
   id:
     | '__root__'
@@ -186,10 +312,21 @@ export interface FileRouteTypes {
     | '/verified'
     | '/verify-email'
     | '/_authenticated/ai-connections'
+    | '/_authenticated/campaigns'
+    | '/_authenticated/domains'
+    | '/_authenticated/leads'
     | '/_authenticated/members'
     | '/_authenticated/onboarding'
+    | '/_authenticated/payment-connections'
     | '/_authenticated/platform'
+    | '/_authenticated/products'
+    | '/_authenticated/reconciliation'
+    | '/_authenticated/refund-requests'
+    | '/_authenticated/settings'
+    | '/_authenticated/skills'
+    | '/_authenticated/prompt-templates/$id'
     | '/_authenticated/landings/'
+    | '/_authenticated/prompt-templates/'
     | '/_authenticated/landings/$id/studio'
   fileRoutesById: FileRoutesById
 }
@@ -269,6 +406,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiConnectionsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/campaigns': {
+      id: '/_authenticated/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof AuthenticatedCampaignsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/domains': {
+      id: '/_authenticated/domains'
+      path: '/domains'
+      fullPath: '/domains'
+      preLoaderRoute: typeof AuthenticatedDomainsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/leads': {
+      id: '/_authenticated/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof AuthenticatedLeadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/members': {
       id: '/_authenticated/members'
       path: '/members'
@@ -283,6 +441,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/payment-connections': {
+      id: '/_authenticated/payment-connections'
+      path: '/payment-connections'
+      fullPath: '/payment-connections'
+      preLoaderRoute: typeof AuthenticatedPaymentConnectionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/platform': {
       id: '/_authenticated/platform'
       path: '/platform'
@@ -290,11 +455,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reconciliation': {
+      id: '/_authenticated/reconciliation'
+      path: '/reconciliation'
+      fullPath: '/reconciliation'
+      preLoaderRoute: typeof AuthenticatedReconciliationRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/refund-requests': {
+      id: '/_authenticated/refund-requests'
+      path: '/refund-requests'
+      fullPath: '/refund-requests'
+      preLoaderRoute: typeof AuthenticatedRefundRequestsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/skills': {
+      id: '/_authenticated/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof AuthenticatedSkillsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/landings/': {
       id: '/_authenticated/landings/'
       path: '/landings'
       fullPath: '/landings/'
       preLoaderRoute: typeof AuthenticatedLandingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/prompt-templates/': {
+      id: '/_authenticated/prompt-templates/'
+      path: '/prompt-templates'
+      fullPath: '/prompt-templates/'
+      preLoaderRoute: typeof AuthenticatedPromptTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/prompt-templates/$id': {
+      id: '/_authenticated/prompt-templates/$id'
+      path: '/prompt-templates/$id'
+      fullPath: '/prompt-templates/$id'
+      preLoaderRoute: typeof AuthenticatedPromptTemplatesIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/landings/$id/studio': {
@@ -309,19 +523,42 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAiConnectionsRoute: typeof AuthenticatedAiConnectionsRoute
+  AuthenticatedCampaignsRoute: typeof AuthenticatedCampaignsRoute
+  AuthenticatedDomainsRoute: typeof AuthenticatedDomainsRoute
+  AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPaymentConnectionsRoute: typeof AuthenticatedPaymentConnectionsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
+  AuthenticatedReconciliationRoute: typeof AuthenticatedReconciliationRoute
+  AuthenticatedRefundRequestsRoute: typeof AuthenticatedRefundRequestsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
+  AuthenticatedPromptTemplatesIdRoute: typeof AuthenticatedPromptTemplatesIdRoute
   AuthenticatedLandingsIndexRoute: typeof AuthenticatedLandingsIndexRoute
+  AuthenticatedPromptTemplatesIndexRoute: typeof AuthenticatedPromptTemplatesIndexRoute
   AuthenticatedLandingsIdStudioRoute: typeof AuthenticatedLandingsIdStudioRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAiConnectionsRoute: AuthenticatedAiConnectionsRoute,
+  AuthenticatedCampaignsRoute: AuthenticatedCampaignsRoute,
+  AuthenticatedDomainsRoute: AuthenticatedDomainsRoute,
+  AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPaymentConnectionsRoute: AuthenticatedPaymentConnectionsRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
+  AuthenticatedReconciliationRoute: AuthenticatedReconciliationRoute,
+  AuthenticatedRefundRequestsRoute: AuthenticatedRefundRequestsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
+  AuthenticatedPromptTemplatesIdRoute: AuthenticatedPromptTemplatesIdRoute,
   AuthenticatedLandingsIndexRoute: AuthenticatedLandingsIndexRoute,
+  AuthenticatedPromptTemplatesIndexRoute:
+    AuthenticatedPromptTemplatesIndexRoute,
   AuthenticatedLandingsIdStudioRoute: AuthenticatedLandingsIdStudioRoute,
 }
 

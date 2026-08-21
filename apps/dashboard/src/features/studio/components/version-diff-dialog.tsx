@@ -36,7 +36,7 @@ export function VersionDiffDialog({
 }) {
   return (
     <Dialog open={versions !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="flex h-[90vh] max-h-[90vh] w-[min(95vw,1400px)] max-w-none flex-col sm:max-w-none">
         {versions && (
           <VersionDiffBody landingPageId={landingPageId} versions={versions} />
         )}
@@ -74,29 +74,32 @@ function VersionDiffBody({
           {m.studioVersionDiffTitle()} — v{before.seq} → v{after.seq}
         </DialogTitle>
       </DialogHeader>
-      <Tabs defaultValue="preview">
-        <TabsList variant="line">
+      <Tabs defaultValue="preview" className="flex min-h-0 flex-1 flex-col">
+        <TabsList variant="line" className="shrink-0">
           <TabsTrigger value="preview">
             {m.studioVersionDiffPreviewTab()}
           </TabsTrigger>
           <TabsTrigger value="code">{m.studioVersionDiffCodeTab()}</TabsTrigger>
         </TabsList>
-        <TabsContent value="preview" className="grid grid-cols-2 gap-2 pt-2">
+        <TabsContent
+          value="preview"
+          className="grid min-h-0 flex-1 grid-cols-2 gap-2 pt-2"
+        >
           <iframe
             title={`v${before.seq}`}
             srcDoc={beforeHtml.data ?? ""}
             sandbox=""
-            className="h-96 w-full rounded border bg-white"
+            className="h-full w-full rounded border bg-white"
           />
           <iframe
             title={`v${after.seq}`}
             srcDoc={afterHtml.data ?? ""}
             sandbox=""
-            className="h-96 w-full rounded border bg-white"
+            className="h-full w-full rounded border bg-white"
           />
         </TabsContent>
-        <TabsContent value="code" className="pt-2">
-          <ScrollArea className="h-96 rounded border">
+        <TabsContent value="code" className="min-h-0 flex-1 pt-2">
+          <ScrollArea className="h-full rounded border">
             <CodeBlockContainer language="html">
               <div className="p-2 font-mono text-sm">
                 {lines?.map((line) => (

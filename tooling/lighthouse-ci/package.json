@@ -1,0 +1,20 @@
+{
+  "name": "@dv/lighthouse-ci",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bun run.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf node_modules"
+  },
+  "dependencies": {
+    "chrome-launcher": "catalog:server",
+    "lighthouse": "catalog:server"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "bun-types": "catalog:",
+    "typescript": "catalog:"
+  }
+}

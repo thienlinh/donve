@@ -1,8 +1,11 @@
 import {
+  aiModelsResponseSchema,
   aiUsageSummarySchema,
   publicAiConnectionSchema,
+  type AiModelOption,
   type AiUsageSummary,
   type ConnectAiConnectionInput,
+  type ListAiModelsInput,
   type PublicAiConnection,
   type UpdateAiConnectionInput
 } from "@dv/contracts";
@@ -28,6 +31,16 @@ const connectionListResponseSchema = z.object({
 export async function fetchAiConnections(): Promise<PublicAiConnection[]> {
   const res = await aiFetch("/connections");
   return connectionListResponseSchema.parse(await res.json()).connections;
+}
+
+export async function listAiModels(
+  input: ListAiModelsInput
+): Promise<AiModelOption[]> {
+  const res = await aiFetch("/connections/models", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+  return aiModelsResponseSchema.parse(await res.json()).models;
 }
 
 export async function connectAiConnection(

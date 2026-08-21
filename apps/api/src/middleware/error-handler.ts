@@ -27,7 +27,17 @@ export const errorHandler: ErrorHandler<AppEnv> = (err, c) => {
   // `.cause` — logging only `err.message` hid it entirely behind a generic "Failed query"
   // wrapper when this was last debugged. Never sent to the client, log-only.
   const cause = err.cause instanceof Error ? err.cause.message : undefined;
-  log("error", { requestId, orgId, status, code, message: err.message, cause });
+  log("error", {
+    requestId,
+    orgId,
+    status,
+    code,
+    message: err.message,
+    cause,
+    // log-only, never sent to the client — without this, a 500's real origin (which driver,
+    // which line) was invisible in production logs, only the top-level message survived.
+    stack: status === 500 ? err.stack : undefined
+  });
 
   return c.json({ error: { code, message, requestId } }, status);
 };

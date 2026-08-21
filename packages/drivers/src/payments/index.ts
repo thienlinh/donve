@@ -19,6 +19,7 @@ export type { ExtractedOrderCodes } from "./order-code.js";
 export {
   encodeOrderCode,
   extractOrderCodes,
+  generateOrderCodeData,
   isValidOrderCode
 } from "./order-code.js";
 

@@ -45,6 +45,7 @@ export async function createComment(input: {
   landingPageId: string;
   srcmapId: string;
   body: string;
+  screenshotKey?: string | null;
 }): Promise<StudioComment> {
   const res = await studioFetch("/comments", {
     method: "POST",

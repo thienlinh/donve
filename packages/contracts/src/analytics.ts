@@ -35,3 +35,26 @@ export const eventSchema = z.object({
   createdAt: z.coerce.date()
 });
 export type Event = z.infer<typeof eventSchema>;
+
+/** GET /api/campaigns/:id/analytics response (FR-C-05) — one row per day in the requested range. */
+export const campaignAnalyticsDaySchema = z.object({
+  date: z.string(),
+  views: z.number().int().nonnegative(),
+  submits: z.number().int().nonnegative(),
+  orders: z.number().int().nonnegative(),
+  revenue: z.number().int().nonnegative()
+});
+export type CampaignAnalyticsDay = z.infer<typeof campaignAnalyticsDaySchema>;
+
+export const campaignAnalyticsSchema = z.object({
+  days: z.array(campaignAnalyticsDaySchema),
+  totals: z.object({
+    views: z.number().int().nonnegative(),
+    submits: z.number().int().nonnegative(),
+    orders: z.number().int().nonnegative(),
+    /** reconciled revenue only — orders with status `paid`/`fulfilled`. */
+    revenue: z.number().int().nonnegative(),
+    conversionRate: z.number().min(0).max(1)
+  })
+});
+export type CampaignAnalytics = z.infer<typeof campaignAnalyticsSchema>;

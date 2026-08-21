@@ -6,15 +6,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from "@dv/ui/components/shadcn/dropdown-menu";
 import { Input } from "@dv/ui/components/shadcn/input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   Copy,
   ExternalLink,
   FolderMinus,
+  FolderPlus,
   ImageIcon,
   MoreHorizontal,
   Pencil,
@@ -22,41 +26,20 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { fetchCampaigns } from "@/features/campaigns/api";
+import { campaignKeys } from "@/features/campaigns/query-keys";
 import * as m from "@/paraglide/messages.js";
-import { getLocale } from "@/paraglide/runtime.js";
 
 import {
+  assignLandingPageToCampaign,
   deleteLandingPage,
   duplicateLandingPage,
   removeLandingPageFromCampaign,
-  renameLandingPage
+  renameLandingPage,
+  thumbnailUrl
 } from "../api";
+import { formatRelativeTime } from "../lib/relative-time";
 import { landingKeys } from "../query-keys";
-
-const relativeTimeFormatter = new Intl.RelativeTimeFormat(getLocale(), {
-  numeric: "auto"
-});
-
-function formatRelativeTime(date: Date): string {
-  const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
-  const thresholds: [Intl.RelativeTimeFormatUnit, number][] = [
-    ["year", 60 * 60 * 24 * 365],
-    ["month", 60 * 60 * 24 * 30],
-    ["week", 60 * 60 * 24 * 7],
-    ["day", 60 * 60 * 24],
-    ["hour", 60 * 60],
-    ["minute", 60]
-  ];
-  for (const [unit, secondsInUnit] of thresholds) {
-    if (Math.abs(diffSeconds) >= secondsInUnit) {
-      return relativeTimeFormatter.format(
-        Math.round(diffSeconds / secondsInUnit),
-        unit
-      );
-    }
-  }
-  return relativeTimeFormatter.format(diffSeconds, "second");
-}
 
 export function LandingCard({
   landingPage
@@ -67,6 +50,9 @@ export function LandingCard({
   const [isRenaming, setIsRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState(landingPage.name);
   const renameInputRef = useRef<HTMLInputElement>(null);
+  // No thumbnail captured yet (FR-B-26 only runs after the first manual save) 404s here —
+  // falls back to the icon placeholder rather than a broken image.
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
 
   useEffect(() => {
     if (isRenaming) renameInputRef.current?.focus();
@@ -86,6 +72,15 @@ export function LandingCard({
   const removeFromCampaignMutation = useMutation({
     mutationFn: () => removeLandingPageFromCampaign(landingPage.id),
     onSuccess: invalidate
+  });
+  const assignToCampaignMutation = useMutation({
+    mutationFn: (campaignId: string) =>
+      assignLandingPageToCampaign(landingPage.id, campaignId),
+    onSuccess: invalidate
+  });
+  const { data: campaigns } = useQuery({
+    queryKey: campaignKeys.list(),
+    queryFn: fetchCampaigns
   });
   const deleteMutation = useMutation({
     mutationFn: () => deleteLandingPage(landingPage.id),
@@ -109,11 +104,20 @@ export function LandingCard({
         params={{ id: landingPage.id }}
         className="block"
       >
-        {/* ponytail: no thumbnail-serving route exists yet (only html is served from
-            storage) — placeholder until `.thumbnail.jpg` objects are served publicly. */}
-        <div className="flex aspect-video items-center justify-center bg-muted text-muted-foreground">
-          <ImageIcon className="size-8" />
-        </div>
+        {thumbnailFailed ? (
+          <div className="flex aspect-video items-center justify-center bg-muted text-muted-foreground">
+            <ImageIcon className="size-8" />
+          </div>
+        ) : (
+          <img
+            key={landingPage.id}
+            src={thumbnailUrl(landingPage.id)}
+            alt=""
+            crossOrigin="use-credentials"
+            className="aspect-video w-full bg-muted object-cover"
+            onError={() => setThumbnailFailed(true)}
+          />
+        )}
       </Link>
 
       <CardContent className="flex flex-col gap-1.5 pb-4">
@@ -167,6 +171,33 @@ export function LandingCard({
               <DropdownMenuItem onClick={() => duplicateMutation.mutate()}>
                 <Copy /> {m.landingsActionDuplicate()}
               </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <FolderPlus /> {m.landingsActionAssignToCampaign()}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {!campaigns || campaigns.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      {m.landingsAssignToCampaignEmpty()}
+                    </DropdownMenuItem>
+                  ) : (
+                    campaigns
+                      .filter(
+                        (campaign) => campaign.id !== landingPage.campaignId
+                      )
+                      .map((campaign) => (
+                        <DropdownMenuItem
+                          key={campaign.id}
+                          onClick={() =>
+                            assignToCampaignMutation.mutate(campaign.id)
+                          }
+                        >
+                          {campaign.name}
+                        </DropdownMenuItem>
+                      ))
+                  )}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               {landingPage.isPublished && landingPage.liveHostname && (
                 <DropdownMenuItem
                   render={

@@ -1,3 +1,4 @@
+import { salesConfigSchema } from "@dv/contracts";
 import { membershipsRepository } from "@dv/db";
 import { createMiddleware } from "hono/factory";
 
@@ -29,5 +30,8 @@ export const requireOrgSession = createMiddleware<AppEnv>(async (c, next) => {
   if (!membership) throw new ApiError(403, "forbidden");
 
   c.set("orgId", orgId);
+  c.set("userId", session.user.id);
+  c.set("membershipRole", membership.role);
+  c.set("salesConfig", salesConfigSchema.parse(membership.salesConfig ?? {}));
   await next();
 });

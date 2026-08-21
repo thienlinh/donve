@@ -70,10 +70,25 @@ export const landingPageDetailSchema = landingPageSchema.extend({
 });
 export type LandingPageDetail = z.infer<typeof landingPageDetailSchema>;
 
+/** FR-B-31: computed once at import time from the imported HTML — never persisted. */
+export const funnelGapsSchema = z.object({
+  missingLeadForm: z.boolean(),
+  missingSeoMeta: z.boolean()
+});
+export type FunnelGaps = z.infer<typeof funnelGapsSchema>;
+
+export const importLandingPageResponseSchema = landingPageDetailSchema.extend({
+  funnelGaps: funnelGapsSchema
+});
+export type ImportLandingPageResponse = z.infer<
+  typeof importLandingPageResponseSchema
+>;
+
 export const pageAssetSourceValues = [
   "user_upload",
   "stock_licensed",
-  "ai_generated"
+  "ai_generated",
+  "import"
 ] as const;
 export const pageAssetSourceSchema = z.enum(pageAssetSourceValues);
 export type PageAssetSource = z.infer<typeof pageAssetSourceSchema>;
@@ -96,15 +111,25 @@ export const pageAssetSchema = z.object({
   r2Key: z.string(),
   mime: z.string(),
   sizeBytes: z.number().int().nonnegative(),
+  /** FR-B-29: video assets only — R2 storage key of the extracted first-frame JPEG poster;
+   * null for images and for a video whose poster upload was skipped. */
+  posterKey: z.string().nullable().default(null),
   /** webp/avif/resized variant keys, keyed by variant name. */
   variants: z.record(z.string(), z.string()).default({}),
   source: pageAssetSourceSchema.default("user_upload"),
   license: pageAssetLicenseSchema,
   /** true when imported HTML pulled an external image URL of unknown provenance. */
   unverifiedSource: z.boolean().default(false),
+  /** FR-B-35: tenant ticked "Tôi có quyền sử dụng ảnh này" — required before publish when unverifiedSource=true. */
+  usageConfirmed: z.boolean().default(false),
   createdAt: z.coerce.date()
 });
 export type PageAsset = z.infer<typeof pageAssetSchema>;
+
+/** POST /api/landings/import body (FR-B-30) — exactly one of html/url/file is provided; the
+ * file itself travels as multipart form data, so this only types the JSON-shaped fields. */
+export const importLandingPageModeSchema = z.enum(["html", "url", "file"]);
+export type ImportLandingPageMode = z.infer<typeof importLandingPageModeSchema>;
 
 /** POST /api/landings/:id/generate body (FR-B-21). */
 export const generateLandingPageInputSchema = z.object({

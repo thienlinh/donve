@@ -8,10 +8,13 @@ import {
   createSkillSchema,
   generateAiRequestSchema,
   generateAiResponseSchema,
+  landingSkillOptionSchema,
+  listAiModelsSchema,
   promptTemplateSchema,
   promptTestRunSchema,
   publicAiConnectionSchema,
   runPromptTestSchema,
+  setLandingSkillSchema,
   skillSchema,
   updateAiConnectionSchema,
   updatePromptTemplateSchema,
@@ -21,6 +24,7 @@ import {
   aiConnectionsRepository,
   aiUsageRepository,
   compilePromptTemplate,
+  landingPagesRepository,
   organizationsRepository,
   promptTemplatesRepository,
   promptTestRunsRepository,
@@ -52,6 +56,23 @@ aiRoutes.get("/connections", async (c) => {
   const orgId = requireOrgId(c);
   const rows = await aiConnectionsRepository.list(db, orgId);
   return c.json({ connections: z.array(publicAiConnectionSchema).parse(rows) });
+});
+
+/**
+ * Probes the provider's real `/models` endpoint with the key the user just typed — lets the
+ * connect dialog offer a real, key-scoped model dropdown instead of a freeform text input the
+ * user has to get exactly right (a wrong model id here silently breaks every future generate
+ * call on this connection).
+ */
+aiRoutes.post("/connections/models", async (c) => {
+  requireOrgId(c); // BYOK probes are still an authenticated-org-only action, no DB read needed.
+  const body = listAiModelsSchema.parse(await c.req.json());
+
+  const provider = getProvider(body.provider);
+  const validation = await provider.validateKey(body.apiKey ?? "");
+  if (!validation.ok) throw new ApiError(400, "invalid_api_key");
+
+  return c.json({ models: validation.models });
 });
 
 aiRoutes.post("/connections", async (c) => {
@@ -181,6 +202,65 @@ aiRoutes.delete("/skills/:id", async (c) => {
   const orgId = requireOrgId(c);
   const removed = await skillsRepository.remove(db, orgId, c.req.param("id"));
   if (!removed) throw new ApiError(404, "skill_not_found");
+  return c.body(null, 204);
+});
+
+/**
+ * Every skill the org could enable, annotated with whether it's on for THIS landing page
+ * (Studio's "skills for this page" control) — a per-landing override if one exists, else the
+ * skill's org-level `isActiveDefault`.
+ */
+aiRoutes.get("/landings/:landingPageId/skills", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const landingPageId = c.req.param("landingPageId");
+
+  const landingPage = await landingPagesRepository.findById(
+    db,
+    orgId,
+    landingPageId
+  );
+  if (!landingPage || landingPage.deletedAt) {
+    throw new ApiError(404, "landing_page_not_found");
+  }
+
+  const [all, overrides] = await Promise.all([
+    skillsRepository.list(db, orgId),
+    skillsRepository.listOverridesForLandingPage(db, orgId, landingPageId)
+  ]);
+  const options = all.map((skill) => ({
+    ...skill,
+    enabled: overrides.get(skill.id) ?? skill.isActiveDefault
+  }));
+
+  return c.json({ skills: z.array(landingSkillOptionSchema).parse(options) });
+});
+
+/** Toggles one skill's per-landing override, without touching the org-level default. */
+aiRoutes.put("/landings/:landingPageId/skills/:skillId", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const landingPageId = c.req.param("landingPageId");
+  const skillId = c.req.param("skillId");
+  const body = setLandingSkillSchema.parse(await c.req.json());
+
+  const [landingPage, skill] = await Promise.all([
+    landingPagesRepository.findById(db, orgId, landingPageId),
+    skillsRepository.findById(db, orgId, skillId)
+  ]);
+  if (!landingPage || landingPage.deletedAt) {
+    throw new ApiError(404, "landing_page_not_found");
+  }
+  if (!skill) throw new ApiError(404, "skill_not_found");
+
+  await skillsRepository.setLandingOverride(
+    db,
+    orgId,
+    landingPageId,
+    skillId,
+    body.enabled
+  );
+
   return c.body(null, 204);
 });
 

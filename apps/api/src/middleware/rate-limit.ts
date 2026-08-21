@@ -1,7 +1,10 @@
 import { cache } from "@dv/drivers";
+import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 
+import { clientIp } from "../lib/client-ip.js";
 import { ApiError } from "../lib/errors.js";
+import { log } from "../lib/logger.js";
 import type { AppEnv } from "../types.js";
 
 export interface RateLimitOptions {
@@ -19,28 +22,65 @@ export interface RateLimitOptions {
  */
 export function rateLimit(opts: RateLimitOptions) {
   return createMiddleware<AppEnv>(async (c, next) => {
-    const driver = cache.createUpstashCacheDriver({
-      url: c.env.UPSTASH_REDIS_URL,
-      token: c.env.UPSTASH_REDIS_TOKEN
-    });
-
-    const clientIp =
-      c.req.header("cf-connecting-ip") ??
-      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
-    const key = `ratelimit:${opts.keyPrefix ?? c.req.path}:${clientIp}`;
-
-    const count = await driver.incr(key, { ttlSeconds: opts.windowSeconds });
-    const remaining = Math.max(0, opts.max - count);
-
-    c.header("x-ratelimit-limit", String(opts.max));
-    c.header("x-ratelimit-remaining", String(remaining));
-
-    if (count > opts.max) {
-      c.header("retry-after", String(opts.windowSeconds));
-      throw new ApiError(429, "rate_limited", "Too many requests");
-    }
-
+    await checkRateLimit(
+      c,
+      `ratelimit:${opts.keyPrefix ?? c.req.path}:${clientIp(c) ?? "unknown"}`,
+      opts
+    );
     await next();
   });
+}
+
+/**
+ * Same fixed-window check as `rateLimit`, but for routes that need a key only
+ * known after a DB lookup (NFR-16: IP + campaign for the order-status poll,
+ * where campaign comes from the order the `:code` param resolves to).
+ */
+export async function rateLimitByKey(
+  c: Context<AppEnv>,
+  key: string,
+  opts: Pick<RateLimitOptions, "windowSeconds" | "max">
+): Promise<void> {
+  await checkRateLimit(c, `ratelimit:${key}`, opts);
+}
+
+async function checkRateLimit(
+  c: Context<AppEnv>,
+  key: string,
+  opts: Pick<RateLimitOptions, "windowSeconds" | "max">
+): Promise<void> {
+  const driver = cache.createUpstashCacheDriver({
+    url: c.env.UPSTASH_REDIS_URL,
+    token: c.env.UPSTASH_REDIS_TOKEN
+  });
+
+  let count: number;
+  try {
+    count = await driver.incr(key, { ttlSeconds: opts.windowSeconds });
+  } catch (err) {
+    // Fail open, not closed: this guards public endpoints (leads, order-status polling,
+    // webhooks) against IP-flood abuse, but it is not itself the security boundary — Turnstile
+    // + honeypot + webhook-secret verification still stand. If the rate-limit store (Upstash)
+    // is briefly unreachable, taking the whole endpoint down is a worse outcome than
+    // temporarily going unlimited. Found live: an unreachable store previously turned every
+    // rate-limited route into a hard 500, discarding requests that had nothing to do with abuse.
+    log("warn", {
+      requestId: c.get("requestId"),
+      orgId: c.get("orgId"),
+      message: "rate-limit store unavailable, allowing request through",
+      key,
+      error: err instanceof Error ? err.message : String(err)
+    });
+    return;
+  }
+
+  const remaining = Math.max(0, opts.max - count);
+
+  c.header("x-ratelimit-limit", String(opts.max));
+  c.header("x-ratelimit-remaining", String(remaining));
+
+  if (count > opts.max) {
+    c.header("retry-after", String(opts.windowSeconds));
+    throw new ApiError(429, "rate_limited", "Too many requests");
+  }
 }

@@ -6,6 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@dv/ui/components/shadcn/dropdown-menu";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronsUpDown, Plus } from "lucide-react";
@@ -26,7 +27,13 @@ export function OrgSwitcher() {
   const label = activeOrganization?.name ?? m.orgSwitcherNoOrg();
 
   async function switchOrg(organizationId: string) {
-    await authClient.organization.setActive({ organizationId });
+    const { error } = await authClient.organization.setActive({
+      organizationId
+    });
+    if (error) {
+      toast.add({ title: m.orgSwitcherSwitchError(), type: "error" });
+      return;
+    }
     // Nearly every query in the app is org-scoped server-side but not
     // keyed by orgId client-side — without this, switching orgs keeps
     // showing the previous org's cached data until something else

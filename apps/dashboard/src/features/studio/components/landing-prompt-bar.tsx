@@ -3,27 +3,27 @@ import {
   PromptInputBody,
   PromptInputFooter,
   PromptInputProvider,
-  PromptInputSelect,
-  PromptInputSelectContent,
-  PromptInputSelectItem,
-  PromptInputSelectTrigger,
-  PromptInputSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
   usePromptInputController,
   type PromptInputMessage
 } from "@dv/ui/components/ai-elements/prompt-input";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import type { ChatStatus } from "ai";
 import {
   ChevronRight,
   LayoutTemplate,
   Megaphone,
+  Palette,
   Rocket,
   Users
 } from "lucide-react";
 import { useState } from "react";
 
+import { fetchOrgSettings } from "@/features/org-settings/api";
+import { orgSettingsKeys } from "@/features/org-settings/query-keys";
 import * as m from "@/paraglide/messages.js";
 
 const POPULAR_TASKS = [
@@ -72,16 +72,7 @@ function PromptBarInner({
         </PromptInputBody>
         <PromptInputFooter>
           <PromptInputTools>
-            <PromptInputSelect defaultValue="none">
-              <PromptInputSelectTrigger>
-                <PromptInputSelectValue />
-              </PromptInputSelectTrigger>
-              <PromptInputSelectContent>
-                <PromptInputSelectItem value="none">
-                  {m.landingsNoDesignSystem()}
-                </PromptInputSelectItem>
-              </PromptInputSelectContent>
-            </PromptInputSelect>
+            <BrandKitIndicator />
           </PromptInputTools>
           <PromptInputSubmit
             status={status}
@@ -105,5 +96,41 @@ function PromptBarInner({
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * Replaces the old decorative "design system: none" dropdown (FR-B-24) — there's only ever one
+ * design system per org (the Brand Kit in Settings), always applied server-side, so a picker
+ * with nothing to pick from was dead UI. This shows the real status instead: either the brand
+ * colors that'll be used, or a link to set them up.
+ */
+function BrandKitIndicator() {
+  const { data } = useQuery({
+    queryKey: orgSettingsKeys.all(),
+    queryFn: fetchOrgSettings
+  });
+  const primaryColor = data?.designTokens?.primaryColor;
+
+  if (!primaryColor) {
+    return (
+      <Link
+        to="/settings"
+        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      >
+        <Palette className="size-3.5" />
+        {m.landingsNoDesignSystem()}
+      </Link>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs text-muted-foreground">
+      <span
+        className="size-3 rounded-full border"
+        style={{ backgroundColor: primaryColor }}
+      />
+      {m.landingsUsingBrandKit()}
+    </span>
   );
 }

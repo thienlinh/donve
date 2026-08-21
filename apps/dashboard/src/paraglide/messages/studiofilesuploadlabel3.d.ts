@@ -3,7 +3,7 @@ export type Studiofilesuploadlabel3Inputs = {};
 /**
  * | output |
  * | --- |
- * | "Upload image" |
+ * | "Upload image or video" |
  *
  * @param {Studiofilesuploadlabel3Inputs} inputs
  * @param {{ locale?: "vi" | "en" }} options

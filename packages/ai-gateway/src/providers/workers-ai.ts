@@ -69,7 +69,7 @@ export function createWorkersAiProvider(ai: WorkersAiBinding): AIProvider {
 
     // Trial mode never takes a user-supplied key — there's nothing to validate.
     validateKey: () =>
-      Promise.resolve({ ok: true, models: [WORKERS_AI_TRIAL_MODEL] }),
+      Promise.resolve({ ok: true, models: [{ id: WORKERS_AI_TRIAL_MODEL }] }),
 
     // Trial usage is never billed in credits (packages/db ai-credits.ts debits trialUsesRemaining instead).
     countCost: () => 0

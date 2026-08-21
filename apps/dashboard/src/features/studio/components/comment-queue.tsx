@@ -56,7 +56,9 @@ export function CommentQueue({
         queryKey: chatMessageKeys.list(landingPageId)
       });
       toast.add({ title: m.studioCommentSendAllToast(), type: "success" });
-    }
+    },
+    onError: () =>
+      toast.add({ title: m.studioCommentSendAllErrorToast(), type: "error" })
   });
 
   return (

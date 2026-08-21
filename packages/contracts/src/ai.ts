@@ -6,6 +6,8 @@ export const aiProviderValues = [
   "anthropic",
   "openai",
   "openrouter",
+  "groq",
+  "nvidia",
   "platform"
 ] as const;
 export const aiProviderSchema = z.enum(aiProviderValues);
@@ -67,7 +69,9 @@ export type AiUsage = z.infer<typeof aiUsageSchema>;
 export const byokProviderValues = [
   "anthropic",
   "openai",
-  "openrouter"
+  "openrouter",
+  "groq",
+  "nvidia"
 ] as const;
 export const byokProviderSchema = z.enum(byokProviderValues);
 export type ByokProvider = z.infer<typeof byokProviderSchema>;
@@ -81,6 +85,34 @@ export const connectAiConnectionSchema = z.object({
 export type ConnectAiConnectionInput = z.infer<
   typeof connectAiConnectionSchema
 >;
+
+/**
+ * POST /api/ai/connections/models body — probes the provider's own `/models` endpoint with
+ * the key the user just typed, before they've committed to connecting it. Same shape as
+ * `connectAiConnectionSchema` minus `defaultModel` (that's what this call is choosing).
+ * `apiKey` is optional because OpenRouter's and NVIDIA NIM's model catalogs are public
+ * (verified: both return 200 with no Authorization header at all) — the dashboard fetches
+ * those the moment the provider is picked, before the user has typed any key.
+ */
+export const listAiModelsSchema = z.object({
+  provider: byokProviderSchema,
+  apiKey: z.string().optional()
+});
+export type ListAiModelsInput = z.infer<typeof listAiModelsSchema>;
+
+/** A short, non-fabricated hint (pricing/context for OpenRouter, `owned_by` for Groq/NVIDIA,
+ * `display_name` for Anthropic) — omitted entirely where the provider's `/models` response
+ * doesn't carry anything more useful than the bare id (OpenAI). */
+export const aiModelOptionSchema = z.object({
+  id: z.string(),
+  description: z.string().optional()
+});
+export type AiModelOption = z.infer<typeof aiModelOptionSchema>;
+
+export const aiModelsResponseSchema = z.object({
+  models: z.array(aiModelOptionSchema)
+});
+export type AiModelsResponse = z.infer<typeof aiModelsResponseSchema>;
 
 export const updateAiConnectionSchema = z.object({
   defaultModel: z.string().min(1).optional(),
@@ -265,3 +297,18 @@ export const landingSkillSchema = z.object({
   skillId: ulidSchema
 });
 export type LandingSkill = z.infer<typeof landingSkillSchema>;
+
+/**
+ * GET /api/ai/landings/:landingPageId/skills — every org skill, annotated with whether it's
+ * enabled for THIS landing page (its per-landing override, falling back to `isActiveDefault`).
+ */
+export const landingSkillOptionSchema = skillSchema.extend({
+  enabled: z.boolean()
+});
+export type LandingSkillOption = z.infer<typeof landingSkillOptionSchema>;
+
+/** PUT /api/ai/landings/:landingPageId/skills/:skillId body. */
+export const setLandingSkillSchema = z.object({
+  enabled: z.boolean()
+});
+export type SetLandingSkillInput = z.infer<typeof setLandingSkillSchema>;

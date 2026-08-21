@@ -62,9 +62,13 @@ export const pageAssets = pgTable("page_assets", {
   r2Key: text("r2_key").notNull(),
   mime: text("mime").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
+  // FR-B-29: video assets only — R2 storage key of the first-frame JPEG extracted client-side
+  // (same "raw storage key, not a row reference" convention as pageVersions.htmlKey/srcmapKey).
+  // Null for images and for any video whose poster upload failed/was skipped.
+  posterKey: text("poster_key"),
   variants: jsonb("variants").default({}),
   source: text("source", {
-    enum: ["user_upload", "stock_licensed", "ai_generated"]
+    enum: ["user_upload", "stock_licensed", "ai_generated", "import"]
   })
     .notNull()
     .default("user_upload"),
@@ -72,6 +76,8 @@ export const pageAssets = pgTable("page_assets", {
   license: jsonb("license").default({}),
   // true when an imported HTML pulls in an external image URL of unknown provenance
   unverifiedSource: boolean("unverified_source").notNull().default(false),
+  // FR-B-35: tenant ticked "Tôi có quyền sử dụng ảnh này" — gates publish when unverifiedSource=true
+  usageConfirmed: boolean("usage_confirmed").notNull().default(false),
   createdAt: timestamps.createdAt
 });
 

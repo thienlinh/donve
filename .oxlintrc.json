@@ -191,6 +191,8 @@
     "react-doctor/zod-v4-no-deprecated-schema-apis": "error",
     "react-doctor/zod-v4-prefer-top-level-string-formats": "error",
     "react/react-in-jsx-scope": "off",
+    "react/refs": "off",
+    "react/set-state-in-effect": "off",
     "import/no-unassigned-import": "off",
     "react/jsx-no-constructed-context-values": "off",
     "react-perf/jsx-no-new-object-as-prop": "off",

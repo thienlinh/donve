@@ -200,6 +200,7 @@ export const TerminalContent = ({
     if (autoScroll && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `output` is a deliberate trigger-only dep, re-scroll on new output
   }, [output, autoScroll]);
 
   return (

@@ -1,7 +1,12 @@
 export type {
+  DataSubjectRequestSlaItem,
+  DataSubjectRequestSlaProps,
   EmailSender,
   EmailTemplate,
   InviteEmailProps,
+  LeadDigestItem,
+  LeadDigestProps,
+  OrderConfirmationProps,
   ResetPasswordProps,
   SendEmailInput,
   SendEmailResult,

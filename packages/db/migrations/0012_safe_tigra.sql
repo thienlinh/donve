@@ -1,0 +1,1 @@
+ALTER TABLE "page_assets" ADD COLUMN "usage_confirmed" boolean DEFAULT false NOT NULL;

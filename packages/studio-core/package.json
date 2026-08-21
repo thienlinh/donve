@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sanitize": "./src/sanitize.ts",
+    "./publish": "./src/publish.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -12,12 +14,15 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "html-minifier-terser": "catalog:content",
     "linkedom": "catalog:content",
     "sanitize-html": "catalog:content"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "@types/html-minifier-terser": "catalog:content",
     "@types/sanitize-html": "catalog:content",
+    "bun-types": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

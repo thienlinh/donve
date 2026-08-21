@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 
-import { schema } from "@dv/db";
+import { leadsRepository, ordersRepository, schema } from "@dv/db";
 import {
   PostgreSqlContainer,
   type StartedPostgreSqlContainer
@@ -12,6 +12,7 @@ import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createApp } from "../src/app.js";
+import { createDbFromEnv } from "../src/lib/db.js";
 import type { Bindings } from "../src/types.js";
 
 /**
@@ -620,6 +621,266 @@ describe("cross-tenant isolation on /api/ai/skills and /api/landings (NFR-04)", 
 
   it("edge case: an unauthenticated request to /api/ai/skills is rejected before any org check", async () => {
     const res = await req("/api/ai/skills");
+    expect(res.status).toBe(401);
+  });
+});
+
+/**
+ * NFR-04 for the Phase 3 catalog/CRM surface (campaigns, products, leads) — same shape as the
+ * /api/ai and /api/landings suite above: `orgId` always comes from the caller's session-active
+ * org, so a foreign resource id must 404, never leak or mutate. Leads/orders have no create
+ * endpoint reachable through the authenticated API (they're written by the public form-submit
+ * flow or seeded here directly via the repository) so org B's fixtures are inserted straight
+ * through `leadsRepository`/`ordersRepository` rather than round-tripping through `/public/leads`.
+ */
+describe("cross-tenant isolation on /api/campaigns, /api/products, /api/leads (NFR-04)", () => {
+  let cookieA: string;
+  let cookieB: string;
+  let orgA: Organization;
+  let orgB: Organization;
+  let db: ReturnType<typeof createDbFromEnv>;
+
+  beforeAll(async () => {
+    db = createDbFromEnv(bindings);
+    cookieA = await signUpAndSignIn(
+      "owner-a3@donve.test",
+      "pw-a3-123456",
+      "Owner A3"
+    );
+    cookieB = await signUpAndSignIn(
+      "owner-b3@donve.test",
+      "pw-b3-123456",
+      "Owner B3"
+    );
+
+    const createA = await authed(cookieA, "/api/auth/organization/create", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org A3", slug: "org-a3-xtenant" })
+    });
+    orgA = (await createA.json()) as Organization;
+    const createB = await authed(cookieB, "/api/auth/organization/create", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B3", slug: "org-b3-xtenant" })
+    });
+    orgB = (await createB.json()) as Organization;
+
+    await authed(cookieA, "/api/auth/organization/set-active", {
+      method: "POST",
+      body: JSON.stringify({ organizationId: orgA.id })
+    });
+    await authed(cookieB, "/api/auth/organization/set-active", {
+      method: "POST",
+      body: JSON.stringify({ organizationId: orgB.id })
+    });
+  });
+
+  it("blocks reading org B's product list from org A (list never leaks across orgs)", async () => {
+    const createRes = await authed(cookieB, "/api/products", {
+      method: "POST",
+      body: JSON.stringify({ type: "product", name: "Org B product" })
+    });
+    expect(createRes.status).toBe(201);
+    const productB = (await createRes.json()) as { id: string };
+
+    const listA = await authed(cookieA, "/api/products");
+    const { products } = (await listA.json()) as { products: { id: string }[] };
+    expect(products.some((p) => p.id === productB.id)).toBe(false);
+  });
+
+  it("blocks updating/deleting org B's product while acting as org A (404), name unchanged", async () => {
+    const createRes = await authed(cookieB, "/api/products", {
+      method: "POST",
+      body: JSON.stringify({ type: "product", name: "Org B product 2" })
+    });
+    const productB = (await createRes.json()) as { id: string };
+
+    const updateRes = await authed(cookieA, `/api/products/${productB.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Pwned by org A" })
+    });
+    expect(updateRes.status).toBe(404);
+
+    const deleteRes = await authed(cookieA, `/api/products/${productB.id}`, {
+      method: "DELETE"
+    });
+    expect(deleteRes.status).toBe(404);
+
+    const listB = await authed(cookieB, "/api/products");
+    const { products } = (await listB.json()) as {
+      products: { id: string; name: string }[];
+    };
+    expect(products.find((p) => p.id === productB.id)?.name).toBe(
+      "Org B product 2"
+    );
+  });
+
+  it("blocks reading org B's campaign list from org A (list never leaks across orgs)", async () => {
+    const createRes = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B campaign" })
+    });
+    expect(createRes.status).toBe(201);
+    const campaignB = (await createRes.json()) as { id: string };
+
+    const listA = await authed(cookieA, "/api/campaigns");
+    const { campaigns } = (await listA.json()) as {
+      campaigns: { id: string }[];
+    };
+    expect(campaigns.some((c) => c.id === campaignB.id)).toBe(false);
+  });
+
+  it("blocks updating/deleting org B's campaign while acting as org A (404), name unchanged", async () => {
+    const createRes = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B campaign 2" })
+    });
+    const campaignB = (await createRes.json()) as { id: string };
+
+    const updateRes = await authed(cookieA, `/api/campaigns/${campaignB.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Pwned by org A" })
+    });
+    expect(updateRes.status).toBe(404);
+
+    const deleteRes = await authed(cookieA, `/api/campaigns/${campaignB.id}`, {
+      method: "DELETE"
+    });
+    expect(deleteRes.status).toBe(404);
+
+    const listB = await authed(cookieB, "/api/campaigns");
+    const { campaigns } = (await listB.json()) as {
+      campaigns: { id: string; name: string }[];
+    };
+    expect(campaigns.find((c) => c.id === campaignB.id)?.name).toBe(
+      "Org B campaign 2"
+    );
+  });
+
+  it("blocks reading org B's campaign analytics while acting as org A (404)", async () => {
+    const createRes = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B campaign 3" })
+    });
+    const campaignB = (await createRes.json()) as { id: string };
+
+    const res = await authed(
+      cookieA,
+      `/api/campaigns/${campaignB.id}/analytics`
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("blocks reading org B's lead by id while acting as org A (404), and list never leaks it", async () => {
+    const createCampaignB = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B lead campaign" })
+    });
+    const campaignB = (await createCampaignB.json()) as { id: string };
+
+    const leadB = await leadsRepository.insert(db, orgB.id, {
+      campaignId: campaignB.id,
+      fullName: "Org B Lead",
+      phone: "0900000001",
+      stage: "new",
+      assigneeId: null
+    });
+    if (!leadB) throw new Error("expected seeded lead");
+
+    const getRes = await authed(cookieA, `/api/leads/${leadB.id}`);
+    expect(getRes.status).toBe(404);
+
+    const listA = await authed(cookieA, "/api/leads");
+    const { leads } = (await listA.json()) as { leads: { id: string }[] };
+    expect(leads.some((l) => l.id === leadB.id)).toBe(false);
+  });
+
+  it("blocks mutating org B's lead (stage/assignee/activity) while acting as org A (404 each), state unchanged", async () => {
+    const createCampaignB = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B lead campaign 2" })
+    });
+    const campaignB = (await createCampaignB.json()) as { id: string };
+
+    const leadB = await leadsRepository.insert(db, orgB.id, {
+      campaignId: campaignB.id,
+      fullName: "Org B Lead 2",
+      phone: "0900000002",
+      stage: "new",
+      assigneeId: null
+    });
+    if (!leadB) throw new Error("expected seeded lead");
+
+    const stageRes = await authed(cookieA, `/api/leads/${leadB.id}/stage`, {
+      method: "PATCH",
+      body: JSON.stringify({ stage: "won" })
+    });
+    expect(stageRes.status).toBe(404);
+
+    const assigneeRes = await authed(
+      cookieA,
+      `/api/leads/${leadB.id}/assignee`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ assigneeId: null })
+      }
+    );
+    expect(assigneeRes.status).toBe(404);
+
+    const activityRes = await authed(
+      cookieA,
+      `/api/leads/${leadB.id}/activities`,
+      {
+        method: "POST",
+        body: JSON.stringify({ type: "note", body: "pwned" })
+      }
+    );
+    expect(activityRes.status).toBe(404);
+
+    const stillB = await leadsRepository.findById(db, orgB.id, leadB.id);
+    expect(stillB?.stage).toBe("new");
+  });
+
+  it("blocks updating org B's order status via org B's lead while acting as org A (404), order unchanged", async () => {
+    const createCampaignB = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B lead campaign 3" })
+    });
+    const campaignB = (await createCampaignB.json()) as { id: string };
+
+    const leadB = await leadsRepository.insert(db, orgB.id, {
+      campaignId: campaignB.id,
+      fullName: "Org B Lead 3",
+      phone: "0900000003",
+      stage: "new",
+      assigneeId: null
+    });
+    if (!leadB) throw new Error("expected seeded lead");
+
+    const orderB = await ordersRepository.insert(db, orgB.id, {
+      code: "ORD-XTENANT-1",
+      leadId: leadB.id,
+      campaignId: campaignB.id,
+      amount: "100000",
+      status: "pending"
+    });
+    if (!orderB) throw new Error("expected seeded order");
+
+    const res = await authed(
+      cookieA,
+      `/api/leads/${leadB.id}/orders/${orderB.id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ status: "paid", reason: "test" })
+      }
+    );
+    expect(res.status).toBe(404);
+
+    const stillOrderB = await ordersRepository.findById(db, orgB.id, orderB.id);
+    expect(stillOrderB?.status).toBe("pending");
+  });
+
+  it("edge case: an unauthenticated request to /api/campaigns is rejected before any org check", async () => {
+    const res = await req("/api/campaigns");
     expect(res.status).toBe(401);
   });
 });

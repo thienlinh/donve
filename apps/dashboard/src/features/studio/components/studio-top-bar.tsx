@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger
 } from "@dv/ui/components/shadcn/dropdown-menu";
 import { Input } from "@dv/ui/components/shadcn/input";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -45,6 +46,8 @@ import {
 import { exportHtml, exportPng, exportZip } from "../lib/export";
 import { toHtmlFileName } from "../lib/file-name";
 import { landingKeys, pageAssetKeys } from "../query-keys";
+import { LandingSkillsPopover } from "./landing-skills-popover";
+import { PublishDialog } from "./publish-dialog";
 
 export function StudioTopBar({
   landingPage,
@@ -54,7 +57,8 @@ export function StudioTopBar({
   onToggleChat
 }: {
   landingPage: LandingPage;
-  html: string;
+  /** null while the page's first version is still generating — export actions disable until it lands. */
+  html: string | null;
   onCapturePng: () => Promise<Blob | null>;
   chatCollapsed: boolean;
   onToggleChat: () => void;
@@ -67,9 +71,11 @@ export function StudioTopBar({
   const [exporting, setExporting] = React.useState<
     "html" | "zip" | "png" | null
   >(null);
+  const [publishOpen, setPublishOpen] = React.useState(false);
   const fileName = toHtmlFileName(landingPage.name);
 
   async function handleExportHtml() {
+    if (html === null) return;
     setExporting("html");
     try {
       exportHtml(fileName, html);
@@ -79,6 +85,7 @@ export function StudioTopBar({
   }
 
   async function handleExportZip() {
+    if (html === null) return;
     setExporting("zip");
     try {
       const assets = await queryClient.fetchQuery({
@@ -113,18 +120,24 @@ export function StudioTopBar({
 
   const renameMutation = useMutation({
     mutationFn: (name: string) => renameLandingPage(landingPage.id, name),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: () =>
+      toast.add({ title: m.studioRenameErrorToast(), type: "error" })
   });
   const duplicateMutation = useMutation({
     mutationFn: () => duplicateLandingPage(landingPage.id),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: () =>
+      toast.add({ title: m.studioDuplicateErrorToast(), type: "error" })
   });
   const deleteMutation = useMutation({
     mutationFn: () => deleteLandingPage(landingPage.id),
     onSuccess: () => {
       invalidate();
       navigate({ to: "/landings" });
-    }
+    },
+    onError: () =>
+      toast.add({ title: m.studioDeleteErrorToast(), type: "error" })
   });
 
   function commitRename() {
@@ -159,11 +172,12 @@ export function StudioTopBar({
           render={
             <button
               type="button"
+              disabled={html === null}
               aria-label={
                 chatCollapsed ? m.studioShowChat() : m.studioHideChat()
               }
               onClick={onToggleChat}
-              className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
             >
               {chatCollapsed ? (
                 <PanelLeftOpen className="size-4" />
@@ -208,6 +222,9 @@ export function StudioTopBar({
       )}
 
       <div className="ms-auto flex shrink-0 items-center gap-1.5">
+        {html !== null && (
+          <LandingSkillsPopover landingPageId={landingPage.id} />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -218,7 +235,7 @@ export function StudioTopBar({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              disabled={exporting !== null}
+              disabled={exporting !== null || html === null}
               onClick={handleExportHtml}
             >
               {exporting === "html" ? (
@@ -229,7 +246,7 @@ export function StudioTopBar({
               {m.studioExportHtml()}
             </DropdownMenuItem>
             <DropdownMenuItem
-              disabled={exporting !== null}
+              disabled={exporting !== null || html === null}
               onClick={handleExportZip}
             >
               {exporting === "zip" ? (
@@ -240,7 +257,7 @@ export function StudioTopBar({
               {m.studioExportZip()}
             </DropdownMenuItem>
             <DropdownMenuItem
-              disabled={exporting !== null}
+              disabled={exporting !== null || html === null}
               onClick={handleExportPng}
             >
               {exporting === "png" ? (
@@ -265,30 +282,32 @@ export function StudioTopBar({
           />
           <TooltipContent>{m.studioComingSoon()}</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <span>
-                <Button variant="ghost" size="sm" disabled>
-                  <Download /> {m.studioDownload()}
-                </Button>
-              </span>
-            }
-          />
-          <TooltipContent>{m.studioComingSoon()}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <span>
-                <Button variant="outline" size="sm" disabled>
-                  <Share2 /> {m.studioShare()}
-                </Button>
-              </span>
-            }
-          />
-          <TooltipContent>{m.studioComingSoon()}</TooltipContent>
-        </Tooltip>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={exporting !== null || html === null}
+          onClick={handleExportHtml}
+        >
+          {exporting === "html" ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Download />
+          )}
+          {m.studioDownload()}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPublishOpen(true)}
+        >
+          <Share2 /> {m.studioShare()}
+        </Button>
+        <PublishDialog
+          landingPage={landingPage}
+          html={html}
+          open={publishOpen}
+          onOpenChange={setPublishOpen}
+        />
 
         <Button
           variant="default"

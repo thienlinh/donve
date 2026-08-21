@@ -1,6 +1,10 @@
 import type {
+  DataSubjectRequestSlaProps,
   InviteEmailProps,
+  LeadDigestProps,
+  OrderConfirmationProps,
   ResetPasswordProps,
+  TrafficSpikeAlertProps,
   VerifyEmailProps
 } from "./types.js";
 
@@ -65,6 +69,81 @@ export function renderInviteEmail(props: InviteEmailProps): {
       `<p>Bạn được mời tham gia <strong>${props.orgName}</strong> với vai trò <strong>${props.role}</strong>.</p>
        ${button(props.inviteUrl, "Chấp nhận lời mời")}
        <p style="color:#71717a;font-size:12px;">Lời mời hết hạn sau 7 ngày.</p>`
+    )
+  };
+}
+
+export function renderLeadDigest(props: LeadDigestProps): {
+  subject: string;
+  html: string;
+} {
+  const rows = props.leads
+    .map(
+      (lead) =>
+        `<tr><td style="padding:4px 8px;border-top:1px solid #e4e4e7;">${lead.fullName}</td><td style="padding:4px 8px;border-top:1px solid #e4e4e7;">${lead.phone}</td></tr>`
+    )
+    .join("");
+  return {
+    subject: `${props.leads.length} lead mới trên ${props.orgName}`,
+    html: layout(
+      "Lead mới",
+      `<p>Có <strong>${props.leads.length}</strong> lead mới được gộp lại từ khoảng thời gian gần nhất:</p>
+       <table style="width:100%;border-collapse:collapse;font-size:14px;">${rows}</table>
+       ${button(props.dashboardUrl, "Xem trong Donve")}`
+    )
+  };
+}
+
+export function renderTrafficSpikeAlert(props: TrafficSpikeAlertProps): {
+  subject: string;
+  html: string;
+} {
+  return {
+    subject: `⚠️ ${props.hostname} tăng đột biến traffic (x${props.multiplier.toFixed(1)})`,
+    html: layout(
+      "Cảnh báo traffic bất thường",
+      `<p>Hostname <strong>${props.hostname}</strong> đang nhận <strong>${props.todayCount.toLocaleString("vi-VN")}</strong> request hôm nay, gấp <strong>${props.multiplier.toFixed(1)}x</strong> trung bình 7 ngày trước (${props.trailingAverage.toLocaleString("vi-VN")}).</p>
+       <p style="color:#71717a;font-size:12px;">Chỉ cảnh báo — traffic của tenant không bị tự động chặn (NFR-14).</p>`
+    )
+  };
+}
+
+export function renderDataSubjectRequestSla(
+  props: DataSubjectRequestSlaProps
+): {
+  subject: string;
+  html: string;
+} {
+  const overdueCount = props.requests.filter((r) => r.overdue).length;
+  const rows = props.requests
+    .map(
+      (r) =>
+        `<tr><td style="padding:4px 8px;border-top:1px solid #e4e4e7;">${r.leadFullName}</td><td style="padding:4px 8px;border-top:1px solid #e4e4e7;">${r.requestType === "delete" ? "Xoá dữ liệu" : "Xuất dữ liệu"}</td><td style="padding:4px 8px;border-top:1px solid #e4e4e7;color:${r.overdue ? "#dc2626" : "#18181b"};">${r.overdue ? "Quá hạn" : "Sắp đến hạn"}</td></tr>`
+    )
+    .join("");
+  return {
+    subject: `${overdueCount > 0 ? "⚠️ " : ""}${props.requests.length} yêu cầu dữ liệu cá nhân cần xử lý trên ${props.orgName}`,
+    html: layout(
+      "Yêu cầu xoá/xuất dữ liệu cá nhân (Nghị định 13/2023/NĐ-CP)",
+      `<p>Có <strong>${props.requests.length}</strong> yêu cầu xoá/xuất dữ liệu cá nhân của lead đang quá hạn hoặc sắp đến hạn phản hồi (72 giờ):</p>
+       <table style="width:100%;border-collapse:collapse;font-size:14px;">${rows}</table>
+       ${button(props.dashboardUrl, "Xem trong Donve")}`
+    )
+  };
+}
+
+export function renderOrderConfirmation(props: OrderConfirmationProps): {
+  subject: string;
+  html: string;
+} {
+  const statusLabel =
+    props.status === "paid" ? "đã xác nhận thanh toán" : "đã kích hoạt";
+  return {
+    subject: `Đơn hàng ${props.orderCode} ${statusLabel}`,
+    html: layout(
+      "Xác nhận đơn hàng",
+      `<p>Đơn hàng <strong>${props.orderCode}</strong> (${props.amount.toLocaleString("vi-VN")}đ) của bạn ${statusLabel}.</p>
+       <p>Cảm ơn bạn đã tin tưởng Donve!</p>`
     )
   };
 }

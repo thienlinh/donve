@@ -24,5 +24,20 @@ export const membershipsRepository = {
           .limit(1)
     );
     return rows[0];
+  },
+
+  /** FR-E-04 round-robin pool — ordered by id (creation order) for a deterministic rotation. */
+  async listByRole(
+    db: Db,
+    orgId: string,
+    role: (typeof memberships.$inferSelect)["role"]
+  ) {
+    return withOrgScope<(typeof memberships.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(memberships)
+        .where(and(eq(memberships.orgId, orgId), eq(memberships.role, role)))
+        .orderBy(memberships.id)
+    );
   }
 };

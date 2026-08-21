@@ -10,10 +10,21 @@ import type { streamText } from "ai";
 export type LanguageModelLike = Parameters<typeof streamText>[0]["model"];
 
 /** BYOK providers plus "workers-ai" — the platform-key provider behind the no-BYOK trial (FR-H-05). */
-export type ProviderId = "openrouter" | "anthropic" | "openai" | "workers-ai";
+export type ProviderId =
+  | "openrouter"
+  | "anthropic"
+  | "openai"
+  | "groq"
+  | "nvidia"
+  | "workers-ai";
 
 /** The subset of ProviderId a tenant can actually connect a key for (registry.ts). */
-export type ByokProviderId = "openrouter" | "anthropic" | "openai";
+export type ByokProviderId =
+  | "openrouter"
+  | "anthropic"
+  | "openai"
+  | "groq"
+  | "nvidia";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -45,9 +56,17 @@ export type StreamPart =
   | { type: "finish"; usage: TokenUsage; finishReason: string }
   | { type: "error"; error: string };
 
+/** One selectable model, with a short human-readable hint when the provider's `/models`
+ * response actually carries one (OpenRouter: pricing + context; others: `owned_by`/
+ * `display_name` if present) — never fabricated for providers that don't supply it. */
+export interface ModelOption {
+  id: string;
+  description?: string;
+}
+
 export interface ValidateKeyResult {
   ok: boolean;
-  models: string[];
+  models: ModelOption[];
 }
 
 export interface AIProvider {
