@@ -44,7 +44,7 @@
   "kv_namespaces": [
     {
       "binding": "HOSTNAME_KV",
-      "id": "dev-placeholder"
+      "id": "6b839c0a78d643bca3e6bc0c699c5394"
     }
   ],
   // Publish outbox reconciliation (architecture.md §5.2, every 5 minutes), FR-I-03 lead
@@ -105,7 +105,7 @@
       "kv_namespaces": [
         {
           "binding": "HOSTNAME_KV",
-          "id": "staging-placeholder"
+          "id": "e4b69e0f52704412b87c3cfc2d819a6e"
         }
       ],
       "triggers": {
@@ -153,7 +153,7 @@
       "kv_namespaces": [
         {
           "binding": "HOSTNAME_KV",
-          "id": "production-placeholder"
+          "id": "0d703f0c92904c089c92903f3b65c304"
         }
       ],
       "triggers": {

@@ -39,5 +39,70 @@
       "namespace_id": "1001",
       "simple": { "limit": 30, "period": 60 }
     }
-  ]
+  ],
+  // Same KV namespace / R2 bucket names apps/api/wrangler.jsonc's env blocks bind — must
+  // match exactly, api writes here and this Worker only reads. Queue names match api's
+  // consumer side (`dv-events-staging`/`dv-events-production`).
+  "env": {
+    "staging": {
+      "name": "dv-edge-router-staging",
+      "kv_namespaces": [
+        {
+          "binding": "HOSTNAME_KV",
+          "id": "e4b69e0f52704412b87c3cfc2d819a6e"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DEPLOYMENTS_BUCKET",
+          "bucket_name": "dv-landing-deployments-staging"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "EVENTS_QUEUE",
+            "queue": "dv-events-staging"
+          }
+        ]
+      },
+      "ratelimits": [
+        {
+          "name": "BEACON_RL",
+          "namespace_id": "1002",
+          "simple": { "limit": 30, "period": 60 }
+        }
+      ]
+    },
+    "production": {
+      "name": "dv-edge-router",
+      "kv_namespaces": [
+        {
+          "binding": "HOSTNAME_KV",
+          "id": "0d703f0c92904c089c92903f3b65c304"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DEPLOYMENTS_BUCKET",
+          "bucket_name": "dv-landing-deployments"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "EVENTS_QUEUE",
+            "queue": "dv-events-production"
+          }
+        ]
+      },
+      "ratelimits": [
+        {
+          "name": "BEACON_RL",
+          "namespace_id": "1003",
+          "simple": { "limit": 30, "period": 60 }
+        }
+      ]
+    }
+  }
 }
