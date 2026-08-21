@@ -303,15 +303,6 @@
         "typescript": "catalog:",
       },
     },
-    "tooling/env-sync": {
-      "name": "@dv/env-sync",
-      "version": "0.0.0",
-      "devDependencies": {
-        "@dv/config": "workspace:*",
-        "bun-types": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
     "tooling/lighthouse-ci": {
       "name": "@dv/lighthouse-ci",
       "version": "0.0.0",
@@ -612,8 +603,6 @@
     "@dv/drivers": ["@dv/drivers@workspace:packages/drivers"],
 
     "@dv/edge-router": ["@dv/edge-router@workspace:apps/edge-router"],
-
-    "@dv/env-sync": ["@dv/env-sync@workspace:tooling/env-sync"],
 
     "@dv/landing-runtime": ["@dv/landing-runtime@workspace:apps/landing-runtime"],
 
