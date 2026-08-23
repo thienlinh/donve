@@ -34,7 +34,7 @@ import { leadKeys } from "../query-keys";
 function filterJsonToState(
   filterJson: Record<string, unknown>
 ): LeadFilterState {
-  const asString = (key: keyof LeadFilterState) =>
+  const asString = (key: Exclude<keyof LeadFilterState, "repeatCustomer">) =>
     typeof filterJson[key] === "string"
       ? filterJson[key]
       : emptyLeadFilters[key];
@@ -45,6 +45,7 @@ function filterJsonToState(
     utmSource: asString("utmSource"),
     assigneeId: asString("assigneeId"),
     paid: asString("paid") as LeadFilterState["paid"],
+    repeatCustomer: filterJson.repeatCustomer === true,
     dateFrom: asString("dateFrom"),
     dateTo: asString("dateTo")
   };
@@ -186,6 +187,13 @@ export function LeadsFilterBar({
           </NativeSelectOption>
         </NativeSelect>
       </div>
+      <label className="flex items-center gap-2 self-end pb-2 text-sm">
+        <Checkbox
+          checked={value.repeatCustomer}
+          onCheckedChange={(checked) => set("repeatCustomer", checked)}
+        />
+        {m.leadsFilterRepeatCustomerLabel()}
+      </label>
       <div className="flex flex-col gap-1.5">
         <label
           className="text-xs text-muted-foreground"

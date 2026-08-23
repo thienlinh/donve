@@ -5,20 +5,9 @@ import {
 } from "@dv/contracts";
 import { z } from "zod";
 
-/** Same fetch pattern as `features/ai-connections/api.ts` — cookie session lives on the API origin. */
-async function domainsFetch(
-  path: string,
-  init?: RequestInit
-): Promise<Response> {
-  const headers = new Headers(init?.headers);
-  headers.set("content-type", "application/json");
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/domains${path}`,
-    { ...init, credentials: "include", headers }
-  );
-  if (!res.ok) throw new Error(`domains api ${path} failed: ${res.status}`);
-  return res;
-}
+import { createApiFetch } from "@/lib/api-client";
+
+const domainsFetch = createApiFetch("domains");
 
 const domainListResponseSchema = z.object({
   domains: z.array(customDomainSchema)

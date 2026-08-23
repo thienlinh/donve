@@ -11,95 +11,19 @@ import {
   SidebarMenuItem
 } from "@dv/ui/components/shadcn/sidebar";
 import { Link, useLocation } from "@tanstack/react-router";
-import {
-  Bot,
-  Contact,
-  FileText,
-  GitCompareArrows,
-  Globe,
-  Landmark,
-  LayoutTemplate,
-  Megaphone,
-  Package,
-  RotateCcw,
-  Settings,
-  Sparkles,
-  Users
-} from "lucide-react";
 
-import * as m from "@/paraglide/messages.js";
-
-const navGroups = [
-  {
-    label: () => m.shellGroupContent(),
-    items: [
-      {
-        to: "/landings",
-        label: () => m.shellLandingsNav(),
-        icon: LayoutTemplate
-      },
-      { to: "/domains", label: () => m.shellDomainsNav(), icon: Globe }
-    ]
-  },
-  {
-    label: () => m.shellGroupSales(),
-    items: [
-      { to: "/leads", label: () => m.shellLeadsNav(), icon: Contact },
-      { to: "/campaigns", label: () => m.shellCampaignsNav(), icon: Megaphone },
-      { to: "/products", label: () => m.shellProductsNav(), icon: Package }
-    ]
-  },
-  {
-    label: () => m.shellGroupAi(),
-    items: [
-      { to: "/ai-connections", label: () => m.shellAiNav(), icon: Bot },
-      { to: "/skills", label: () => m.shellSkillsNav(), icon: Sparkles },
-      {
-        to: "/prompt-templates",
-        label: () => m.shellPromptTemplatesNav(),
-        icon: FileText
-      }
-    ]
-  },
-  {
-    label: () => m.shellGroupPayments(),
-    items: [
-      {
-        to: "/payment-connections",
-        label: () => m.shellPaymentsNav(),
-        icon: Landmark
-      },
-      {
-        to: "/reconciliation",
-        label: () => m.shellReconciliationNav(),
-        icon: GitCompareArrows
-      },
-      {
-        to: "/refund-requests",
-        label: () => m.shellRefundRequestsNav(),
-        icon: RotateCcw
-      }
-    ]
-  },
-  {
-    label: () => m.shellGroupOrganization(),
-    items: [
-      { to: "/members", label: () => m.shellMembersNav(), icon: Users },
-      { to: "/settings", label: () => m.shellSettingsNav(), icon: Settings }
-    ]
-  }
-] as const;
+import { navGroups } from "./nav-items";
 
 export function Sidebar() {
   const location = useLocation();
 
   return (
     <SidebarPrimitive collapsible="icon">
-      <SidebarHeader className="items-start px-2 py-3">
-        <div className="grid">
+      <SidebarHeader className="items-start px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+        <div className="grid place-items-center">
           <Logo
             variant="full"
-            className="col-start-1 row-start-1 h-10 w-auto opacity-100 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0"
+            className="col-start-1 row-start-1 h-8 w-auto opacity-100 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0"
           />
           <Logo
             variant="mark"
@@ -107,18 +31,21 @@ export function Sidebar() {
           />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="gap-1 px-1">
         {navGroups.map((group) => (
-          <SidebarGroup key={group.label()}>
-            <SidebarGroupLabel>{group.label()}</SidebarGroupLabel>
+          <SidebarGroup key={group.label()} className="py-1.5">
+            <SidebarGroupLabel className="px-3 text-[11px] tracking-wide uppercase">
+              {group.label()}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-0.5">
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
                       isActive={location.pathname.startsWith(item.to)}
                       tooltip={item.label()}
                       render={<Link to={item.to} />}
+                      className="rounded-lg border-s-2 border-transparent ps-2.5 text-sidebar-foreground/80 group-data-[collapsible=icon]:border-s-0 data-active:border-brand data-active:bg-brand-soft data-active:font-medium data-active:text-brand"
                     >
                       <item.icon />
                       <span>{item.label()}</span>

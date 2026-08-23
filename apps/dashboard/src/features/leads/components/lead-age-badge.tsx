@@ -54,3 +54,15 @@ export function LeadUnreadDot({ show }: { show: boolean }) {
     />
   );
 }
+
+/** 2+ orders across this lead's lifetime (any campaign — `orderCount` already spans every
+ * resubmit merged onto the same phone-deduped row, see `leads.ts` repository). `orderCount`
+ * is only present on list-row responses, same rollout-safety reasoning as `LeadAgeBadge`. */
+export function LeadRepeatCustomerBadge({
+  orderCount
+}: {
+  orderCount: number | undefined;
+}) {
+  if (!orderCount || orderCount < 2) return null;
+  return <Badge variant="outline">{m.leadsRepeatCustomerBadge()}</Badge>;
+}

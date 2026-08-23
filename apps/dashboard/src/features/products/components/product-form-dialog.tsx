@@ -7,16 +7,6 @@ import {
   type ProductType
 } from "@dv/contracts";
 import { Button } from "@dv/ui/components/shadcn/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@dv/ui/components/shadcn/dialog";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
@@ -31,6 +21,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { FormDialog } from "@/components/form-dialog";
 import { fromDateInputValue, toDateInputValue } from "@/lib/date-input";
 import * as m from "@/paraglide/messages.js";
 
@@ -141,161 +132,141 @@ export function ProductFormDialog({ product }: { product?: Product }) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            size={isEdit ? "icon-sm" : "sm"}
-            variant={isEdit ? "ghost" : "default"}
-          >
-            {isEdit ? m.commonEdit() : m.productsAddButton()}
-          </Button>
-        }
-      />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? m.productsEditDialogTitle() : m.productsAddDialogTitle()}
-          </DialogTitle>
-          <DialogDescription>{m.productsDialogDescription()}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button
+          size={isEdit ? "icon-sm" : "sm"}
+          variant={isEdit ? "ghost" : "default"}
+        >
+          {isEdit ? m.commonEdit() : m.productsAddButton()}
+        </Button>
+      }
+      title={isEdit ? m.productsEditDialogTitle() : m.productsAddDialogTitle()}
+      description={m.productsDialogDescription()}
+      submitLabel={m.productsSaveSubmit()}
+      isPending={isSubmitting || save.isPending}
+      onSubmit={onSubmit}
+    >
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="product-type">{m.productsTypeLabel()}</Label>
+        <NativeSelect
+          id="product-type"
+          className="w-full"
+          {...register("type")}
+        >
+          {productTypeValues.map((value) => (
+            <NativeSelectOption key={value} value={value}>
+              {productTypeLabels[value]}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="product-name">{m.productsNameLabel()}</Label>
+        <Input id="product-name" className="w-full" {...register("name")} />
+        {errors.name && (
+          <p className="text-xs text-destructive">{errors.name.message}</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="product-price">{m.productsPriceLabel()}</Label>
+        <Input
+          id="product-price"
+          type="number"
+          min={0}
+          step={1000}
+          className="w-full"
+          {...register("price")}
+        />
+        {errors.price && (
+          <p className="text-xs text-destructive">{errors.price.message}</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="product-description">
+          {m.productsDescriptionLabel()}
+        </Label>
+        <Textarea
+          id="product-description"
+          className="w-full"
+          rows={3}
+          {...register("description")}
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="product-image">{m.productsImageLabel()}</Label>
+        <Input
+          id="product-image"
+          className="w-full"
+          value={local.imageUrl}
+          onChange={(e) =>
+            setLocal((prev) => ({ ...prev, imageUrl: e.target.value }))
+          }
+          placeholder="https://..."
+        />
+      </div>
+      {type === "course" && (
+        <div className="flex flex-col gap-3 rounded-md border p-3">
+          <span className="text-xs font-medium text-muted-foreground">
+            {m.productsCourseFieldsTitle()}
+          </span>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-type">{m.productsTypeLabel()}</Label>
-            <NativeSelect
-              id="product-type"
-              className="w-full"
-              {...register("type")}
-            >
-              {productTypeValues.map((value) => (
-                <NativeSelectOption key={value} value={value}>
-                  {productTypeLabels[value]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-name">{m.productsNameLabel()}</Label>
-            <Input id="product-name" className="w-full" {...register("name")} />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-price">{m.productsPriceLabel()}</Label>
+            <Label htmlFor="course-zalo">{m.productsCourseZaloLabel()}</Label>
             <Input
-              id="product-price"
-              type="number"
-              min={0}
-              step={1000}
+              id="course-zalo"
               className="w-full"
-              {...register("price")}
+              {...register("attributes.zaloGroupUrl")}
+              placeholder="https://zalo.me/g/..."
             />
-            {errors.price && (
-              <p className="text-xs text-destructive">{errors.price.message}</p>
-            )}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-description">
-              {m.productsDescriptionLabel()}
+            <Label htmlFor="course-activation">
+              {m.productsCourseActivationLabel()}
             </Label>
             <Textarea
-              id="product-description"
+              id="course-activation"
               className="w-full"
-              rows={3}
-              {...register("description")}
+              rows={2}
+              {...register("attributes.activationInstructions")}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-image">{m.productsImageLabel()}</Label>
-            <Input
-              id="product-image"
+            <Label htmlFor="course-schedule">
+              {m.productsCourseClassScheduleLabel()}
+            </Label>
+            <Textarea
+              id="course-schedule"
               className="w-full"
-              value={local.imageUrl}
-              onChange={(e) =>
-                setLocal((prev) => ({ ...prev, imageUrl: e.target.value }))
-              }
-              placeholder="https://..."
+              rows={2}
+              {...register("attributes.classSchedule")}
             />
           </div>
-          {type === "course" && (
-            <div className="flex flex-col gap-3 rounded-md border p-3">
-              <span className="text-xs font-medium text-muted-foreground">
-                {m.productsCourseFieldsTitle()}
-              </span>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="course-zalo">
-                  {m.productsCourseZaloLabel()}
-                </Label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="course-starts-at">
+              {m.productsCourseStartsAtLabel()}
+            </Label>
+            <Controller
+              control={control}
+              name="attributes.startsAt"
+              render={({ field }) => (
                 <Input
-                  id="course-zalo"
+                  id="course-starts-at"
+                  type="date"
                   className="w-full"
-                  {...register("attributes.zaloGroupUrl")}
-                  placeholder="https://zalo.me/g/..."
+                  value={toDateInputValue(field.value)}
+                  onChange={(e) =>
+                    field.onChange(
+                      fromDateInputValue(e.target.value) ?? undefined
+                    )
+                  }
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="course-activation">
-                  {m.productsCourseActivationLabel()}
-                </Label>
-                <Textarea
-                  id="course-activation"
-                  className="w-full"
-                  rows={2}
-                  {...register("attributes.activationInstructions")}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="course-schedule">
-                  {m.productsCourseClassScheduleLabel()}
-                </Label>
-                <Textarea
-                  id="course-schedule"
-                  className="w-full"
-                  rows={2}
-                  {...register("attributes.classSchedule")}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="course-starts-at">
-                  {m.productsCourseStartsAtLabel()}
-                </Label>
-                <Controller
-                  control={control}
-                  name="attributes.startsAt"
-                  render={({ field }) => (
-                    <Input
-                      id="course-starts-at"
-                      type="date"
-                      className="w-full"
-                      value={toDateInputValue(field.value)}
-                      onChange={(e) =>
-                        field.onChange(
-                          fromDateInputValue(e.target.value) ?? undefined
-                        )
-                      }
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <DialogClose
-              render={
-                <Button type="button" variant="outline">
-                  {m.commonCancel()}
-                </Button>
-              }
+              )}
             />
-            <Button type="submit" disabled={isSubmitting || save.isPending}>
-              {isSubmitting || save.isPending
-                ? m.commonLoading()
-                : m.productsSaveSubmit()}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </div>
+      )}
+    </FormDialog>
   );
 }

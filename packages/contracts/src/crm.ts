@@ -42,7 +42,11 @@ export const leadSchema = z.object({
     ])
     .optional(),
   lastViewedAt: z.coerce.date().nullable().optional(),
-  hoursSinceActivity: z.number().nonnegative().optional()
+  hoursSinceActivity: z.number().nonnegative().optional(),
+  /** lifetime order count/spend across every campaign this lead ever ordered from — only
+   * present on list-row responses (`GET /leads`), same as `hoursSinceActivity`. */
+  orderCount: z.number().int().nonnegative().optional(),
+  totalPaidAmount: z.number().int().nonnegative().optional()
 });
 export type Lead = z.infer<typeof leadSchema>;
 export type LeadSource = NonNullable<Lead["source"]>;
@@ -455,6 +459,8 @@ export const leadListQuerySchema = z.object({
   assigneeId: z.union([ulidSchema, z.literal("unassigned")]).optional(),
   /** filters against `orders.status` — `true` means any paid/fulfilled order exists. */
   paid: z.coerce.boolean().optional(),
+  /** `true` means 2+ orders exist for this lead — a returning customer. */
+  repeatCustomer: z.coerce.boolean().optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
   /** matched against fullName/phone/email. */

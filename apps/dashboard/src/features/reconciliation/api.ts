@@ -9,20 +9,9 @@ import {
 } from "@dv/contracts";
 import { z } from "zod";
 
-/** Same fetch pattern as `features/payment-connections/api.ts` — cookie session lives on the API origin. */
-async function paymentsFetch(
-  path: string,
-  init?: RequestInit
-): Promise<Response> {
-  const headers = new Headers(init?.headers);
-  headers.set("content-type", "application/json");
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/payments${path}`,
-    { ...init, credentials: "include", headers }
-  );
-  if (!res.ok) throw new Error(`payments api ${path} failed: ${res.status}`);
-  return res;
-}
+import { createApiFetch } from "@/lib/api-client";
+
+const paymentsFetch = createApiFetch("payments");
 
 const unmatchedListResponseSchema = z.object({
   transactions: z.array(unmatchedTransactionWithCandidatesSchema)

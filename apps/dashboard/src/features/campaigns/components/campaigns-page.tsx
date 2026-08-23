@@ -21,13 +21,6 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,6 +34,8 @@ import { BarChart3, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Pagination } from "@/components/pagination";
+import { QueryState } from "@/components/query-state";
+import { getTotalPages, usePagedQuery } from "@/hooks/use-paged-query";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchCampaignsPage, removeCampaign } from "../api";
@@ -54,16 +49,13 @@ import {
 const PAGE_SIZE = 20;
 
 export function CampaignsPage() {
-  const [page, setPage] = useState(1);
-  const query = { page, pageSize: PAGE_SIZE };
+  const { setPage, query } = usePagedQuery(PAGE_SIZE);
   const { data, isPending, error } = useQuery({
     queryKey: campaignKeys.listPage(query),
     queryFn: () => fetchCampaignsPage(query)
   });
   const campaigns = data?.campaigns;
-  const totalPages = data
-    ? Math.max(1, Math.ceil(data.total / data.pageSize))
-    : 1;
+  const totalPages = getTotalPages(data);
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
@@ -76,26 +68,13 @@ export function CampaignsPage() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.campaignsLoadErrorTitle()}</EmptyTitle>
-                <EmptyDescription>{error.message}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-          {campaigns && campaigns.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.campaignsEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={campaigns?.length === 0}
+            errorTitle={m.campaignsLoadErrorTitle()}
+            emptyTitle={m.campaignsEmptyTitle()}
+          />
           {campaigns && campaigns.length > 0 && (
             <Table>
               <TableHeader>

@@ -2,13 +2,6 @@ import type { Lead, LeadListQuery } from "@dv/contracts";
 import { Badge } from "@dv/ui/components/shadcn/badge";
 import { Checkbox } from "@dv/ui/components/shadcn/checkbox";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -20,12 +13,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { Pagination } from "@/components/pagination";
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, type PipelineStage } from "../api";
 import { leadKeys } from "../query-keys";
-import { LeadAgeBadge, isLeadUnread, LeadUnreadDot } from "./lead-age-badge";
+import {
+  isLeadUnread,
+  LeadAgeBadge,
+  LeadRepeatCustomerBadge,
+  LeadUnreadDot
+} from "./lead-age-badge";
 import { LeadAssigneeAvatar } from "./lead-assignee-avatar";
 import { LeadsBulkToolbar } from "./leads-bulk-toolbar";
 
@@ -52,32 +51,27 @@ export function LeadsTable({
   const stageLabel = (key: string) =>
     pipeline.find((stage) => stage.key === key)?.label ?? key;
 
-  if (isPending) {
+  if (isPending || error) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{m.leadsLoadErrorTitle()}</EmptyTitle>
-          <EmptyDescription>{error.message}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <QueryState
+        isPending={isPending}
+        error={error}
+        isEmpty={false}
+        errorTitle={m.leadsLoadErrorTitle()}
+        emptyTitle={m.leadsEmptyTitle()}
+      />
     );
   }
 
   if (data.leads.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{m.leadsEmptyTitle()}</EmptyTitle>
-        </EmptyHeader>
-      </Empty>
+      <QueryState
+        isPending={false}
+        error={null}
+        isEmpty
+        errorTitle={m.leadsLoadErrorTitle()}
+        emptyTitle={m.leadsEmptyTitle()}
+      />
     );
   }
 
@@ -147,6 +141,7 @@ export function LeadsTable({
                 <span className="flex items-center gap-1.5">
                   <LeadUnreadDot show={isLeadUnread(lead)} />
                   {lead.fullName}
+                  <LeadRepeatCustomerBadge orderCount={lead.orderCount} />
                 </span>
               </TableCell>
               <TableCell

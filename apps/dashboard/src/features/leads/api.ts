@@ -47,18 +47,9 @@ import {
 } from "@dv/contracts";
 import { z } from "zod";
 
-/** Same fetch pattern as `features/campaigns/api.ts` — cookie session lives on the API origin. */
-async function leadsFetch(path: string, init?: RequestInit): Promise<Response> {
-  const headers = new Headers(init?.headers);
-  headers.set("content-type", "application/json");
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/leads${path}`, {
-    ...init,
-    credentials: "include",
-    headers
-  });
-  if (!res.ok) throw new Error(`leads api ${path} failed: ${res.status}`);
-  return res;
-}
+import { createApiFetch } from "@/lib/api-client";
+
+const leadsFetch = createApiFetch("leads");
 
 const pipelineResponseSchema = z.object({
   stages: z.array(
@@ -95,6 +86,13 @@ export async function fetchLeads(
 ): Promise<LeadListResponse> {
   const res = await leadsFetch(`?${toQueryString(query)}`);
   return leadListResponseSchema.parse(await res.json());
+}
+
+/** Full filtered export (server ignores `page`/`pageSize`, see `GET /leads/export`) — distinct
+ * from the bulk toolbar's client-built CSV, which only covers the currently selected rows. */
+export async function fetchLeadsExport(query: LeadListQuery): Promise<Blob> {
+  const res = await leadsFetch(`/export?${toQueryString(query)}`);
+  return res.blob();
 }
 
 export async function fetchLeadDetail(id: string): Promise<LeadDetail> {

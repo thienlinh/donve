@@ -121,7 +121,7 @@ function generateErrorCopy(
         title: m.studioGenerateErrorInsufficientCreditsTitle(),
         description: m.studioGenerateErrorInsufficientCreditsDescription(),
         action: (
-          <Button render={<Link to="/ai-connections" />}>
+          <Button nativeButton={false} render={<Link to="/ai-connections" />}>
             {m.studioGenerateErrorBuyCreditsButton()}
           </Button>
         )

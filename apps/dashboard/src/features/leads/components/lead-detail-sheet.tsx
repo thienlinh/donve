@@ -46,6 +46,8 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useActiveOrganization } from "@/features/auth/auth-client";
+import { fetchCampaigns } from "@/features/campaigns/api";
+import { campaignKeys } from "@/features/campaigns/query-keys";
 import { fetchOrderRefundRequests } from "@/features/refund-requests/api";
 import { refundRequestKeys } from "@/features/refund-requests/query-keys";
 import { fromDateInputValue, toDateInputValue } from "@/lib/date-input";
@@ -62,6 +64,7 @@ import {
   updateLeadOrderStatus
 } from "../api";
 import { leadKeys } from "../query-keys";
+import { LeadRepeatCustomerBadge } from "./lead-age-badge";
 
 const ACTIVITY_LABELS: Record<LeadActivity["type"], () => string> = {
   note: m.leadsActivityNote,
@@ -113,6 +116,13 @@ function LeadDetailBody({ leadId }: { leadId: string }) {
   const { data, isPending } = useQuery({
     queryKey: leadKeys.detail(leadId),
     queryFn: () => fetchLeadDetail(leadId)
+  });
+  // Orders can span campaigns other than the lead's current `campaign` (a resubmit from a
+  // later campaign merges onto the same phone-deduped lead) — name lookup for the per-order
+  // campaign shown in the CSKH history below. Shares the cache `LeadsFilterBar` already warms.
+  const { data: campaigns } = useQuery({
+    queryKey: campaignKeys.list(),
+    queryFn: fetchCampaigns
   });
   const [note, setNote] = useState("");
   const [pendingTransition, setPendingTransition] = useState<{
@@ -179,15 +189,31 @@ function LeadDetailBody({ leadId }: { leadId: string }) {
   }
 
   const { lead, activities, orders, campaign } = data;
+  const campaignNameById = new Map(
+    campaigns?.map((c) => [c.id, c.name] as const)
+  );
+  const totalPaidAmount = orders
+    .filter((order) => order.status === "paid" || order.status === "fulfilled")
+    .reduce((sum, order) => sum + order.amount, 0);
 
   return (
     <div className="flex flex-col gap-6">
       <SheetHeader className="p-0">
-        <SheetTitle>{lead.fullName}</SheetTitle>
+        <SheetTitle className="flex items-center gap-2">
+          {lead.fullName}
+          <LeadRepeatCustomerBadge orderCount={orders.length} />
+        </SheetTitle>
         <SheetDescription>{lead.phone}</SheetDescription>
         {campaign && (
           <span className="text-xs text-muted-foreground">
             {m.leadsCampaignLabel()}: {campaign.name}
+          </span>
+        )}
+        {orders.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {m.leadsOrderCountLabel()}: {orders.length}
+            {totalPaidAmount > 0 &&
+              ` · ${m.leadsTotalPaidLabel()}: ${totalPaidAmount.toLocaleString("vi-VN")}đ`}
           </span>
         )}
       </SheetHeader>
@@ -265,6 +291,8 @@ function LeadDetailBody({ leadId }: { leadId: string }) {
               </div>
               <span className="text-sm text-muted-foreground">
                 {order.amount.toLocaleString("vi-VN")}đ
+                {campaignNameById.has(order.campaignId) &&
+                  ` · ${campaignNameById.get(order.campaignId)}`}
               </span>
               {ORDER_TRANSITIONS[order.status].length > 0 && (
                 <div className="flex flex-wrap gap-2">

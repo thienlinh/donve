@@ -4,6 +4,7 @@ import {
 } from "@dv/ui/components/shadcn/sidebar";
 import type { ReactNode } from "react";
 
+import { CommandPalette } from "./command-palette";
 import { PendingInvitationsBanner } from "./pending-invitations-banner";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="min-w-0 flex-1">{children}</div>
         </main>
       </SidebarInset>
+      <CommandPalette />
     </SidebarProvider>
   );
 }

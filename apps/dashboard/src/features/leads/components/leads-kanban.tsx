@@ -24,12 +24,18 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, updateLeadStage, type PipelineStage } from "../api";
 import { leadKeys } from "../query-keys";
-import { LeadAgeBadge, isLeadUnread, LeadUnreadDot } from "./lead-age-badge";
+import {
+  isLeadUnread,
+  LeadAgeBadge,
+  LeadRepeatCustomerBadge,
+  LeadUnreadDot
+} from "./lead-age-badge";
 import { LeadAssigneeAvatar } from "./lead-assignee-avatar";
 
 /** Kept comfortably under `leadListQuerySchema`'s `pageSize` cap of 100 (contracts/crm.ts) —
@@ -103,21 +109,27 @@ function KanbanColumn({
     stage: stage.key
   };
 
-  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: leadKeys.list(stageQuery),
-      queryFn: ({ pageParam }) =>
-        fetchLeads({
-          ...stageQuery,
-          page: pageParam,
-          pageSize: KANBAN_COLUMN_PAGE_SIZE
-        }),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) =>
-        lastPage.page * lastPage.pageSize < lastPage.total
-          ? lastPage.page + 1
-          : undefined
-    });
+  const {
+    data,
+    error,
+    isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: leadKeys.list(stageQuery),
+    queryFn: ({ pageParam }) =>
+      fetchLeads({
+        ...stageQuery,
+        page: pageParam,
+        pageSize: KANBAN_COLUMN_PAGE_SIZE
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page * lastPage.pageSize < lastPage.total
+        ? lastPage.page + 1
+        : undefined
+  });
 
   const leads = data?.pages.flatMap((page) => page.leads) ?? EMPTY_LEADS;
   const total = data?.pages[0]?.total ?? leads.length;
@@ -135,10 +147,15 @@ function KanbanColumn({
         <span className="text-sm font-medium">{stage.label}</span>
         <span className="text-xs text-muted-foreground">{total}</span>
       </div>
-      {isPending ? (
-        <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-          <Spinner /> {m.commonLoading()}
-        </div>
+      {isPending || error ? (
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={false}
+          errorTitle={m.leadsLoadErrorTitle()}
+          emptyTitle={m.leadsEmptyTitle()}
+          className="flex items-center gap-2 px-1 text-xs text-muted-foreground"
+        />
       ) : (
         <div className="flex min-h-24 flex-col gap-2">
           {leads.length === 0 && (
@@ -195,9 +212,12 @@ function KanbanCard({
           members={activeOrganization?.members}
         />
       </CardHeader>
-      <CardContent className="flex items-center justify-between gap-2 px-3 pb-3 text-xs text-muted-foreground">
+      <CardContent className="flex flex-wrap items-center justify-between gap-1.5 px-3 pb-3 text-xs text-muted-foreground">
         {lead.phone}
-        <LeadAgeBadge hoursSinceActivity={lead.hoursSinceActivity} />
+        <span className="flex items-center gap-1.5">
+          <LeadRepeatCustomerBadge orderCount={lead.orderCount} />
+          <LeadAgeBadge hoursSinceActivity={lead.hoursSinceActivity} />
+        </span>
       </CardContent>
     </Card>
   );

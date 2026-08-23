@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -29,21 +29,21 @@ import { Route as AuthenticatedReconciliationRouteImport } from './routes/_authe
 import { Route as AuthenticatedRefundRequestsRouteImport } from './routes/_authenticated/refund-requests'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
-import { Route as AuthenticatedLandingsIndexRouteImport } from './routes/_authenticated/landings.index'
-import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
-import { Route as AuthenticatedLeadsAssignmentRulesRouteImport } from './routes/_authenticated/leads.assignment-rules'
-import { Route as AuthenticatedLeadsNotifySettingsRouteImport } from './routes/_authenticated/leads.notify-settings'
-import { Route as AuthenticatedLeadsWebhookSettingsRouteImport } from './routes/_authenticated/leads.webhook-settings'
-import { Route as AuthenticatedPromptTemplatesIndexRouteImport } from './routes/_authenticated/prompt-templates.index'
-import { Route as AuthenticatedPromptTemplatesIdRouteImport } from './routes/_authenticated/prompt-templates.$id'
-import { Route as AuthenticatedLandingsIdStudioRouteImport } from './routes/_authenticated/landings.$id.studio'
+import { Route as AuthenticatedLandingsIndexRouteImport } from './routes/_authenticated/landings/index'
+import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads/index'
+import { Route as AuthenticatedLeadsAssignmentRulesRouteImport } from './routes/_authenticated/leads/assignment-rules'
+import { Route as AuthenticatedLeadsNotifySettingsRouteImport } from './routes/_authenticated/leads/notify-settings'
+import { Route as AuthenticatedLeadsWebhookSettingsRouteImport } from './routes/_authenticated/leads/webhook-settings'
+import { Route as AuthenticatedPromptTemplatesIndexRouteImport } from './routes/_authenticated/prompt-templates/index'
+import { Route as AuthenticatedPromptTemplatesIdRouteImport } from './routes/_authenticated/prompt-templates/$id'
+import { Route as AuthenticatedLandingsIdStudioRouteImport } from './routes/_authenticated/landings/$id.studio'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -81,112 +81,112 @@ const AuthenticatedAiConnectionsRoute =
   AuthenticatedAiConnectionsRouteImport.update({
     id: '/ai-connections',
     path: '/ai-connections',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCampaignsRoute = AuthenticatedCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDomainsRoute = AuthenticatedDomainsRouteImport.update({
   id: '/domains',
   path: '/domains',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
   path: '/members',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPaymentConnectionsRoute =
   AuthenticatedPaymentConnectionsRouteImport.update({
     id: '/payment-connections',
     path: '/payment-connections',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
   id: '/platform',
   path: '/platform',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedReconciliationRoute =
   AuthenticatedReconciliationRouteImport.update({
     id: '/reconciliation',
     path: '/reconciliation',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRefundRequestsRoute =
   AuthenticatedRefundRequestsRouteImport.update({
     id: '/refund-requests',
     path: '/refund-requests',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLandingsIndexRoute =
   AuthenticatedLandingsIndexRouteImport.update({
     id: '/landings/',
     path: '/landings/',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLeadsAssignmentRulesRoute =
   AuthenticatedLeadsAssignmentRulesRouteImport.update({
     id: '/leads/assignment-rules',
     path: '/leads/assignment-rules',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLeadsNotifySettingsRoute =
   AuthenticatedLeadsNotifySettingsRouteImport.update({
     id: '/leads/notify-settings',
     path: '/leads/notify-settings',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLeadsWebhookSettingsRoute =
   AuthenticatedLeadsWebhookSettingsRouteImport.update({
     id: '/leads/webhook-settings',
     path: '/leads/webhook-settings',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPromptTemplatesIndexRoute =
   AuthenticatedPromptTemplatesIndexRouteImport.update({
     id: '/prompt-templates/',
     path: '/prompt-templates/',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPromptTemplatesIdRoute =
   AuthenticatedPromptTemplatesIdRouteImport.update({
     id: '/prompt-templates/$id',
     path: '/prompt-templates/$id',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLandingsIdStudioRoute =
   AuthenticatedLandingsIdStudioRouteImport.update({
     id: '/landings/$id/studio',
     path: '/landings/$id/studio',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -250,7 +250,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -371,7 +371,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -393,7 +393,7 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -443,145 +443,145 @@ declare module '@tanstack/react-router' {
       path: '/ai-connections'
       fullPath: '/ai-connections'
       preLoaderRoute: typeof AuthenticatedAiConnectionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/campaigns': {
       id: '/_authenticated/campaigns'
       path: '/campaigns'
       fullPath: '/campaigns'
       preLoaderRoute: typeof AuthenticatedCampaignsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/domains': {
       id: '/_authenticated/domains'
       path: '/domains'
       fullPath: '/domains'
       preLoaderRoute: typeof AuthenticatedDomainsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/members': {
       id: '/_authenticated/members'
       path: '/members'
       fullPath: '/members'
       preLoaderRoute: typeof AuthenticatedMembersRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payment-connections': {
       id: '/_authenticated/payment-connections'
       path: '/payment-connections'
       fullPath: '/payment-connections'
       preLoaderRoute: typeof AuthenticatedPaymentConnectionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform': {
       id: '/_authenticated/platform'
       path: '/platform'
       fullPath: '/platform'
       preLoaderRoute: typeof AuthenticatedPlatformRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products': {
       id: '/_authenticated/products'
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof AuthenticatedProductsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reconciliation': {
       id: '/_authenticated/reconciliation'
       path: '/reconciliation'
       fullPath: '/reconciliation'
       preLoaderRoute: typeof AuthenticatedReconciliationRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/refund-requests': {
       id: '/_authenticated/refund-requests'
       path: '/refund-requests'
       fullPath: '/refund-requests'
       preLoaderRoute: typeof AuthenticatedRefundRequestsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/skills': {
       id: '/_authenticated/skills'
       path: '/skills'
       fullPath: '/skills'
       preLoaderRoute: typeof AuthenticatedSkillsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/landings/': {
       id: '/_authenticated/landings/'
       path: '/landings'
       fullPath: '/landings/'
       preLoaderRoute: typeof AuthenticatedLandingsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads/': {
       id: '/_authenticated/leads/'
       path: '/leads'
       fullPath: '/leads/'
       preLoaderRoute: typeof AuthenticatedLeadsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads/assignment-rules': {
       id: '/_authenticated/leads/assignment-rules'
       path: '/leads/assignment-rules'
       fullPath: '/leads/assignment-rules'
       preLoaderRoute: typeof AuthenticatedLeadsAssignmentRulesRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads/notify-settings': {
       id: '/_authenticated/leads/notify-settings'
       path: '/leads/notify-settings'
       fullPath: '/leads/notify-settings'
       preLoaderRoute: typeof AuthenticatedLeadsNotifySettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads/webhook-settings': {
       id: '/_authenticated/leads/webhook-settings'
       path: '/leads/webhook-settings'
       fullPath: '/leads/webhook-settings'
       preLoaderRoute: typeof AuthenticatedLeadsWebhookSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/prompt-templates/': {
       id: '/_authenticated/prompt-templates/'
       path: '/prompt-templates'
       fullPath: '/prompt-templates/'
       preLoaderRoute: typeof AuthenticatedPromptTemplatesIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/prompt-templates/$id': {
       id: '/_authenticated/prompt-templates/$id'
       path: '/prompt-templates/$id'
       fullPath: '/prompt-templates/$id'
       preLoaderRoute: typeof AuthenticatedPromptTemplatesIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/landings/$id/studio': {
       id: '/_authenticated/landings/$id/studio'
       path: '/landings/$id/studio'
       fullPath: '/landings/$id/studio'
       preLoaderRoute: typeof AuthenticatedLandingsIdStudioRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteChildren {
+interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiConnectionsRoute: typeof AuthenticatedAiConnectionsRoute
   AuthenticatedCampaignsRoute: typeof AuthenticatedCampaignsRoute
   AuthenticatedDomainsRoute: typeof AuthenticatedDomainsRoute
@@ -604,7 +604,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLandingsIdStudioRoute: typeof AuthenticatedLandingsIdStudioRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiConnectionsRoute: AuthenticatedAiConnectionsRoute,
   AuthenticatedCampaignsRoute: AuthenticatedCampaignsRoute,
   AuthenticatedDomainsRoute: AuthenticatedDomainsRoute,
@@ -630,13 +630,12 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLandingsIdStudioRoute: AuthenticatedLandingsIdStudioRoute,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,

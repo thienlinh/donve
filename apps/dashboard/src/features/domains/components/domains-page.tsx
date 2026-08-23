@@ -21,13 +21,6 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -40,6 +33,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -92,26 +86,13 @@ export function DomainsPage() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.domainsLoadErrorTitle()}</EmptyTitle>
-                <EmptyDescription>{error.message}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-          {domains && domains.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.domainsEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={domains?.length === 0}
+            errorTitle={m.domainsLoadErrorTitle()}
+            emptyTitle={m.domainsEmptyTitle()}
+          />
           {domains && domains.length > 0 && (
             <Table>
               <TableHeader>

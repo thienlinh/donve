@@ -8,6 +8,7 @@ export interface LeadFilterState {
   utmSource: string;
   assigneeId: string;
   paid: "" | "true" | "false";
+  repeatCustomer: boolean;
   dateFrom: string;
   dateTo: string;
   search: string;
@@ -19,6 +20,7 @@ export const emptyLeadFilters: LeadFilterState = {
   utmSource: "",
   assigneeId: "",
   paid: "",
+  repeatCustomer: false,
   dateFrom: "",
   dateTo: "",
   search: ""
@@ -34,6 +36,7 @@ export interface LeadSearchParams {
   utmSource?: string;
   assigneeId?: string;
   paid?: "true" | "false";
+  repeatCustomer?: "true";
   dateFrom?: string;
   dateTo?: string;
 }
@@ -46,6 +49,7 @@ export function searchToFilters(search: LeadSearchParams): LeadFilterState {
     utmSource: search.utmSource ?? "",
     assigneeId: search.assigneeId ?? "",
     paid: search.paid ?? "",
+    repeatCustomer: search.repeatCustomer === "true",
     dateFrom: search.dateFrom ?? "",
     dateTo: search.dateTo ?? ""
   };
@@ -59,6 +63,7 @@ export function filtersToSearch(filters: LeadFilterState): LeadSearchParams {
     utmSource: filters.utmSource || undefined,
     assigneeId: filters.assigneeId || undefined,
     paid: filters.paid || undefined,
+    repeatCustomer: filters.repeatCustomer ? "true" : undefined,
     dateFrom: filters.dateFrom || undefined,
     dateTo: filters.dateTo || undefined
   };
@@ -77,6 +82,7 @@ export function toLeadListQuery(
     utmSource: filters.utmSource || undefined,
     assigneeId: filters.assigneeId || undefined,
     paid: filters.paid === "" ? undefined : filters.paid === "true",
+    repeatCustomer: filters.repeatCustomer || undefined,
     dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
     dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
     search: filters.search || undefined,

@@ -8,20 +8,9 @@ import {
   type UpdateProductInput
 } from "@dv/contracts";
 
-/** Same fetch pattern as `features/ai-connections/api.ts` — cookie session lives on the API origin. */
-async function productsFetch(
-  path: string,
-  init?: RequestInit
-): Promise<Response> {
-  const headers = new Headers(init?.headers);
-  headers.set("content-type", "application/json");
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/products${path}`,
-    { ...init, credentials: "include", headers }
-  );
-  if (!res.ok) throw new Error(`products api ${path} failed: ${res.status}`);
-  return res;
-}
+import { createApiFetch } from "@/lib/api-client";
+
+const productsFetch = createApiFetch("products");
 
 export async function fetchProductsPage(
   query: ProductListQuery

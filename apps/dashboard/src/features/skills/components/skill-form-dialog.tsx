@@ -1,16 +1,6 @@
 import { createSkillSchema, type Skill } from "@dv/contracts";
 import { MessageResponse } from "@dv/ui/components/ai-elements/message";
 import { Button } from "@dv/ui/components/shadcn/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@dv/ui/components/shadcn/dialog";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import { Textarea } from "@dv/ui/components/shadcn/textarea";
@@ -21,6 +11,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import { FormDialog } from "@/components/form-dialog";
 import * as m from "@/paraglide/messages.js";
 
 import { createSkill, updateSkill } from "../api";
@@ -66,96 +57,70 @@ export function SkillFormDialog({ skill }: { skill?: Skill }) {
   const onSubmit = handleSubmit((values) => save.mutate(values));
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) reset();
       }}
+      trigger={
+        isEdit ? (
+          <Button variant="ghost" size="sm">
+            {m.commonEdit()}
+          </Button>
+        ) : (
+          <Button size="sm">
+            <Plus /> {m.skillCreateButton()}
+          </Button>
+        )
+      }
+      title={isEdit ? m.skillEditDialogTitle() : m.skillCreateDialogTitle()}
+      description={m.skillDialogDescription()}
+      submitLabel={m.commonSave()}
+      isPending={isSubmitting || save.isPending}
+      onSubmit={onSubmit}
+      contentClassName="sm:max-w-3xl"
     >
-      <DialogTrigger
-        render={
-          isEdit ? (
-            <Button variant="ghost" size="sm">
-              {m.commonEdit()}
-            </Button>
-          ) : (
-            <Button size="sm">
-              <Plus /> {m.skillCreateButton()}
-            </Button>
-          )
-        }
-      />
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? m.skillEditDialogTitle() : m.skillCreateDialogTitle()}
-          </DialogTitle>
-          <DialogDescription>{m.skillDialogDescription()}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="skill-slug">{m.skillSlugLabel()}</Label>
-              <Input
-                id="skill-slug"
-                disabled={isEdit}
-                className="w-full"
-                {...register("slug")}
-              />
-              {errors.slug && (
-                <p className="text-xs text-destructive">
-                  {errors.slug.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="skill-name">{m.skillNameLabel()}</Label>
-              <Input id="skill-name" className="w-full" {...register("name")} />
-              {errors.name && (
-                <p className="text-xs text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="skill-slug">{m.skillSlugLabel()}</Label>
+          <Input
+            id="skill-slug"
+            disabled={isEdit}
+            className="w-full"
+            {...register("slug")}
+          />
+          {errors.slug && (
+            <p className="text-xs text-destructive">{errors.slug.message}</p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="skill-name">{m.skillNameLabel()}</Label>
+          <Input id="skill-name" className="w-full" {...register("name")} />
+          {errors.name && (
+            <p className="text-xs text-destructive">{errors.name.message}</p>
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="skill-content">{m.skillContentLabel()}</Label>
+          <Textarea
+            id="skill-content"
+            className="min-h-80 w-full font-mono text-xs"
+            {...register("content")}
+          />
+          {errors.content && (
+            <p className="text-xs text-destructive">{errors.content.message}</p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label>{m.skillPreviewLabel()}</Label>
+          <div className="h-80 overflow-y-auto rounded-lg border border-input p-3">
+            <MessageResponse>{content || ""}</MessageResponse>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="skill-content">{m.skillContentLabel()}</Label>
-              <Textarea
-                id="skill-content"
-                className="min-h-80 w-full font-mono text-xs"
-                {...register("content")}
-              />
-              {errors.content && (
-                <p className="text-xs text-destructive">
-                  {errors.content.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{m.skillPreviewLabel()}</Label>
-              <div className="h-80 overflow-y-auto rounded-lg border border-input p-3">
-                <MessageResponse>{content || ""}</MessageResponse>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose
-              render={
-                <Button type="button" variant="outline">
-                  {m.commonCancel()}
-                </Button>
-              }
-            />
-            <Button type="submit" disabled={isSubmitting || save.isPending}>
-              {isSubmitting || save.isPending
-                ? m.commonLoading()
-                : m.commonSave()}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </FormDialog>
   );
 }

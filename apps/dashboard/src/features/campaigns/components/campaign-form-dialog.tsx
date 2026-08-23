@@ -13,16 +13,6 @@ import {
 } from "@dv/contracts";
 import { Button } from "@dv/ui/components/shadcn/button";
 import { Checkbox } from "@dv/ui/components/shadcn/checkbox";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@dv/ui/components/shadcn/dialog";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
@@ -39,6 +29,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { FormDialog } from "@/components/form-dialog";
 import { fetchProducts } from "@/features/products/api";
 import { productKeys } from "@/features/products/query-keys";
 import { fromDateInputValue, toDateInputValue } from "@/lib/date-input";
@@ -245,427 +236,393 @@ export function CampaignFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            size={isEdit ? "icon-sm" : "sm"}
-            variant={isEdit ? "ghost" : "default"}
-          >
-            {isEdit ? m.commonEdit() : m.campaignsAddButton()}
-          </Button>
-        }
-      />
-      <DialogContent className="max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit
-              ? m.campaignsEditDialogTitle()
-              : m.campaignsAddDialogTitle()}
-          </DialogTitle>
-          <DialogDescription>
-            {m.campaignsDialogDescription()}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="campaign-name">{m.campaignsNameLabel()}</Label>
-            <Input
-              id="campaign-name"
-              className="w-full"
-              {...register("name")}
-            />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="campaign-status">{m.campaignsStatusLabel()}</Label>
-            <NativeSelect
-              id="campaign-status"
-              className="w-full"
-              {...register("status")}
-            >
-              {campaignStatusValues.map((value) => (
-                <NativeSelectOption key={value} value={value}>
-                  {campaignStatusLabels[value]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="campaign-goal">{m.campaignsGoalLabel()}</Label>
-            <Input
-              id="campaign-goal"
-              className="w-full"
-              {...register("goal")}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="campaign-assignment-mode">
-              {m.campaignsAssignmentModeLabel()}
-            </Label>
-            <NativeSelect
-              id="campaign-assignment-mode"
-              className="w-full"
-              {...register("assignmentMode")}
-            >
-              {campaignAssignmentModeValues.map((value) => (
-                <NativeSelectOption key={value} value={value}>
-                  {campaignAssignmentModeLabels[value]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="campaign-starts-at">
-                {m.campaignsStartsAtLabel()}
-              </Label>
-              <Controller
-                control={control}
-                name="startsAt"
-                render={({ field }) => (
-                  <Input
-                    id="campaign-starts-at"
-                    type="date"
-                    className="w-full"
-                    value={toDateInputValue(field.value)}
-                    onChange={(e) =>
-                      field.onChange(fromDateInputValue(e.target.value))
-                    }
-                  />
-                )}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="campaign-ends-at">
-                {m.campaignsEndsAtLabel()}
-              </Label>
-              <Controller
-                control={control}
-                name="endsAt"
-                render={({ field }) => (
-                  <Input
-                    id="campaign-ends-at"
-                    type="date"
-                    className="w-full"
-                    value={toDateInputValue(field.value)}
-                    onChange={(e) =>
-                      field.onChange(fromDateInputValue(e.target.value))
-                    }
-                  />
-                )}
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{m.campaignsProductsLabel()}</Label>
-            <div className="flex max-h-32 flex-col gap-2 overflow-y-auto rounded-md border p-2">
-              {!products || products.length === 0 ? (
-                <span className="text-xs text-muted-foreground">
-                  {m.campaignsProductsEmpty()}
-                </span>
-              ) : (
-                products.map((product) => (
-                  <label
-                    key={product.id}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <Checkbox
-                      checked={productIdSet.has(product.id)}
-                      onCheckedChange={() => toggleProduct(product.id)}
-                    />
-                    {product.name}
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-md border p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                {m.campaignsFormFieldsSectionTitle()}
-              </span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  formFields.append({
-                    key: "",
-                    label: "",
-                    type: "text",
-                    required: false,
-                    options: []
-                  })
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button
+          size={isEdit ? "icon-sm" : "sm"}
+          variant={isEdit ? "ghost" : "default"}
+        >
+          {isEdit ? m.commonEdit() : m.campaignsAddButton()}
+        </Button>
+      }
+      title={
+        isEdit ? m.campaignsEditDialogTitle() : m.campaignsAddDialogTitle()
+      }
+      description={m.campaignsDialogDescription()}
+      submitLabel={m.campaignsSaveSubmit()}
+      isPending={isSubmitting || save.isPending}
+      onSubmit={onSubmit}
+      contentClassName="max-h-[85vh] overflow-y-auto"
+    >
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="campaign-name">{m.campaignsNameLabel()}</Label>
+        <Input id="campaign-name" className="w-full" {...register("name")} />
+        {errors.name && (
+          <p className="text-xs text-destructive">{errors.name.message}</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="campaign-status">{m.campaignsStatusLabel()}</Label>
+        <NativeSelect
+          id="campaign-status"
+          className="w-full"
+          {...register("status")}
+        >
+          {campaignStatusValues.map((value) => (
+            <NativeSelectOption key={value} value={value}>
+              {campaignStatusLabels[value]}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="campaign-goal">{m.campaignsGoalLabel()}</Label>
+        <Input id="campaign-goal" className="w-full" {...register("goal")} />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="campaign-assignment-mode">
+          {m.campaignsAssignmentModeLabel()}
+        </Label>
+        <NativeSelect
+          id="campaign-assignment-mode"
+          className="w-full"
+          {...register("assignmentMode")}
+        >
+          {campaignAssignmentModeValues.map((value) => (
+            <NativeSelectOption key={value} value={value}>
+              {campaignAssignmentModeLabels[value]}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="campaign-starts-at">
+            {m.campaignsStartsAtLabel()}
+          </Label>
+          <Controller
+            control={control}
+            name="startsAt"
+            render={({ field }) => (
+              <Input
+                id="campaign-starts-at"
+                type="date"
+                className="w-full"
+                value={toDateInputValue(field.value)}
+                onChange={(e) =>
+                  field.onChange(fromDateInputValue(e.target.value))
                 }
-              >
-                <Plus /> {m.campaignsFormFieldAddButton()}
-              </Button>
-            </div>
-            {formFields.fields.length === 0 ? (
-              <span className="text-xs text-muted-foreground">
-                {m.campaignsFormFieldsEmpty()}
-              </span>
-            ) : (
-              formFields.fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="flex flex-col gap-2 rounded-md border p-2"
-                >
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Input
-                      {...register(`formConfig.fields.${index}.key`)}
-                      placeholder={m.campaignsFormFieldKeyPlaceholder()}
-                    />
-                    <Input
-                      {...register(`formConfig.fields.${index}.label`)}
-                      placeholder={m.campaignsFormFieldLabelLabel()}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <NativeSelect
-                      {...register(`formConfig.fields.${index}.type`)}
-                    >
-                      <NativeSelectOption value="text">
-                        {m.campaignsFormFieldTypeText()}
-                      </NativeSelectOption>
-                      <NativeSelectOption value="select">
-                        {m.campaignsFormFieldTypeSelect()}
-                      </NativeSelectOption>
-                      <NativeSelectOption value="checkbox">
-                        {m.campaignsFormFieldTypeCheckbox()}
-                      </NativeSelectOption>
-                    </NativeSelect>
-                    <Controller
-                      control={control}
-                      name={`formConfig.fields.${index}.required`}
-                      render={({ field: requiredField }) => (
-                        <label className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            checked={requiredField.value}
-                            onCheckedChange={requiredField.onChange}
-                          />
-                          {m.campaignsFormFieldRequiredLabel()}
-                        </label>
-                      )}
-                    />
-                  </div>
-                  {watch(`formConfig.fields.${index}.type`) === "select" && (
-                    <Controller
-                      control={control}
-                      name={`formConfig.fields.${index}.options`}
-                      render={({ field: optionsField }) => (
-                        <Input
-                          value={(optionsField.value ?? []).join(", ")}
-                          onChange={(e) =>
-                            optionsField.onChange(
-                              e.target.value
-                                .split(",")
-                                .map((o) => o.trim())
-                                .filter(Boolean)
-                            )
-                          }
-                          placeholder={m.campaignsFormFieldOptionsPlaceholder()}
-                        />
-                      )}
-                    />
-                  )}
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="self-end text-destructive"
-                    onClick={() => formFields.remove(index)}
-                  >
-                    <Trash2 /> {m.campaignsFormFieldRemoveLabel()}
-                  </Button>
-                </div>
-              ))
+              />
             )}
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-md border p-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              {m.campaignsPopupsSectionTitle()}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="campaign-ends-at">{m.campaignsEndsAtLabel()}</Label>
+          <Controller
+            control={control}
+            name="endsAt"
+            render={({ field }) => (
+              <Input
+                id="campaign-ends-at"
+                type="date"
+                className="w-full"
+                value={toDateInputValue(field.value)}
+                onChange={(e) =>
+                  field.onChange(fromDateInputValue(e.target.value))
+                }
+              />
+            )}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label>{m.campaignsProductsLabel()}</Label>
+        <div className="flex max-h-32 flex-col gap-2 overflow-y-auto rounded-md border p-2">
+          {!products || products.length === 0 ? (
+            <span className="text-xs text-muted-foreground">
+              {m.campaignsProductsEmpty()}
             </span>
-            {(
-              [
-                ["registered", m.campaignsPopupRegisteredTitle()],
-                ["paid", m.campaignsPopupPaidTitle()],
-                ["manualPending", m.campaignsPopupManualPendingTitle()]
-              ] as const
-            ).map(([kind, title]) => (
-              <div key={kind} className="flex flex-col gap-1.5">
-                <Label>{title}</Label>
-                <Input
-                  {...register(`formConfig.popups.${kind}.title`)}
-                  placeholder={m.campaignsPopupTitleLabel()}
+          ) : (
+            products.map((product) => (
+              <label
+                key={product.id}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Checkbox
+                  checked={productIdSet.has(product.id)}
+                  onCheckedChange={() => toggleProduct(product.id)}
                 />
-                <Textarea
-                  {...register(`formConfig.popups.${kind}.body`)}
-                  placeholder={m.campaignsPopupBodyLabel()}
-                  rows={2}
-                />
-              </div>
-            ))}
-          </div>
+                {product.name}
+              </label>
+            ))
+          )}
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-3 rounded-md border p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                {m.campaignsPaymentSectionTitle()}
-              </span>
-              <div className="flex items-center gap-2">
-                <Controller
-                  control={control}
-                  name="paymentConfig.enabled"
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
+      <div className="flex flex-col gap-3 rounded-md border p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">
+            {m.campaignsFormFieldsSectionTitle()}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              formFields.append({
+                key: "",
+                label: "",
+                type: "text",
+                required: false,
+                options: []
+              })
+            }
+          >
+            <Plus /> {m.campaignsFormFieldAddButton()}
+          </Button>
+        </div>
+        {formFields.fields.length === 0 ? (
+          <span className="text-xs text-muted-foreground">
+            {m.campaignsFormFieldsEmpty()}
+          </span>
+        ) : (
+          formFields.fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="flex flex-col gap-2 rounded-md border p-2"
+            >
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Input
+                  {...register(`formConfig.fields.${index}.key`)}
+                  placeholder={m.campaignsFormFieldKeyPlaceholder()}
                 />
-                <span className="text-xs">
-                  {m.campaignsPaymentEnabledLabel()}
-                </span>
+                <Input
+                  {...register(`formConfig.fields.${index}.label`)}
+                  placeholder={m.campaignsFormFieldLabelLabel()}
+                />
               </div>
-            </div>
-            {paymentEnabled && (
-              <>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="campaign-bank-bin">
-                      {m.campaignsBankBinLabel()}
-                    </Label>
-                    <Input
-                      id="campaign-bank-bin"
-                      className="w-full"
-                      {...register("paymentConfig.bankBin")}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="campaign-account-number">
-                      {m.campaignsAccountNumberLabel()}
-                    </Label>
-                    <Input
-                      id="campaign-account-number"
-                      className="w-full"
-                      {...register("paymentConfig.accountNumber")}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="campaign-account-name">
-                    {m.campaignsAccountNameLabel()}
-                  </Label>
-                  <Input
-                    id="campaign-account-name"
-                    className="w-full"
-                    {...register("paymentConfig.accountName")}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="campaign-transfer-prefix">
-                    {m.campaignsTransferPrefixLabel()}
-                  </Label>
-                  <Input
-                    id="campaign-transfer-prefix"
-                    className="w-full"
-                    {...register("paymentConfig.transferPrefix")}
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <NativeSelect {...register(`formConfig.fields.${index}.type`)}>
+                  <NativeSelectOption value="text">
+                    {m.campaignsFormFieldTypeText()}
+                  </NativeSelectOption>
+                  <NativeSelectOption value="select">
+                    {m.campaignsFormFieldTypeSelect()}
+                  </NativeSelectOption>
+                  <NativeSelectOption value="checkbox">
+                    {m.campaignsFormFieldTypeCheckbox()}
+                  </NativeSelectOption>
+                </NativeSelect>
                 <Controller
                   control={control}
-                  name="paymentConfig.sepayAuto"
-                  render={({ field }) => (
+                  name={`formConfig.fields.${index}.required`}
+                  render={({ field: requiredField }) => (
                     <label className="flex items-center gap-2 text-sm">
                       <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                        checked={requiredField.value}
+                        onCheckedChange={requiredField.onChange}
                       />
-                      {m.campaignsSepayAutoLabel()}
+                      {m.campaignsFormFieldRequiredLabel()}
                     </label>
                   )}
                 />
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="campaign-zalo-url">
-                    {m.campaignsZaloUrlLabel()}
-                  </Label>
-                  <Input
-                    id="campaign-zalo-url"
-                    className="w-full"
-                    {...register("paymentConfig.zaloGroupUrl")}
-                    placeholder="https://zalo.me/g/..."
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-md border p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                {m.campaignsUtmDefaultsSectionTitle()}
-              </span>
+              </div>
+              {watch(`formConfig.fields.${index}.type`) === "select" && (
+                <Controller
+                  control={control}
+                  name={`formConfig.fields.${index}.options`}
+                  render={({ field: optionsField }) => (
+                    <Input
+                      value={(optionsField.value ?? []).join(", ")}
+                      onChange={(e) =>
+                        optionsField.onChange(
+                          e.target.value
+                            .split(",")
+                            .map((o) => o.trim())
+                            .filter(Boolean)
+                        )
+                      }
+                      placeholder={m.campaignsFormFieldOptionsPlaceholder()}
+                    />
+                  )}
+                />
+              )}
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
-                onClick={() => utmDefaults.append({ key: "", value: "" })}
+                variant="ghost"
+                className="self-end text-destructive"
+                onClick={() => formFields.remove(index)}
               >
-                <Plus /> {m.campaignsUtmDefaultAddButton()}
+                <Trash2 /> {m.campaignsFormFieldRemoveLabel()}
               </Button>
             </div>
-            {utmDefaults.fields.length === 0 ? (
-              <span className="text-xs text-muted-foreground">
-                {m.campaignsUtmDefaultsEmpty()}
-              </span>
-            ) : (
-              utmDefaults.fields.map((row, index) => (
-                <div key={row.id} className="flex items-center gap-2">
-                  <Input
-                    {...register(`utmDefaultsList.${index}.key`)}
-                    placeholder={m.campaignsUtmKeyPlaceholder()}
-                  />
-                  <Input
-                    {...register(`utmDefaultsList.${index}.value`)}
-                    placeholder={m.campaignsUtmValuePlaceholder()}
-                  />
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label={m.campaignsUtmRemoveLabel()}
-                    className="text-destructive"
-                    onClick={() => utmDefaults.remove(index)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              ))
-            )}
-          </div>
+          ))
+        )}
+      </div>
 
-          <DialogFooter>
-            <DialogClose
-              render={
-                <Button type="button" variant="outline">
-                  {m.commonCancel()}
-                </Button>
-              }
+      <div className="flex flex-col gap-3 rounded-md border p-3">
+        <span className="text-xs font-medium text-muted-foreground">
+          {m.campaignsPopupsSectionTitle()}
+        </span>
+        {(
+          [
+            ["registered", m.campaignsPopupRegisteredTitle()],
+            ["paid", m.campaignsPopupPaidTitle()],
+            ["manualPending", m.campaignsPopupManualPendingTitle()]
+          ] as const
+        ).map(([kind, title]) => (
+          <div key={kind} className="flex flex-col gap-1.5">
+            <Label>{title}</Label>
+            <Input
+              {...register(`formConfig.popups.${kind}.title`)}
+              placeholder={m.campaignsPopupTitleLabel()}
             />
-            <Button type="submit" disabled={isSubmitting || save.isPending}>
-              {isSubmitting || save.isPending
-                ? m.commonLoading()
-                : m.campaignsSaveSubmit()}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <Textarea
+              {...register(`formConfig.popups.${kind}.body`)}
+              placeholder={m.campaignsPopupBodyLabel()}
+              rows={2}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-md border p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">
+            {m.campaignsPaymentSectionTitle()}
+          </span>
+          <div className="flex items-center gap-2">
+            <Controller
+              control={control}
+              name="paymentConfig.enabled"
+              render={({ field }) => (
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <span className="text-xs">{m.campaignsPaymentEnabledLabel()}</span>
+          </div>
+        </div>
+        {paymentEnabled && (
+          <>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="campaign-bank-bin">
+                  {m.campaignsBankBinLabel()}
+                </Label>
+                <Input
+                  id="campaign-bank-bin"
+                  className="w-full"
+                  {...register("paymentConfig.bankBin")}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="campaign-account-number">
+                  {m.campaignsAccountNumberLabel()}
+                </Label>
+                <Input
+                  id="campaign-account-number"
+                  className="w-full"
+                  {...register("paymentConfig.accountNumber")}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="campaign-account-name">
+                {m.campaignsAccountNameLabel()}
+              </Label>
+              <Input
+                id="campaign-account-name"
+                className="w-full"
+                {...register("paymentConfig.accountName")}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="campaign-transfer-prefix">
+                {m.campaignsTransferPrefixLabel()}
+              </Label>
+              <Input
+                id="campaign-transfer-prefix"
+                className="w-full"
+                {...register("paymentConfig.transferPrefix")}
+              />
+            </div>
+            <Controller
+              control={control}
+              name="paymentConfig.sepayAuto"
+              render={({ field }) => (
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  {m.campaignsSepayAutoLabel()}
+                </label>
+              )}
+            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="campaign-zalo-url">
+                {m.campaignsZaloUrlLabel()}
+              </Label>
+              <Input
+                id="campaign-zalo-url"
+                className="w-full"
+                {...register("paymentConfig.zaloGroupUrl")}
+                placeholder="https://zalo.me/g/..."
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-md border p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">
+            {m.campaignsUtmDefaultsSectionTitle()}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => utmDefaults.append({ key: "", value: "" })}
+          >
+            <Plus /> {m.campaignsUtmDefaultAddButton()}
+          </Button>
+        </div>
+        {utmDefaults.fields.length === 0 ? (
+          <span className="text-xs text-muted-foreground">
+            {m.campaignsUtmDefaultsEmpty()}
+          </span>
+        ) : (
+          utmDefaults.fields.map((row, index) => (
+            <div key={row.id} className="flex items-center gap-2">
+              <Input
+                {...register(`utmDefaultsList.${index}.key`)}
+                placeholder={m.campaignsUtmKeyPlaceholder()}
+              />
+              <Input
+                {...register(`utmDefaultsList.${index}.value`)}
+                placeholder={m.campaignsUtmValuePlaceholder()}
+              />
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                aria-label={m.campaignsUtmRemoveLabel()}
+                className="text-destructive"
+                onClick={() => utmDefaults.remove(index)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ))
+        )}
+      </div>
+    </FormDialog>
   );
 }

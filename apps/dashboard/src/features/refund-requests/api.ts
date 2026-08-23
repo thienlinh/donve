@@ -8,22 +8,9 @@ import {
   type RefundStatus
 } from "@dv/contracts";
 
-/** Same fetch pattern as `features/reconciliation/api.ts` — cookie session lives on the API origin. */
-async function paymentsFetch(
-  path: string,
-  init?: RequestInit
-): Promise<Response> {
-  const headers = new Headers(init?.headers);
-  if (!(init?.body instanceof FormData)) {
-    headers.set("content-type", "application/json");
-  }
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/payments${path}`,
-    { ...init, credentials: "include", headers }
-  );
-  if (!res.ok) throw new Error(`payments api ${path} failed: ${res.status}`);
-  return res;
-}
+import { createApiFetch } from "@/lib/api-client";
+
+const paymentsFetch = createApiFetch("payments");
 
 export async function fetchRefundRequests(
   status?: RefundStatus

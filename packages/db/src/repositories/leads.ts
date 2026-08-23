@@ -31,6 +31,8 @@ export interface LeadListFilters {
   /** `"unassigned"` matches `assigneeId IS NULL`. */
   assigneeId?: string;
   paid?: boolean;
+  /** `true` means 2+ orders exist for this lead — a returning customer, not a one-time lead. */
+  repeatCustomer?: boolean;
   dateFrom?: Date;
   dateTo?: Date;
   search?: string;
@@ -88,6 +90,14 @@ function listFilterConditions(orgId: string, filters: LeadListFilters) {
         : sql`${leads.id} not in ${membership}`
     );
   }
+  if (filters.repeatCustomer) {
+    conditions.push(
+      inArray(
+        leads.id,
+        sql`(select ${orders.leadId} from ${orders} where ${orders.orgId} = ${orgId} group by ${orders.leadId} having count(*) >= 2)`
+      )
+    );
+  }
 
   return and(...conditions);
 }
@@ -98,12 +108,32 @@ const OPEN_LEAD_STAGES_EXCLUDED = ["won", "lost"] as const;
 
 /** `hoursSinceActivity` (age/SLA badge) — hours since the later of the lead's own
  * `createdAt` and its most recent `leadActivities.createdAt`, computed in-query via a
- * correlated subquery so the list endpoint stays a single round trip (no N+1). */
+ * correlated subquery so the list endpoint stays a single round trip (no N+1).
+ *
+ * The outer correlation (`leads.id`/`leads.created_at`) is written as a literal identifier,
+ * NOT `${leads.id}`/`${leads.createdAt}` — both `leads` and `lead_activities`/`orders` have
+ * their own `id` column, and interpolating the outer `Column` object renders unqualified
+ * (`"id"`, not `"leads"."id"`; verified via `.toSQL()`), so Postgres resolves the bare `id`
+ * to the SUBQUERY's own table instead of correlating outward — silently comparing e.g.
+ * `lead_activities.lead_id = lead_activities.id` (always false) rather than `= leads.id`. */
 const hoursSinceActivitySql = sql<number>`
   (extract(epoch from (now() - coalesce(
-    (select max(${leadActivities.createdAt}) from ${leadActivities} where ${leadActivities.leadId} = ${leads.id}),
-    ${leads.createdAt}
+    (select max(${leadActivities.createdAt}) from ${leadActivities} where ${leadActivities.leadId} = leads.id),
+    leads.created_at
   ))) / 3600)::float8
+`;
+
+/** Lifetime order count/spend, same correlated-subquery technique (and the same outer-reference
+ * qualification requirement, see `hoursSinceActivitySql`'s doc comment) — a lead's phone is
+ * unique per org (`findOrCreateLead` merges resubmits into the same row), so this already
+ * reflects every campaign the person ever ordered from, not just the current one. Powers the
+ * "khách quen" (repeat customer) badge and the `repeatCustomer` filter. */
+const orderCountSql = sql<number>`
+  (select count(*) from ${orders} where ${orders.leadId} = leads.id)::int
+`;
+const totalPaidAmountSql = sql<number>`
+  (select coalesce(sum(${orders.amount}), 0) from ${orders}
+    where ${orders.leadId} = leads.id and ${orders.status} in ${PAID_ORDER_STATUSES})::int
 `;
 
 /** One row of `listFiltered` — the lead plus the computed age badge, in the same query the
@@ -112,14 +142,20 @@ const hoursSinceActivitySql = sql<number>`
 function listRowSelection() {
   return {
     ...getTableColumns(leads),
-    hoursSinceActivity: hoursSinceActivitySql
+    hoursSinceActivity: hoursSinceActivitySql,
+    orderCount: orderCountSql,
+    totalPaidAmount: totalPaidAmountSql
   };
 }
 
 /** The actual row shape `listRowSelection()` produces once queried — `ReturnType<typeof
  * listRowSelection>` itself is the *selection object* (column refs), not the row, so
  * `withOrgScope`'s explicit type param needs this instead. */
-type LeadListRow = typeof leads.$inferSelect & { hoursSinceActivity: number };
+type LeadListRow = typeof leads.$inferSelect & {
+  hoursSinceActivity: number;
+  orderCount: number;
+  totalPaidAmount: number;
+};
 
 export const leadsRepository = {
   ...base,

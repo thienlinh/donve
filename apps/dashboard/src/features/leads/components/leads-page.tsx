@@ -1,5 +1,7 @@
+import { Button } from "@dv/ui/components/shadcn/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -11,21 +13,24 @@ import {
   TabsList,
   TabsTrigger
 } from "@dv/ui/components/shadcn/tabs";
+import { toast } from "@dv/ui/components/shadcn/toast";
 import { useIsMobile } from "@dv/ui/hooks/use-mobile";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
+import { Download } from "lucide-react";
 import { useState } from "react";
 
 import * as m from "@/paraglide/messages.js";
 
-import { EMPTY_PIPELINE, fetchPipeline } from "../api";
+import { EMPTY_PIPELINE, fetchLeadsExport, fetchPipeline } from "../api";
+import { downloadBlob } from "../csv";
 import { filtersToSearch, searchToFilters, toLeadListQuery } from "../filters";
 import { leadKeys } from "../query-keys";
 import { LeadDetailSheet } from "./lead-detail-sheet";
 import { LeadsFilterBar } from "./leads-filter-bar";
 import { LeadsImportDialog } from "./leads-import-dialog";
 import { LeadsKanban } from "./leads-kanban";
-import { LeadsSubNav } from "./leads-sub-nav";
+import { LeadsPageLayout } from "./leads-page-layout";
 import { LeadsTable } from "./leads-table";
 
 const PAGE_SIZE = 20;
@@ -49,6 +54,14 @@ export function LeadsPage() {
     queryFn: fetchPipeline
   });
 
+  const exportCsv = useMutation({
+    mutationFn: () => fetchLeadsExport(toLeadListQuery(filters, 1, PAGE_SIZE)),
+    onSuccess: (blob) =>
+      downloadBlob(`leads-${new Date().toISOString().slice(0, 10)}.csv`, blob),
+    onError: () =>
+      toast.add({ title: m.leadsExportErrorToast(), type: "error" })
+  });
+
   function updateFilters(next: typeof filters) {
     setPage(1);
     void navigate({
@@ -58,15 +71,23 @@ export function LeadsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <LeadsSubNav />
+    <LeadsPageLayout>
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div>
-            <CardTitle>{m.leadsTitle()}</CardTitle>
-            <CardDescription>{m.leadsDescription()}</CardDescription>
-          </div>
-          <LeadsImportDialog />
+        <CardHeader>
+          <CardTitle>{m.leadsTitle()}</CardTitle>
+          <CardDescription>{m.leadsDescription()}</CardDescription>
+          <CardAction className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={exportCsv.isPending}
+              onClick={() => exportCsv.mutate()}
+            >
+              <Download />
+              {exportCsv.isPending ? m.commonLoading() : m.leadsExportButton()}
+            </Button>
+            <LeadsImportDialog />
+          </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <LeadsFilterBar
@@ -115,6 +136,6 @@ export function LeadsPage() {
         leadId={selectedLeadId}
         onOpenChange={(open) => !open && setSelectedLeadId(null)}
       />
-    </div>
+    </LeadsPageLayout>
   );
 }
