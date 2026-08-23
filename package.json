@@ -142,7 +142,6 @@
     "test": "turbo run test",
     "lint": "oxlint --type-aware --fix .",
     "fmt": "oxfmt --write .",
-    "fmt:check": "oxfmt --check .",
     "prepare": "lefthook install",
     "clean": "turbo run clean && rm -rf node_modules"
   },
