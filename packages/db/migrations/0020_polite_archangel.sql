@@ -1,0 +1,1 @@
+ALTER TABLE "webhook_credentials" ADD COLUMN "encrypted_page_access_token" text;

@@ -152,7 +152,13 @@ function CommentDialogForm({
       <DialogFooter className="items-center sm:justify-between">
         {/* ponytail: the element screenshot (above) attaches automatically — this button is
             for manually attaching an *extra* image on top of it, which has no pipeline yet. */}
-        <Button variant="ghost" size="icon" type="button" disabled>
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          disabled
+          aria-label={m.studioCommentAttachLabel()}
+        >
           <Paperclip />
         </Button>
         <div className="flex gap-2">

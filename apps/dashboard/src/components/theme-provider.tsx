@@ -13,6 +13,7 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme;
+  resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
 };
 
@@ -88,6 +89,10 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
+  const [resolvedTheme, setResolvedTheme] = React.useState<ResolvedTheme>(() =>
+    theme === "system" ? getSystemTheme() : theme
+  );
+
   const setTheme = (nextTheme: Theme) => {
     localStorage.setItem(storageKey, nextTheme);
     setThemeState(nextTheme);
@@ -96,14 +101,15 @@ export function ThemeProvider({
   React.useEffect(() => {
     const applyTheme = (nextTheme: Theme) => {
       const root = document.documentElement;
-      const resolvedTheme =
-        nextTheme === "system" ? getSystemTheme() : nextTheme;
+      const resolved = nextTheme === "system" ? getSystemTheme() : nextTheme;
       const restoreTransitions = disableTransitionOnChange
         ? disableTransitionsTemporarily()
         : null;
 
       root.classList.remove("light", "dark");
-      root.classList.add(resolvedTheme);
+      root.classList.add(resolved);
+      // oxlint-disable-next-line react/set-state-in-effect
+      setResolvedTheme(resolved);
 
       if (restoreTransitions) {
         restoreTransitions();
@@ -193,7 +199,7 @@ export function ThemeProvider({
     };
   }, [defaultTheme, storageKey]);
 
-  const value = { theme, setTheme };
+  const value = { theme, resolvedTheme, setTheme };
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>

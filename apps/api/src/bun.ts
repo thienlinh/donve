@@ -2,9 +2,11 @@ import { createApp } from "./app.js";
 import { runDataSubjectRequestSlaCheck } from "./lib/data-subject-request-sla.js";
 import { runLeadDigest } from "./lib/lead-digest.js";
 import { runLeadRetention } from "./lib/lead-retention.js";
+import { runLeadSlaSweep } from "./lib/lead-sla-sweep.js";
 import { log } from "./lib/logger.js";
 import { reconcilePublishState } from "./lib/publish.js";
 import { runTrafficSpikeCheck } from "./lib/traffic-spike.js";
+import { runWebhookDeliverySweep } from "./lib/webhook-delivery-sweep.js";
 import { requiredBindingsSchema, type Bindings } from "./types.js";
 
 const bindings: Bindings = {
@@ -19,8 +21,11 @@ const bindings: Bindings = {
   RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
   RUNTIME: "bun",
   LOCAL_STORAGE_DIR: process.env.LOCAL_STORAGE_DIR,
+  LOCAL_REDIS_URL: process.env.LOCAL_REDIS_URL,
   AI_KEY_MASTER_SECRET: process.env.AI_KEY_MASTER_SECRET ?? "",
   PAYMENTS_KEY_MASTER_SECRET: process.env.PAYMENTS_KEY_MASTER_SECRET ?? "",
+  WEBHOOK_KEY_MASTER_SECRET: process.env.WEBHOOK_KEY_MASTER_SECRET ?? "",
+  NOTIFY_KEY_MASTER_SECRET: process.env.NOTIFY_KEY_MASTER_SECRET,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY ?? "",
   TURNSTILE_SITE_KEY:
     process.env.TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA",
@@ -32,7 +37,9 @@ const bindings: Bindings = {
   CF_API_TOKEN: process.env.CF_API_TOKEN,
   CF_ZONE_ID: process.env.CF_ZONE_ID,
   CF_CUSTOM_DOMAIN_TARGET: process.env.CF_CUSTOM_DOMAIN_TARGET,
-  FOUNDER_ALERT_EMAIL: process.env.FOUNDER_ALERT_EMAIL
+  FOUNDER_ALERT_EMAIL: process.env.FOUNDER_ALERT_EMAIL,
+  FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET,
+  ZALO_OA_SECRET: process.env.ZALO_OA_SECRET
 };
 
 const requiredCheck = requiredBindingsSchema.safeParse(bindings);
@@ -87,6 +94,33 @@ setInterval(
       });
   },
   60 * 60 * 1000
+);
+
+// CF Workers gets the "*/30 * * * *" entry in wrangler.jsonc's `triggers.crons`
+// (workers.ts's `scheduled` export); Bun/VPS self-schedules the same assignment-rules
+// SLA-breach sweep here, every 30 minutes (SLA is measured in hours, so this cadence is
+// plenty — not a near-realtime alert path).
+setInterval(
+  () => {
+    runLeadSlaSweep(bindings)
+      .then((result) => {
+        log("info", {
+          requestId: "lead-sla-sweep",
+          orgId: null,
+          message: "lead SLA sweep run complete",
+          ...result
+        });
+      })
+      .catch((err: unknown) => {
+        log("error", {
+          requestId: "lead-sla-sweep",
+          orgId: null,
+          message: "lead SLA sweep run failed",
+          error: err instanceof Error ? err.message : String(err)
+        });
+      });
+  },
+  30 * 60 * 1000
 );
 
 // CF Workers gets the "0 3 * * *" entry in wrangler.jsonc's `triggers.crons`
@@ -165,10 +199,41 @@ setInterval(
   },
   24 * 60 * 60 * 1000
 );
+
+// CF Workers gets the "*/15 * * * *" entry in wrangler.jsonc's `triggers.crons`
+// (workers.ts's `scheduled` export); Bun/VPS self-schedules the same webhook delivery
+// retry/dead-letter sweep here, every 15 minutes.
+setInterval(
+  () => {
+    runWebhookDeliverySweep(bindings)
+      .then((result) => {
+        log("info", {
+          requestId: "webhook-delivery-sweep",
+          orgId: null,
+          message: "webhook delivery sweep run complete",
+          ...result
+        });
+      })
+      .catch((err: unknown) => {
+        log("error", {
+          requestId: "webhook-delivery-sweep",
+          orgId: null,
+          message: "webhook delivery sweep run failed",
+          error: err instanceof Error ? err.message : String(err)
+        });
+      });
+  },
+  15 * 60 * 1000
+);
 const port = Number(process.env.PORT ?? 3000);
 
 Bun.serve({
   port,
+  // Default 10s idle timeout kills the SSE routes (leads/routes.ts `/stream`,
+  // `/orders/stream`) that intentionally stay open with no traffic between events. 255 is
+  // Bun's max (uint8) — past that the client's EventSource auto-reconnects, same as it
+  // already does on any network blip.
+  idleTimeout: 255,
   fetch: (request) => app.fetch(request, bindings)
 });
 

@@ -12,7 +12,7 @@ Giả định: bạn là dev chính (senior, có kinh nghiệm checkout VietQR/S
 
 ## Phase 1 — Studio core (3–4 tuần, viết mới hoàn toàn — xem đính chính ở trên)
 
-- Implement `packages/studio-core`/`studio-ui`/`studio-ai` từ đầu theo `docs/features/studio-builder-spec.md`; wiring vào dashboard (feature module L2).
+- Implement `packages/studio-core`/`studio-ui`/`studio-ai` từ đầu theo `docs/features/studio/builder-spec.md`; wiring vào dashboard (feature module L2).
 - Canvas iframe + zoom/pan touchpad & chuột (FR-B-05..07), hover/select overlay + label (B-08/09), LayerTree (B-16..17), Edit inspector + inline text (B-10/11), Undo/redo hợp nhất (B-15).
 - Design Files tab, assets upload (R2), version history + restore, thumbnail client-side.
 - **DoD:** mở 1 file HTML seed, chỉnh manual đầy đủ như screenshots #1/#3/#4/#6, version/restore chạy; keyboard map hoạt động.

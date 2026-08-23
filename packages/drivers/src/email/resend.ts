@@ -6,6 +6,7 @@ import {
   renderLeadDigest,
   renderOrderConfirmation,
   renderResetPassword,
+  renderSlaBreachAlert,
   renderTrafficSpikeAlert,
   renderVerifyEmail
 } from "./templates.js";
@@ -67,6 +68,8 @@ function renderTemplate(input: SendEmailInput): {
       return renderTrafficSpikeAlert(input.props);
     case "data_subject_request_sla":
       return renderDataSubjectRequestSla(input.props);
+    case "sla_breach_alert":
+      return renderSlaBreachAlert(input.props);
     default: {
       const exhaustive: never = input;
       throw new Error(

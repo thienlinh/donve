@@ -12,6 +12,8 @@ import { campaignsRoutes } from "./modules/campaigns/routes.js";
 import { domainsRoutes } from "./modules/domains/routes.js";
 import { landingsRoutes } from "./modules/landings/routes.js";
 import { leadsRoutes } from "./modules/leads/routes.js";
+import { tiktokWebhooksRoutes } from "./modules/leads/tiktok.js";
+import { leadsWebhooksRoutes } from "./modules/leads/webhooks.js";
 import { organizationsRoutes } from "./modules/organizations/routes.js";
 import { paymentsRoutes } from "./modules/payments/routes.js";
 import { platformRoutes } from "./modules/platform/routes.js";
@@ -30,15 +32,26 @@ export function createApp() {
   const app = new Hono<AppEnv>();
 
   app.use("*", requestContext);
-  // The dashboard SPA runs on a different origin in dev (Vite) and prod (CF
-  // Pages) — only `/api/*` needs CORS, `/public/*`/`/webhooks/*` are called
-  // server-to-server or from the published landing runtime, not the SPA.
+  // The dashboard SPA runs on a different origin in dev (Vite) and prod (CF Pages) — its
+  // session cookie makes this a credentialed request, so the origin must be echoed exactly
+  // (not `*`), and only the one known dashboard origin is ever legitimate here.
   const dashboardCors = cors({
     origin: (_origin, c) => c.env.DASHBOARD_URL,
     credentials: true
   });
   app.use("/api/*", dashboardCors);
   app.use("/platform/*", dashboardCors);
+  // `/public/*` is called from `apps/landing-runtime`'s browser JS, which runs on WHATEVER
+  // domain a tenant's landing page is published to (subdomain today, any custom domain via
+  // FR-G-04) — that set is dynamic and can't be enumerated ahead of time, unlike the dashboard's
+  // one fixed origin above. Wildcard + no credentials is correct and safe here specifically
+  // because this surface never reads a session cookie: `orgId`/`campaignId` in the request body
+  // pick the tenant, and Turnstile (`POST /public/leads`) is the anti-abuse gate, not origin
+  // checking. Fixes a real bug: without this, every published landing page's lead form silently
+  // fails in production (`No 'Access-Control-Allow-Origin' header` — a live test confirmed the
+  // exact browser error before this was added), since API and landing pages are always
+  // different origins outside local dev.
+  app.use("/public/*", cors({ origin: "*" }));
   // Public/unauthenticated surfaces (architecture.md §6) get IP-scoped limits;
   // authenticated routes get their own limiter once session middleware lands.
   // `/public/orders/:code/status` is excluded here — NFR-16 gives it its own
@@ -87,6 +100,14 @@ export function createApp() {
   app.route("/api/payments", paymentsRoutes);
   app.route("/public", publicRoutes);
   app.route("/webhooks", webhooksRoutes);
+  // multi-source lead ingestion (Facebook Lead Ads / Zalo OA) — same `/webhooks/*` prefix as
+  // `webhooksRoutes` above (SePay), deliberately NOT under `/api/leads/*` so it stays outside
+  // `requireOrgSession` (see modules/leads/webhooks.ts doc comment).
+  app.route("/webhooks", leadsWebhooksRoutes);
+  // TikTok's OAuth redirect + LEAD webhook, same `/webhooks/*` prefix — separate module from
+  // leadsWebhooksRoutes since TikTok's auth model (shared-app OAuth) differs entirely from
+  // Facebook/Zalo/generic's per-org secret model (lead-integrations.md §D).
+  app.route("/webhooks", tiktokWebhooksRoutes);
 
   return app;
 }

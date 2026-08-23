@@ -38,7 +38,7 @@ import {
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import * as m from "@/paraglide/messages.js";
 
@@ -51,6 +51,7 @@ import { customDomainKeys } from "../query-keys";
 import { AddDomainDialog } from "./add-domain-dialog";
 
 export function DomainsPage() {
+  const queryClient = useQueryClient();
   const {
     data: domains,
     isPending,
@@ -59,6 +60,26 @@ export function DomainsPage() {
     queryKey: customDomainKeys.list(),
     queryFn: fetchCustomDomains
   });
+
+  // `POST /:id/verify` is what actually re-checks Cloudflare's DCV/SSL status (the list query
+  // just reads whatever `domains.status` was last written) — DNS propagation + cert issuance can
+  // take minutes to hours, and a non-technical tenant has no reason to know they must come back
+  // and click the verify button themselves, so poll it for them while anything is still pending.
+  const pendingIds = (domains ?? [])
+    .filter((d) => d.status !== "active")
+    .map((d) => d.id);
+  const pendingKey = pendingIds.join(",");
+  useEffect(() => {
+    if (!pendingKey) return;
+    const interval = setInterval(() => {
+      void Promise.all(pendingIds.map((id) => verifyCustomDomain(id))).then(
+        () =>
+          queryClient.invalidateQueries({ queryKey: customDomainKeys.list() })
+      );
+    }, 15_000);
+    return () => clearInterval(interval);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- re-subscribe only when the pending id set actually changes (pendingIds/queryClient are derived/stable each render, not independent triggers)
+  }, [pendingKey]);
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">

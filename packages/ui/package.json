@@ -8,7 +8,8 @@
     "#components/ai-elements/*": "./src/components/ai-elements/*.tsx",
     "#components/dv/*": "./src/components/dv/*.tsx",
     "#lib/*": "./src/lib/*.ts",
-    "#hooks/*": "./src/hooks/*.ts"
+    "#hooks/*": "./src/hooks/*.ts",
+    "#assets/*": "./src/assets/*"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
@@ -16,7 +17,8 @@
     "./components/shadcn/*": "./src/components/shadcn/*.tsx",
     "./components/ai-elements/*": "./src/components/ai-elements/*.tsx",
     "./components/dv/*": "./src/components/dv/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./assets/*": "./src/assets/*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -317,7 +317,7 @@ export function CampaignFormDialog({
               ))}
             </NativeSelect>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="campaign-starts-at">
                 {m.campaignsStartsAtLabel()}
@@ -415,7 +415,7 @@ export function CampaignFormDialog({
                   key={field.id}
                   className="flex flex-col gap-2 rounded-md border p-2"
                 >
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Input
                       {...register(`formConfig.fields.${index}.key`)}
                       placeholder={m.campaignsFormFieldKeyPlaceholder()}
@@ -425,7 +425,7 @@ export function CampaignFormDialog({
                       placeholder={m.campaignsFormFieldLabelLabel()}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <NativeSelect
                       {...register(`formConfig.fields.${index}.type`)}
                     >
@@ -536,7 +536,7 @@ export function CampaignFormDialog({
             </div>
             {paymentEnabled && (
               <>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="campaign-bank-bin">
                       {m.campaignsBankBinLabel()}

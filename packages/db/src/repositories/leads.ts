@@ -2,18 +2,21 @@ import {
   and,
   desc,
   eq,
+  getTableColumns,
   gte,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   lte,
+  notInArray,
   or,
   sql
 } from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
 import { withOrgScope } from "../org-scope.js";
-import { leads, orders } from "../schema/crm.js";
+import { leadActivities, leads, orders } from "../schema/crm.js";
 import { createOrgScopedRepository } from "./scoped-repository.js";
 
 const base = createOrgScopedRepository(leads);
@@ -89,6 +92,35 @@ function listFilterConditions(orgId: string, filters: LeadListFilters) {
   return and(...conditions);
 }
 
+/** Terminal pipeline stages — excluded from the `least_active_leads` routing strategy's
+ * "open leads" count and from `least_active_leads`-style workload comparisons. */
+const OPEN_LEAD_STAGES_EXCLUDED = ["won", "lost"] as const;
+
+/** `hoursSinceActivity` (age/SLA badge) — hours since the later of the lead's own
+ * `createdAt` and its most recent `leadActivities.createdAt`, computed in-query via a
+ * correlated subquery so the list endpoint stays a single round trip (no N+1). */
+const hoursSinceActivitySql = sql<number>`
+  (extract(epoch from (now() - coalesce(
+    (select max(${leadActivities.createdAt}) from ${leadActivities} where ${leadActivities.leadId} = ${leads.id}),
+    ${leads.createdAt}
+  ))) / 3600)::float8
+`;
+
+/** One row of `listFiltered` — the lead plus the computed age badge, in the same query the
+ * caller already runs (no second round trip). Assignee display info is resolved client-side
+ * from `activeOrganization.members` (dashboard already has it), so it isn't duplicated here. */
+function listRowSelection() {
+  return {
+    ...getTableColumns(leads),
+    hoursSinceActivity: hoursSinceActivitySql
+  };
+}
+
+/** The actual row shape `listRowSelection()` produces once queried — `ReturnType<typeof
+ * listRowSelection>` itself is the *selection object* (column refs), not the row, so
+ * `withOrgScope`'s explicit type param needs this instead. */
+type LeadListRow = typeof leads.$inferSelect & { hoursSinceActivity: number };
+
 export const leadsRepository = {
   ...base,
 
@@ -113,14 +145,32 @@ export const leadsRepository = {
     return rows[0];
   },
 
+  /** Bulk PATCH/DELETE (`/api/leads/bulk`) — one query for every id in the batch instead of
+   * one `findById` per row. Non-deleted only, same as every other list-ish query here. */
+  async findManyByIds(db: Db, orgId: string, ids: string[]) {
+    if (ids.length === 0) return [];
+    return withOrgScope<(typeof leads.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(leads)
+        .where(
+          and(
+            eq(leads.orgId, orgId),
+            inArray(leads.id, ids),
+            isNull(leads.deletedAt)
+          )
+        )
+    );
+  },
+
   /** FR-E-01 — filtered, searched, paginated lead list. Two round trips (rows + count) since
    * `withOrgScope` only allows a single query per call (see org-scope.js doc comment). */
   async listFiltered(db: Db, orgId: string, filters: LeadListFilters) {
     const where = listFilterConditions(orgId, filters);
     const [rows, countRows] = await Promise.all([
-      withOrgScope<(typeof leads.$inferSelect)[]>(db, orgId, (qb) =>
+      withOrgScope<LeadListRow[]>(db, orgId, (qb) =>
         qb
-          .select()
+          .select(listRowSelection())
           .from(leads)
           .where(where)
           .orderBy(desc(leads.createdAt))
@@ -172,6 +222,62 @@ export const leadsRepository = {
       customFields: {},
       anonymizedAt: new Date()
     });
+  },
+
+  /** `least_active_leads` routing strategy — count of each candidate's open (non-`won`/`lost`,
+   * non-deleted) leads, one grouped query instead of one count per candidate. */
+  async countOpenLeadsByAssignee(
+    db: Db,
+    orgId: string,
+    assigneeIds: string[]
+  ): Promise<Map<string, number>> {
+    if (assigneeIds.length === 0) return new Map();
+    const rows = await withOrgScope<
+      { assigneeId: string | null; count: number }[]
+    >(db, orgId, (qb) =>
+      qb
+        .select({
+          assigneeId: leads.assigneeId,
+          count: sql<number>`count(*)::int`
+        })
+        .from(leads)
+        .where(
+          and(
+            eq(leads.orgId, orgId),
+            isNull(leads.deletedAt),
+            inArray(leads.assigneeId, assigneeIds),
+            notInArray(leads.stage, [...OPEN_LEAD_STAGES_EXCLUDED])
+          )
+        )
+        .groupBy(leads.assigneeId)
+    );
+    return new Map(
+      rows
+        .filter((row): row is { assigneeId: string; count: number } =>
+          Boolean(row.assigneeId)
+        )
+        .map((row) => [row.assigneeId, row.count])
+    );
+  },
+
+  /** SLA-breach sweep (`lib/lead-sla-sweep.ts`) — every open, assigned lead in the org, plus
+   * the same `hoursSinceActivity` computed column `listFiltered` exposes, so the sweep and the
+   * dashboard's age badge always agree on what "how long has this been sitting" means. Only
+   * assigned leads matter here — there's no assignee to escalate away from otherwise. */
+  async listOpenAssigned(db: Db, orgId: string) {
+    return withOrgScope<LeadListRow[]>(db, orgId, (qb) =>
+      qb
+        .select(listRowSelection())
+        .from(leads)
+        .where(
+          and(
+            eq(leads.orgId, orgId),
+            isNull(leads.deletedAt),
+            isNotNull(leads.assigneeId),
+            notInArray(leads.stage, [...OPEN_LEAD_STAGES_EXCLUDED])
+          )
+        )
+    );
   },
 
   /** NFR-11 — candidates for the periodic retention job: never `paid`/`fulfilled`,

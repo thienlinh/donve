@@ -24,10 +24,13 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 
+import { useActiveOrganization } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, updateLeadStage, type PipelineStage } from "../api";
 import { leadKeys } from "../query-keys";
+import { LeadAgeBadge, isLeadUnread, LeadUnreadDot } from "./lead-age-badge";
+import { LeadAssigneeAvatar } from "./lead-assignee-avatar";
 
 /** Kept comfortably under `leadListQuerySchema`'s `pageSize` cap of 100 (contracts/crm.ts) —
  * each column paginates its own stage instead of trying to fetch the whole board in one page. */
@@ -137,7 +140,12 @@ function KanbanColumn({
           <Spinner /> {m.commonLoading()}
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex min-h-24 flex-col gap-2">
+          {leads.length === 0 && (
+            <div className="flex flex-1 items-center justify-center rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
+              {m.leadsKanbanEmptyColumn()}
+            </div>
+          )}
           {leads.map((lead) => (
             <KanbanCard key={lead.id} lead={lead} onOpenLead={onOpenLead} />
           ))}
@@ -166,6 +174,7 @@ function KanbanCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: lead.id, data: { stage: lead.stage } });
+  const { data: activeOrganization } = useActiveOrganization();
 
   return (
     <Card
@@ -176,11 +185,19 @@ function KanbanCard({
       {...attributes}
       onClick={() => onOpenLead(lead)}
     >
-      <CardHeader className="p-3">
-        <CardTitle className="text-sm">{lead.fullName}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 p-3">
+        <CardTitle className="flex items-center gap-1.5 text-sm">
+          <LeadUnreadDot show={isLeadUnread(lead)} />
+          {lead.fullName}
+        </CardTitle>
+        <LeadAssigneeAvatar
+          assigneeId={lead.assigneeId}
+          members={activeOrganization?.members}
+        />
       </CardHeader>
-      <CardContent className="px-3 pb-3 text-xs text-muted-foreground">
+      <CardContent className="flex items-center justify-between gap-2 px-3 pb-3 text-xs text-muted-foreground">
         {lead.phone}
+        <LeadAgeBadge hoursSinceActivity={lead.hoursSinceActivity} />
       </CardContent>
     </Card>
   );

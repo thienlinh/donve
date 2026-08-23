@@ -14,6 +14,7 @@
   "dependencies": {
     "@upstash/qstash": "catalog:queue",
     "@upstash/redis": "catalog:queue",
+    "ioredis": "catalog:queue",
     "resend": "catalog:server",
     "zod": "catalog:"
   },

@@ -135,7 +135,9 @@ function UsageCard() {
                     <TableHead>{m.aiUsageColumnModel()}</TableHead>
                     <TableHead>{m.aiUsageColumnTokens()}</TableHead>
                     <TableHead>{m.aiUsageColumnCost()}</TableHead>
-                    <TableHead>{m.aiUsageColumnDate()}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {m.aiUsageColumnDate()}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,7 +150,7 @@ function UsageCard() {
                         {row.inputTokens + row.outputTokens}
                       </TableCell>
                       <TableCell>{row.creditCost}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden text-muted-foreground sm:table-cell">
                         {row.createdAt.toLocaleString()}
                       </TableCell>
                     </TableRow>

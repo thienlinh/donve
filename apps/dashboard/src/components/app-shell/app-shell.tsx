@@ -4,8 +4,7 @@ import {
 } from "@dv/ui/components/shadcn/sidebar";
 import type { ReactNode } from "react";
 
-import { PendingInvitationsBanner } from "@/features/members/components/pending-invitations-banner";
-
+import { PendingInvitationsBanner } from "./pending-invitations-banner";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 
@@ -15,9 +14,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <SidebarInset className="min-w-0">
         <TopBar />
-        <main className="flex flex-1 overflow-y-auto">
+        <main className="flex flex-1 flex-col overflow-y-auto">
           <PendingInvitationsBanner />
-          {children}
+          <div className="min-w-0 flex-1">{children}</div>
         </main>
       </SidebarInset>
     </SidebarProvider>

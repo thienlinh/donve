@@ -5,9 +5,11 @@ import { runDataSubjectRequestSlaCheck } from "./lib/data-subject-request-sla.js
 import { createDbFromEnv } from "./lib/db.js";
 import { runLeadDigest } from "./lib/lead-digest.js";
 import { runLeadRetention } from "./lib/lead-retention.js";
+import { runLeadSlaSweep } from "./lib/lead-sla-sweep.js";
 import { log } from "./lib/logger.js";
 import { reconcilePublishState } from "./lib/publish.js";
 import { runTrafficSpikeCheck } from "./lib/traffic-spike.js";
+import { runWebhookDeliverySweep } from "./lib/webhook-delivery-sweep.js";
 import type { Bindings } from "./types.js";
 
 /** One CF Queues message batch — shape produced by apps/edge-router/src/index.ts's beacon
@@ -67,6 +69,17 @@ export default {
       });
       return;
     }
+    if (event.cron === "*/30 * * * *") {
+      // FR-E assignment-rules SLA-breach sweep.
+      const result = await runLeadSlaSweep(env);
+      log("info", {
+        requestId: "lead-sla-sweep",
+        orgId: null,
+        message: "lead SLA sweep run complete",
+        ...result
+      });
+      return;
+    }
     if (event.cron === "0 3 * * *") {
       // NFR-11 lead retention anonymize.
       const result = await runLeadRetention(env);
@@ -96,6 +109,17 @@ export default {
         requestId: "traffic-spike",
         orgId: null,
         message: "traffic spike check complete",
+        ...result
+      });
+      return;
+    }
+    if (event.cron === "*/15 * * * *") {
+      // Webhook delivery retry/dead-letter sweep (lead-integrations.md's documented gap).
+      const result = await runWebhookDeliverySweep(env);
+      log("info", {
+        requestId: "webhook-delivery-sweep",
+        orgId: null,
+        message: "webhook delivery sweep run complete",
         ...result
       });
       return;

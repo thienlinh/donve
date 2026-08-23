@@ -4,6 +4,7 @@ import type {
   LeadDigestProps,
   OrderConfirmationProps,
   ResetPasswordProps,
+  SlaBreachAlertProps,
   TrafficSpikeAlertProps,
   VerifyEmailProps
 } from "./types.js";
@@ -127,6 +128,20 @@ export function renderDataSubjectRequestSla(
       "Yêu cầu xoá/xuất dữ liệu cá nhân (Nghị định 13/2023/NĐ-CP)",
       `<p>Có <strong>${props.requests.length}</strong> yêu cầu xoá/xuất dữ liệu cá nhân của lead đang quá hạn hoặc sắp đến hạn phản hồi (72 giờ):</p>
        <table style="width:100%;border-collapse:collapse;font-size:14px;">${rows}</table>
+       ${button(props.dashboardUrl, "Xem trong Donve")}`
+    )
+  };
+}
+
+export function renderSlaBreachAlert(props: SlaBreachAlertProps): {
+  subject: string;
+  html: string;
+} {
+  return {
+    subject: `⚠️ Lead "${props.leadFullName}" quá SLA (${props.slaHours}h) trên ${props.orgName}`,
+    html: layout(
+      "Lead quá hạn SLA",
+      `<p>Lead <strong>${props.leadFullName}</strong> đã quá <strong>${props.slaHours} giờ</strong> không có hoạt động, cần bạn chú ý.</p>
        ${button(props.dashboardUrl, "Xem trong Donve")}`
     )
   };

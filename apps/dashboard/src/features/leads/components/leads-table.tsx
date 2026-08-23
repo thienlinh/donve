@@ -1,6 +1,6 @@
 import type { Lead, LeadListQuery } from "@dv/contracts";
 import { Badge } from "@dv/ui/components/shadcn/badge";
-import { Button } from "@dv/ui/components/shadcn/button";
+import { Checkbox } from "@dv/ui/components/shadcn/checkbox";
 import {
   Empty,
   EmptyDescription,
@@ -17,11 +17,17 @@ import {
   TableRow
 } from "@dv/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 
+import { Pagination } from "@/components/pagination";
+import { useActiveOrganization } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, type PipelineStage } from "../api";
 import { leadKeys } from "../query-keys";
+import { LeadAgeBadge, isLeadUnread, LeadUnreadDot } from "./lead-age-badge";
+import { LeadAssigneeAvatar } from "./lead-assignee-avatar";
+import { LeadsBulkToolbar } from "./leads-bulk-toolbar";
 
 export function LeadsTable({
   query,
@@ -38,6 +44,10 @@ export function LeadsTable({
     queryKey: leadKeys.list(query),
     queryFn: () => fetchLeads(query)
   });
+  const { data: activeOrganization } = useActiveOrganization();
+  // ponytail: selection cleared "on filter change" by remounting via `key` in `leads-page.tsx`
+  // (React resets all local state on remount) instead of an effect that reset-on-prop-change.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const stageLabel = (key: string) =>
     pipeline.find((stage) => stage.key === key)?.label ?? key;
@@ -72,62 +82,114 @@ export function LeadsTable({
   }
 
   const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
+  // Memoized (not inline in JSX) so the bulk toolbar doesn't get a fresh array identity every
+  // unrelated re-render (react-perf/jsx-no-new-array-as-prop).
+  const selectedIds = useMemo(() => [...selected], [selected]);
+  const selectedLeads = useMemo(
+    () => data.leads.filter((lead) => selected.has(lead.id)),
+    [data.leads, selected]
+  );
+  const allSelected = data.leads.every((lead) => selected.has(lead.id));
+  const someSelected =
+    !allSelected && data.leads.some((lead) => selected.has(lead.id));
+
+  function toggleAll() {
+    if (!data) return;
+    setSelected(allSelected ? new Set() : new Set(data.leads.map((l) => l.id)));
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-8">
+              <Checkbox
+                checked={allSelected}
+                indeterminate={someSelected}
+                onCheckedChange={toggleAll}
+              />
+            </TableHead>
             <TableHead>{m.leadsColumnName()}</TableHead>
-            <TableHead>{m.leadsColumnPhone()}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {m.leadsColumnPhone()}
+            </TableHead>
             <TableHead>{m.leadsColumnStage()}</TableHead>
-            <TableHead>{m.leadsColumnCreatedAt()}</TableHead>
+            <TableHead>{m.leadsColumnAssignee()}</TableHead>
+            <TableHead>{m.leadsColumnAge()}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {m.leadsColumnCreatedAt()}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.leads.map((lead) => (
-            <TableRow
-              key={lead.id}
-              className="cursor-pointer"
-              onClick={() => onOpenLead(lead)}
-            >
-              <TableCell className="font-medium">{lead.fullName}</TableCell>
-              <TableCell className="text-muted-foreground">
+            <TableRow key={lead.id} className="cursor-pointer">
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selected.has(lead.id)}
+                  onCheckedChange={() => toggleOne(lead.id)}
+                />
+              </TableCell>
+              <TableCell
+                className="font-medium"
+                onClick={() => onOpenLead(lead)}
+              >
+                <span className="flex items-center gap-1.5">
+                  <LeadUnreadDot show={isLeadUnread(lead)} />
+                  {lead.fullName}
+                </span>
+              </TableCell>
+              <TableCell
+                className="hidden text-muted-foreground sm:table-cell"
+                onClick={() => onOpenLead(lead)}
+              >
                 {lead.phone}
               </TableCell>
-              <TableCell>
+              <TableCell onClick={() => onOpenLead(lead)}>
                 <Badge variant="secondary">{stageLabel(lead.stage)}</Badge>
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell onClick={() => onOpenLead(lead)}>
+                <LeadAssigneeAvatar
+                  assigneeId={lead.assigneeId}
+                  members={activeOrganization?.members}
+                />
+              </TableCell>
+              <TableCell onClick={() => onOpenLead(lead)}>
+                <LeadAgeBadge hoursSinceActivity={lead.hoursSinceActivity} />
+              </TableCell>
+              <TableCell
+                className="hidden text-muted-foreground sm:table-cell"
+                onClick={() => onOpenLead(lead)}
+              >
                 {new Date(lead.createdAt).toLocaleDateString()}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={data.page <= 1}
-            onClick={() => onPageChange(data.page - 1)}
-          >
-            {m.commonPrevious()}
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {m.leadsPaginationLabel({ page: data.page, total: totalPages })}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={data.page >= totalPages}
-            onClick={() => onPageChange(data.page + 1)}
-          >
-            {m.commonNext()}
-          </Button>
-        </div>
-      )}
+      <Pagination
+        page={data.page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        className="flex items-center justify-center gap-3"
+      />
+
+      <LeadsBulkToolbar
+        selectedIds={selectedIds}
+        selectedLeads={selectedLeads}
+        pipeline={pipeline}
+        onCleared={() => setSelected(new Set())}
+      />
     </div>
   );
 }

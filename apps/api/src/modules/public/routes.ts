@@ -4,6 +4,7 @@ import {
   publicLeadResultSchema,
   publicLeadSubmitSchema,
   publicOrderStatusSchema,
+  type LeadSource,
   type PublicLeadSubmitInput
 } from "@dv/contracts";
 import {
@@ -28,6 +29,7 @@ import { verifyTurnstileToken } from "../../lib/turnstile.js";
 import { buildVietQrUrl } from "../../lib/vietqr.js";
 import { rateLimitByKey } from "../../middleware/rate-limit.js";
 import type { AppEnv } from "../../types.js";
+import { routeLead } from "../leads/routing.js";
 
 export const publicRoutes = new Hono<AppEnv>();
 
@@ -36,7 +38,9 @@ const ORDER_CODE_ATTEMPTS = 5;
 const UNIQUE_VIOLATION = "23505";
 // ponytail: no privacy-policy versioning system exists yet — one hardcoded version, bump this
 // string (and start passing a real version through) once the dashboard has a policy editor.
-const CONSENT_POLICY_VERSION = "2026-01-01";
+// Exported so every other lead-ingestion path (CSV import, Facebook/Zalo OA webhooks) records
+// consent against the same policy version instead of hardcoding a second copy of this string.
+export const CONSENT_POLICY_VERSION = "2026-01-01";
 
 publicRoutes.post("/leads", async (c) => {
   const db = createDbFromEnv(c.env);
@@ -76,11 +80,21 @@ publicRoutes.post("/leads", async (c) => {
 
   // FR-E-06: a repeat submit merges into the existing lead + logs a resubmit activity,
   // it never creates a second lead for the same phone in this org.
-  const { lead, merged } = await findOrCreateLead(db, body, campaign, phone);
+  const { lead, merged } = await findOrCreateLead(
+    db,
+    body,
+    campaign,
+    phone,
+    "landing_page"
+  );
   const status = merged ? "merged" : "created";
   // in-app realtime bell (module E finding #4) — only a genuinely new lead is worth surfacing,
   // a resubmit merge into an existing lead already has its own activity-log trail.
-  if (!merged) await publishNewLeads(c.env, body.orgId, 1);
+  if (!merged) {
+    await publishNewLeads(c.env, body.orgId, 1);
+    // auto-assignment routing engine — only a genuinely new lead is ever routed, never a merge.
+    await routeLead(db, body.orgId, lead);
+  }
 
   await leadActivitiesRepository.insert(db, body.orgId, {
     leadId: lead.id,
@@ -191,8 +205,10 @@ export type LeadUpsertInput = Pick<
  * phone can both miss `findByPhone` and both attempt `insert`) — `uq_lead_phone` catches the loser
  * as a 23505, which this retries as a merge into the winner instead of letting it 500.
  *
- * Exported so the CRM leads CSV import route (module E) can dedupe-by-phone the same way an
- * organic form submission does, instead of re-implementing the race-safe upsert.
+ * Exported so the CRM leads CSV import route (module E) and the Facebook/Zalo OA lead-ingestion
+ * webhooks can dedupe-by-phone the same way an organic form submission does, instead of
+ * re-implementing the race-safe upsert. `source` is only applied on a genuine insert — a
+ * resubmit merge never overwrites a lead's original source.
  */
 export async function findOrCreateLead(
   db: ReturnType<typeof createDbFromEnv>,
@@ -200,7 +216,8 @@ export async function findOrCreateLead(
   campaign: NonNullable<
     Awaited<ReturnType<typeof campaignsRepository.findById>>
   >,
-  phone: string
+  phone: string,
+  source: LeadSource
 ) {
   const existingLead = await leadsRepository.findByPhone(db, body.orgId, phone);
   if (existingLead) {
@@ -230,7 +247,8 @@ export async function findOrCreateLead(
       customFields: body.customFields,
       utm: body.utm,
       stage: "new",
-      assigneeId
+      assigneeId,
+      source
     });
     if (!inserted) throw new ApiError(500, "lead_insert_failed");
     return { lead: inserted, merged: false };

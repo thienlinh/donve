@@ -11,26 +11,38 @@ import {
   TabsList,
   TabsTrigger
 } from "@dv/ui/components/shadcn/tabs";
+import { useIsMobile } from "@dv/ui/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
 
 import * as m from "@/paraglide/messages.js";
 
 import { EMPTY_PIPELINE, fetchPipeline } from "../api";
-import { emptyLeadFilters, toLeadListQuery } from "../filters";
+import { filtersToSearch, searchToFilters, toLeadListQuery } from "../filters";
 import { leadKeys } from "../query-keys";
 import { LeadDetailSheet } from "./lead-detail-sheet";
 import { LeadsFilterBar } from "./leads-filter-bar";
 import { LeadsImportDialog } from "./leads-import-dialog";
 import { LeadsKanban } from "./leads-kanban";
+import { LeadsSubNav } from "./leads-sub-nav";
 import { LeadsTable } from "./leads-table";
 
 const PAGE_SIZE = 20;
 
+// `getRouteApi` (not the `Route` object) avoids a circular import between the route file and
+// this component — same pattern as `features/studio/components/studio-page.tsx`.
+const routeApi = getRouteApi("/_authenticated/leads/");
+
 export function LeadsPage() {
-  const [filters, setFilters] = useState(emptyLeadFilters);
+  const search = routeApi.useSearch();
+  const navigate = routeApi.useNavigate();
+  const isMobile = useIsMobile();
   const [page, setPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  const filters = searchToFilters(search);
+  const view = isMobile ? "list" : (search.view ?? "list");
 
   const { data: pipeline } = useQuery({
     queryKey: leadKeys.pipeline(),
@@ -38,12 +50,16 @@ export function LeadsPage() {
   });
 
   function updateFilters(next: typeof filters) {
-    setFilters(next);
     setPage(1);
+    void navigate({
+      search: { ...filtersToSearch(next), view: search.view },
+      replace: true
+    });
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
+    <div className="flex flex-1 flex-col">
+      <LeadsSubNav />
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
@@ -53,27 +69,44 @@ export function LeadsPage() {
           <LeadsImportDialog />
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <LeadsFilterBar value={filters} onChange={updateFilters} />
-          <Tabs defaultValue="list">
-            <TabsList>
-              <TabsTrigger value="list">{m.leadsViewList()}</TabsTrigger>
-              <TabsTrigger value="kanban">{m.leadsViewKanban()}</TabsTrigger>
-            </TabsList>
+          <LeadsFilterBar
+            value={filters}
+            onChange={updateFilters}
+            onApplySavedView={(savedFilters) => updateFilters(savedFilters)}
+          />
+          <Tabs
+            value={view}
+            onValueChange={(next) =>
+              void navigate({
+                search: { ...search, view: next as "list" | "kanban" },
+                replace: true
+              })
+            }
+          >
+            {!isMobile && (
+              <TabsList>
+                <TabsTrigger value="list">{m.leadsViewList()}</TabsTrigger>
+                <TabsTrigger value="kanban">{m.leadsViewKanban()}</TabsTrigger>
+              </TabsList>
+            )}
             <TabsContent value="list">
               <LeadsTable
+                key={JSON.stringify(filters)}
                 query={toLeadListQuery(filters, page, PAGE_SIZE)}
                 pipeline={pipeline ?? EMPTY_PIPELINE}
                 onPageChange={setPage}
                 onOpenLead={(lead) => setSelectedLeadId(lead.id)}
               />
             </TabsContent>
-            <TabsContent value="kanban">
-              <LeadsKanban
-                query={toLeadListQuery(filters, 1, PAGE_SIZE)}
-                pipeline={pipeline ?? EMPTY_PIPELINE}
-                onOpenLead={(lead) => setSelectedLeadId(lead.id)}
-              />
-            </TabsContent>
+            {!isMobile && (
+              <TabsContent value="kanban">
+                <LeadsKanban
+                  query={toLeadListQuery(filters, 1, PAGE_SIZE)}
+                  pipeline={pipeline ?? EMPTY_PIPELINE}
+                  onOpenLead={(lead) => setSelectedLeadId(lead.id)}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </CardContent>
       </Card>

@@ -38,12 +38,12 @@
         "@types/babel__core": "7.20.5",
         "@tailwindcss/vite": "4.3.3",
         "tailwindcss": "4.3.3",
-        "react-hook-form": "7.85.0",
+        "react-hook-form": "7.86.0",
         "@hookform/resolvers": "5.9.1",
         "@inlang/paraglide-js": "2.24.1"
       },
       "ui": {
-        "shadcn": "4.18.0",
+        "shadcn": "4.19.0",
         "@base-ui/react": "1.7.0",
         "@fontsource-variable/inter": "5.3.0",
         "class-variance-authority": "0.7.1",
@@ -71,7 +71,7 @@
         "@streamdown/cjk": "1.0.3",
         "@streamdown/math": "1.0.2",
         "@streamdown/mermaid": "1.0.2",
-        "@rive-app/react-webgl2": "4.32.0",
+        "@rive-app/react-webgl2": "4.32.1",
         "motion": "13.1.1",
         "nanoid": "6.0.1",
         "ansi-to-react": "6.2.6",
@@ -87,20 +87,20 @@
         "@tanstack/react-router-devtools": "1.167.1"
       },
       "ai": {
-        "@ai-sdk/react": "4.0.73",
-        "ai": "7.0.70",
+        "@ai-sdk/react": "4.0.79",
+        "ai": "7.0.76",
         "@openrouter/ai-sdk-provider": "3.0.0",
         "@ai-sdk/anthropic": "4.0.40",
-        "@ai-sdk/openai": "4.0.44"
+        "@ai-sdk/openai": "4.0.45"
       },
       "server": {
         "hono": "4.13.3",
         "@hono/zod-validator": "0.9.0",
         "better-auth": "1.7.1",
-        "wrangler": "4.124.0",
-        "@cloudflare/workers-types": "^5.20260820.1",
+        "wrangler": "4.125.0",
+        "@cloudflare/workers-types": "^5.20260822.1",
         "tsdown": "0.22.14",
-        "resend": "6.20.0",
+        "resend": "6.22.0",
         "lighthouse": "13.4.1",
         "chrome-launcher": "1.2.1",
         "libphonenumber-js": "1.13.11"
@@ -116,7 +116,7 @@
       "queue": {
         "@upstash/redis": "1.38.2",
         "@upstash/qstash": "2.11.3",
-        "bullmq": "6.1.2",
+        "bullmq": "6.2.0",
         "ioredis": "6.0.0"
       },
       "content": {

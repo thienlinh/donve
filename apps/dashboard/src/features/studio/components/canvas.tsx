@@ -1021,7 +1021,7 @@ export function Canvas({
           ref={iframeRef}
           title="Studio canvas"
           srcDoc={html}
-          sandbox="allow-same-origin"
+          sandbox="allow-same-origin allow-scripts"
           onLoad={handleLoad}
           className="h-[800px] w-[1200px] border-0 bg-white"
         />

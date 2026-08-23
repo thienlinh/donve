@@ -6,7 +6,7 @@ import type { Bindings } from "../types.js";
 /**
  * CF Workers gets the HTTP driver (no persistent connection possible there,
  * and `neon()` is a cheap stateless fetch wrapper) — built fresh per request,
- * same convention as `middleware/rate-limit.ts`'s `cache.createUpstashCacheDriver(...)`.
+ * same convention as `lib/cache.ts`'s `createCacheFromEnv(...)`.
  *
  * Bun/VPS gets the pooled `postgres.js` driver — architecture.md §3. That pool
  * is a real TCP connection pool and MUST be a process-wide singleton: creating

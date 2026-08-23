@@ -5,9 +5,13 @@
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   // UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN / DATABASE_URL / BETTER_AUTH_SECRET /
-  // RESEND_API_KEY / AI_KEY_MASTER_SECRET / PAYMENTS_KEY_MASTER_SECRET / PLATFORM_OPENROUTER_API_KEY /
-  // TURNSTILE_SECRET_KEY / CF_API_TOKEN / CF_ZONE_ID (FR-G-04 custom domains) /
-  // UNSPLASH_ACCESS_KEY / PEXELS_API_KEY (FR-B-32/33, optional) are secrets — set directly with
+  // RESEND_API_KEY / AI_KEY_MASTER_SECRET / PAYMENTS_KEY_MASTER_SECRET / WEBHOOK_KEY_MASTER_SECRET /
+  // NOTIFY_KEY_MASTER_SECRET (optional — notify_manager ZNS/SMS BYOK, unset = feature 501s) /
+  // PLATFORM_OPENROUTER_API_KEY / TURNSTILE_SECRET_KEY / CF_API_TOKEN / CF_ZONE_ID (FR-G-04 custom
+  // domains) / FACEBOOK_APP_SECRET / ZALO_OA_SECRET (shared fallback, lead-integrations.md §4) /
+  // TIKTOK_APP_ID / TIKTOK_APP_SECRET / TIKTOK_ADVERTISER_AUTH_URL (shared TikTok Marketing API
+  // app, lead-integrations.md §D) / UNSPLASH_ACCESS_KEY / PEXELS_API_KEY (FR-B-32/33, optional)
+  // are secrets — set directly with
   // `wrangler secret put <KEY> --env staging|production` (or `wrangler secret bulk`). Cloudflare
   // is the only place these live; nothing local or in CI holds a copy — see
   // docs/runbooks/env-management.md. Top-level vars below are only the default used by bare
@@ -50,12 +54,14 @@
   // Publish outbox reconciliation (architecture.md §5.2, every 5 minutes), FR-I-03 lead
   // digest (hourly — also the tick that decides whether a "daily" org is due), NFR-11
   // lead retention anonymize (daily, 03:00 UTC), NFR-10 data-subject-request SLA check
-  // (daily, 08:00 UTC), and NFR-14 traffic-spike check (daily, 23:50 UTC — late enough that
-  // "today" is nearly complete). Same quintet the Bun/VPS entrypoint self-schedules via
-  // `setInterval` (src/bun.ts).
+  // (daily, 08:00 UTC), NFR-14 traffic-spike check (daily, 23:50 UTC — late enough that
+  // "today" is nearly complete), and the webhook delivery retry/dead-letter sweep (every 15
+  // minutes). Same set the Bun/VPS entrypoint self-schedules via `setInterval` (src/bun.ts).
   "triggers": {
     "crons": [
       "*/5 * * * *",
+      "*/15 * * * *",
+      "*/30 * * * *",
       "0 * * * *",
       "0 3 * * *",
       "0 8 * * *",
@@ -111,6 +117,7 @@
       "triggers": {
         "crons": [
           "*/5 * * * *",
+          "*/15 * * * *",
           "0 * * * *",
           "0 3 * * *",
           "0 8 * * *",
@@ -159,6 +166,7 @@
       "triggers": {
         "crons": [
           "*/5 * * * *",
+          "*/15 * * * *",
           "0 * * * *",
           "0 3 * * *",
           "0 8 * * *",

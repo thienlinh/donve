@@ -1,7 +1,7 @@
-import { cache } from "@dv/drivers";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 
+import { createCacheFromEnv } from "../lib/cache.js";
 import { clientIp } from "../lib/client-ip.js";
 import { ApiError } from "../lib/errors.js";
 import { log } from "../lib/logger.js";
@@ -17,8 +17,7 @@ export interface RateLimitOptions {
 /**
  * Fixed-window counter built on `CacheDriver.incr` (packages/drivers) rather
  * than `@upstash/ratelimit` directly — the driver is already portable
- * CF↔VPS (architecture.md §1 principle #2); a VPS ioredis `CacheDriver` swaps
- * in later without touching this middleware.
+ * CF↔VPS (architecture.md §1 principle #2) via `createCacheFromEnv`.
  */
 export function rateLimit(opts: RateLimitOptions) {
   return createMiddleware<AppEnv>(async (c, next) => {
@@ -49,10 +48,7 @@ async function checkRateLimit(
   key: string,
   opts: Pick<RateLimitOptions, "windowSeconds" | "max">
 ): Promise<void> {
-  const driver = cache.createUpstashCacheDriver({
-    url: c.env.UPSTASH_REDIS_URL,
-    token: c.env.UPSTASH_REDIS_TOKEN
-  });
+  const driver = createCacheFromEnv(c.env);
 
   let count: number;
   try {

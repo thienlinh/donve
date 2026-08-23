@@ -12,6 +12,7 @@ import {
 } from "@dv/ui/components/shadcn/alert-dialog";
 import { Badge } from "@dv/ui/components/shadcn/badge";
 import { Button } from "@dv/ui/components/shadcn/button";
+import { Card, CardHeader, CardTitle } from "@dv/ui/components/shadcn/card";
 import {
   Empty,
   EmptyDescription,
@@ -119,49 +120,51 @@ export function PromptTemplateDetailPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="font-mono text-lg font-semibold">{template.slug}</h1>
-          <Badge variant={isPlatform ? "secondary" : "outline"}>
-            {isPlatform ? m.skillTypePlatform() : m.skillTypeTenant()}
-          </Badge>
-          <Badge variant="outline">v{template.version}</Badge>
-        </div>
-        {isEditable && (
-          <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <AlertDialogTrigger
-              render={
-                <Button variant="ghost" size="sm">
-                  <Trash2 className="text-destructive" />
-                  {m.promptTemplateRemoveAction()}
-                </Button>
-              }
-            />
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {m.promptTemplateRemoveConfirmTitle()}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {m.promptTemplateRemoveConfirmBody()}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{m.commonCancel()}</AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  disabled={remove.isPending}
-                  onClick={() => remove.mutate()}
-                >
-                  {remove.isPending
-                    ? m.commonLoading()
-                    : m.promptTemplateRemoveAction()}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="font-mono text-lg">{template.slug}</CardTitle>
+            <Badge variant={isPlatform ? "secondary" : "outline"}>
+              {isPlatform ? m.skillTypePlatform() : m.skillTypeTenant()}
+            </Badge>
+            <Badge variant="outline">v{template.version}</Badge>
+          </div>
+          {isEditable && (
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogTrigger
+                render={
+                  <Button variant="ghost" size="sm">
+                    <Trash2 className="text-destructive" />
+                    {m.promptTemplateRemoveAction()}
+                  </Button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {m.promptTemplateRemoveConfirmTitle()}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {m.promptTemplateRemoveConfirmBody()}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{m.commonCancel()}</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate()}
+                  >
+                    {remove.isPending
+                      ? m.commonLoading()
+                      : m.promptTemplateRemoveAction()}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </CardHeader>
+      </Card>
 
       <Tabs defaultValue={isEditable ? "edit" : "compile"}>
         <TabsList>

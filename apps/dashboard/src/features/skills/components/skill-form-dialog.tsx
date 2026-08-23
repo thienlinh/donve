@@ -94,7 +94,7 @@ export function SkillFormDialog({ skill }: { skill?: Skill }) {
           <DialogDescription>{m.skillDialogDescription()}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="skill-slug">{m.skillSlugLabel()}</Label>
               <Input
@@ -119,7 +119,7 @@ export function SkillFormDialog({ skill }: { skill?: Skill }) {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="skill-content">{m.skillContentLabel()}</Label>
               <Textarea

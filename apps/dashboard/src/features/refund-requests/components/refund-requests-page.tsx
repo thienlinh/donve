@@ -124,7 +124,9 @@ export function RefundRequestsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{m.refundRequestsColumnOrder()}</TableHead>
-                  <TableHead>{m.refundRequestsColumnLead()}</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {m.refundRequestsColumnLead()}
+                  </TableHead>
                   <TableHead>{m.refundRequestsColumnAmount()}</TableHead>
                   <TableHead>{m.refundRequestsColumnReason()}</TableHead>
                   <TableHead>{m.refundRequestsColumnStatus()}</TableHead>
@@ -140,7 +142,7 @@ export function RefundRequestsPage() {
                     <TableCell className="font-mono text-xs">
                       {row.orderCode}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {row.leadFullName} · {row.leadPhone}
                     </TableCell>
                     <TableCell>{row.amount.toLocaleString("vi-VN")}đ</TableCell>

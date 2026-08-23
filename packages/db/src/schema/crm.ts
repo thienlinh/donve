@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
+  integer,
   jsonb,
   numeric,
   pgTable,
@@ -26,6 +28,31 @@ export const leads = pgTable(
     utm: jsonb("utm").default({}),
     stage: text("stage").notNull().default("new"),
     assigneeId: text("assignee_id"),
+    // multi-source ingestion — every insert path (public submit form, CSV import, the
+    // Facebook/Zalo OA webhooks) sets this explicitly rather than relying on the default.
+    source: text("source", {
+      enum: [
+        "landing_page",
+        "facebook",
+        "zalo_oa",
+        "manual",
+        "csv_import",
+        // Generic API-key webhook (`/webhooks/generic-leads`) — the bridge target for any
+        // server-to-server forwarder (a custom CRM, a Zalo Mini App's own decode backend) that
+        // can't produce a Turnstile token, lead-integrations.md §D.
+        "generic",
+        // Google Ads Lead Form Extensions native webhook (`/webhooks/google-ads-leads`),
+        // lead-integrations.md §D.
+        "google_ads",
+        // TikTok Lead Generation (Instant Form) via the OAuth-connected Subscription API
+        // webhook (`/webhooks/tiktok-leads`), lead-integrations.md §D.
+        "tiktok"
+      ]
+    })
+      .notNull()
+      .default("manual"),
+    // dashboard "unread" indicator — set by `PATCH /:id/viewed`, never inferred elsewhere.
+    lastViewedAt: timestamp("last_viewed_at"),
     ...timestamps,
     deletedAt: deletedAt(),
     // NFR-10/NFR-11 (Nghị định 13/2023/NĐ-CP) — set once phone/email/customFields are
@@ -38,6 +65,147 @@ export const leads = pgTable(
       .where(sql`deleted_at IS NULL`),
     index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
     index("ix_leads_assignee").on(t.orgId, t.assigneeId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/**
+ * Auto-assignment/routing engine (module E follow-up) — ordered rule set per org, evaluated
+ * top-to-bottom by `priority` in `routeLead` (apps/api/src/modules/leads/routing.ts). SLA
+ * columns are stored now for the dashboard's rule editor but the breach-sweep job itself is a
+ * later phase — nothing reads `slaHours`/`onSlaBreach` yet.
+ */
+export const assignmentRules = pgTable(
+  "assignment_rules",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    priority: integer("priority").notNull().default(0),
+    /** null matches any campaign. */
+    matchCampaignId: text("match_campaign_id"),
+    /** null matches any persona. */
+    matchPersona: text("match_persona"),
+    strategy: text("strategy", {
+      enum: ["round_robin", "least_active_leads", "fixed_assignee"]
+    }).notNull(),
+    assigneePoolIds: jsonb("assignee_pool_ids").$type<string[]>().default([]),
+    fixedAssigneeId: text("fixed_assignee_id"),
+    /** round-robin cursor — the pool index assigned last, persisted so the rotation survives restarts. */
+    lastAssignedIndex: integer("last_assigned_index").notNull().default(0),
+    slaHours: integer("sla_hours"),
+    onSlaBreach: text("on_sla_breach", {
+      enum: ["reassign_next_in_pool", "notify_manager"]
+    }),
+    ...timestamps,
+    deletedAt: deletedAt()
+  },
+  (t) => [
+    index("ix_assignment_rules_org").on(t.orgId, t.priority),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/** Saved lead-list filter presets. `userId` is always the creator (contract's `ownerId`);
+ * `shared` (admin/owner-only to set) is a separate visibility flag rather than nulling
+ * `userId`, so a shared view still remembers who made it. */
+export const savedViews = pgTable(
+  "saved_views",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    userId: text("user_id").notNull(),
+    name: text("name").notNull(),
+    filterJson: jsonb("filter_json").notNull().default({}),
+    shared: boolean("shared").notNull().default(false),
+    createdAt: timestamps.createdAt
+  },
+  (t) => [
+    index("ix_saved_views_org").on(t.orgId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/** Per-org override of the webhook HMAC secret/verify-token used by
+ * `apps/api/src/modules/leads/webhooks.ts` (Facebook Lead Ads / Zalo OA ingestion). An org with
+ * no row here falls back to the shared `FACEBOOK_APP_SECRET`/`ZALO_OA_SECRET` env vars (the
+ * "one central app" deployment model) — a row here is what lets an org that connected its own
+ * Facebook App/Zalo OA properly isolate itself, closing the cross-org forgery gap where the
+ * signature only ever covered the request body, never the `orgId` query param that picks the
+ * tenant. `encryptedSecret` is AES-256-GCM via `@dv/ai-gateway`'s key-vault (see
+ * `WEBHOOK_KEY_MASTER_SECRET`); `verifyToken` is plaintext since Meta's GET handshake token
+ * isn't sensitive by design, it only needs to match.
+ *
+ * `provider: "generic"`/`"google_ads"` are a different shape entirely — Donve GENERATES
+ * `encryptedSecret` (the org never pastes an externally-obtained one) and shows the plaintext
+ * exactly once at creation. `generic` backs `/webhooks/generic-leads` (lead-integrations.md §D),
+ * the no-code-friendly bridge target for any server-to-server forwarder (e.g. a Zalo Mini App's
+ * own backend) that can't produce a Turnstile token the way a real browser can, so it can't use
+ * `POST /public/leads` directly. `google_ads` backs `/webhooks/google-ads-leads` — Google's own
+ * Lead Form webhook contract has the org paste a Donve-generated key INTO the Google Ads UI
+ * (Google echoes it back as `google_key` in every POST body for Donve to compare), the inverse
+ * direction of Facebook/Zalo's org-pasted-external-secret model but the same generated-key shape
+ * as `generic`. */
+export const webhookCredentials = pgTable(
+  "webhook_credentials",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    provider: text("provider", {
+      enum: ["facebook", "zalo_oa", "generic", "google_ads"]
+    }).notNull(),
+    encryptedSecret: text("encrypted_secret").notNull(),
+    verifyToken: text("verify_token"),
+    // Facebook only — a real Meta Lead Ads webhook carries only a `leadgen_id`, never the
+    // actual form answers; fetching `field_data` requires a second, authenticated Graph API
+    // call with a Page Access Token (lead-integrations.md §1). Zalo needs no equivalent since
+    // its message-event webhook already carries everything this route uses.
+    encryptedPageAccessToken: text("encrypted_page_access_token"),
+    // Set on every successful auth check against this credential (webhooks.ts's
+    // `touchLastUsed` calls) — lets an org confirm a generated `generic` API key is actually
+    // being called by whatever tool it was pasted into, instead of waiting to see a lead show
+    // up. Only wired for `generic` today (lead-integrations.md's documented gap); facebook/
+    // zalo_oa could reuse the same column later without a schema change.
+    lastUsedAt: timestamp("last_used_at"),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_webhook_credentials_org_provider").on(t.orgId, t.provider),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/**
+ * BYOK credentials for the `notify_manager` SLA-breach push (packages/drivers/src/notify) —
+ * same shape/reasoning as `webhookCredentials`: the org registers its OWN Zalo ZNS app / eSMS
+ * account, Donve never holds a platform-wide one. `encryptedSecret` is the whole provider-
+ * specific secret bundle serialized as one JSON string before encryption (Zalo ZNS:
+ * `{accessToken, appId, secretKey}`; eSMS: `{apiKey, secretKey}`) rather than one column per
+ * possible field — providers don't share a secret shape, and a single encrypted blob avoids a
+ * column explosion for fields only one provider ever uses. `config` holds the NON-secret,
+ * provider-specific fields an org enters alongside the secret (Zalo ZNS: `templateId`; eSMS:
+ * `brandname`) — safe to read back verbatim in the settings UI, unlike `encryptedSecret`.
+ * Which channel is actually active is `organizations.settings.notifyChannel`
+ * (packages/contracts/src/tenancy.ts), not a column here — a row existing here only means
+ * "configured", not "selected".
+ */
+export const notifyCredentials = pgTable(
+  "notify_credentials",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    provider: text("provider", {
+      enum: ["zalo_zns", "esms"]
+    }).notNull(),
+    encryptedSecret: text("encrypted_secret").notNull(),
+    config: jsonb("config").$type<Record<string, string>>().default({}),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_notify_credentials_org_provider").on(t.orgId, t.provider),
     orgIsolationPolicy(),
     platformReadPolicy()
   ]
@@ -250,6 +418,79 @@ export const refundRequests = pgTable(
   },
   (t) => [
     index("ix_refund_org").on(t.orgId, t.status),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/**
+ * Retry/dead-letter for webhook lead ingestion (lead-integrations.md's documented gap: "Không
+ * có retry/dead-letter nếu ingestWebhookLead lỗi 500"). Only genuinely unexpected failures land
+ * here — `ingestWebhookLead` throwing `ApiError` (bad payload, unknown campaign) is a permanent
+ * client error already surfaced as the right HTTP status, retrying it would just fail the same
+ * way again. `payload` is the already-mapped `{fullName, phone, email, customFields}` shape
+ * `ingestWebhookLead` takes, captured post-signature-verification — the sweep in
+ * apps/api/src/lib/webhook-delivery-sweep.ts re-runs `ingestWebhookLead` itself, not the raw
+ * webhook body, so it never re-verifies a signature that already passed once.
+ */
+export const webhookDeliveryFailures = pgTable(
+  "webhook_delivery_failures",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    campaignId: text("campaign_id").notNull(),
+    source: text("source", {
+      enum: ["facebook", "zalo_oa", "generic", "google_ads", "tiktok"]
+    }).notNull(),
+    payload: jsonb("payload").notNull(),
+    status: text("status", {
+      enum: ["pending", "dead_letter", "resolved"]
+    })
+      .notNull()
+      .default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    lastError: text("last_error"),
+    createdAt: timestamps.createdAt,
+    lastAttemptAt: timestamp("last_attempt_at"),
+    resolvedAt: timestamp("resolved_at")
+  },
+  (t) => [
+    index("ix_webhook_delivery_failures_status").on(t.status, t.createdAt),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/**
+ * One row per org that connected a TikTok Ads account via the OAuth flow (lead-integrations.md
+ * §D) — "Kết nối TikTok Ads" in Settings. Unlike `webhookCredentials`, there is no external
+ * secret an org pastes: `encryptedAccessToken` comes back from TikTok's OAuth token exchange
+ * (`/oauth2/access_token/`) using Donve's own shared `TIKTOK_APP_ID`/`TIKTOK_APP_SECRET`, and per
+ * TikTok's docs this is a long-term token with no `expires_in`/`refresh_token` in the response —
+ * so unlike a typical OAuth integration, there's deliberately no refresh-token column or sweep
+ * job here; add one only if TikTok's contract changes.
+ *
+ * `subscriptionId` is TikTok's own id for the `LEAD` webhook subscription created right after
+ * connecting (`POST /subscription/subscribe/`) — needed to unsubscribe cleanly when the org
+ * disconnects, otherwise TikTok keeps POSTing to a callback URL nobody is listening for anymore.
+ * One row per `(orgId, campaignId)` since each campaign needs its own subscription to route
+ * leads to the right `campaignId` (same reasoning as Facebook/Zalo/Google's `&campaignId=` query
+ * param — TikTok's webhook payload carries `advertiser_id`/`page_id`, never a Donve campaign id).
+ */
+export const tiktokConnections = pgTable(
+  "tiktok_connections",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    campaignId: text("campaign_id").notNull(),
+    advertiserId: text("advertiser_id").notNull(),
+    pageId: text("page_id"),
+    encryptedAccessToken: text("encrypted_access_token").notNull(),
+    subscriptionId: text("subscription_id").notNull(),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_tiktok_connections_org_campaign").on(t.orgId, t.campaignId),
     orgIsolationPolicy(),
     platformReadPolicy()
   ]

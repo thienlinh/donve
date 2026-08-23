@@ -42,10 +42,24 @@ export interface Bindings {
    * Neon/Upstash. Only used under `RUNTIME: "bun"`; defaults to `.data/storage`.
    */
   LOCAL_STORAGE_DIR?: string;
+  /** Plain-Redis pub/sub + KV store for the Bun/VPS runtime (architecture.md §5.3 "trên VPS:
+   * Redis pub/sub") — targets docker-compose's local Redis in dev, a real VPS Redis later.
+   * Only used under `RUNTIME: "bun"`; defaults to `redis://localhost:6379`. */
+  LOCAL_REDIS_URL?: string;
   /** Base64 32-byte AES-256-GCM master key wrapping BYOK `aiConnections.encryptedKey` (ai-integration-byok.md §2). */
   AI_KEY_MASTER_SECRET: string;
   /** Base64 32-byte AES-256-GCM master key wrapping `paymentConnections.encryptedApiKey` — separate from `AI_KEY_MASTER_SECRET` since a payment webhook secret is a distinct, higher-blast-radius secret domain (business-analysis.md §4.4). */
   PAYMENTS_KEY_MASTER_SECRET: string;
+  /** Base64 32-byte AES-256-GCM master key wrapping `webhookCredentials.encryptedSecret` — an
+   * org's own Facebook App/Zalo OA HMAC secret, kept separate from the other two master-secret
+   * domains for the same blast-radius-isolation reason (lead-integrations.md §4). */
+  WEBHOOK_KEY_MASTER_SECRET: string;
+  /** Base64 32-byte AES-256-GCM master key wrapping `notifyCredentials.encryptedSecret` — org's
+   * own Zalo ZNS access token / eSMS API key for the `notify_manager` push channel
+   * (packages/drivers/src/notify). Optional (unlike the other master secrets): the feature is
+   * fully opt-in (default channel is email, no BYOK needed) — routes that need it 501 with
+   * `notify_key_master_secret_unconfigured` when unset, same pattern as `CF_API_TOKEN`. */
+  NOTIFY_KEY_MASTER_SECRET?: string;
   /** Cloudflare Turnstile secret key (FR-D-03) — verified server-side in `POST /public/leads`. */
   TURNSTILE_SECRET_KEY: string;
   /** Cloudflare Turnstile site key (FR-D-03) — public by design, injected into published
@@ -65,7 +79,7 @@ export interface Bindings {
   /**
    * hostname -> {deployId, orgId, campaignId} pointer, same binding apps/edge-router reads
    * (its wrangler.jsonc). Only present under `RUNTIME: "workers"` — Bun/VPS has no edge-router
-   * counterpart, so `lib/publish.ts` uses the Upstash cache driver as an equivalent store there.
+   * counterpart, so `lib/publish.ts` uses `createCacheFromEnv`'s driver as an equivalent store there.
    */
   HOSTNAME_KV?: KvBinding;
   /**
@@ -88,6 +102,29 @@ export interface Bindings {
   /** NFR-14 traffic-spike alert recipient (founder/ops) — feature no-ops without it, same
    * pattern as `RESEND_API_KEY` gating `runLeadDigest`. */
   FOUNDER_ALERT_EMAIL?: string;
+  /** Facebook App secret verifying `X-Hub-Signature-256` on `POST /webhooks/facebook-leads`
+   * (module E multi-source ingestion) — the webhook 401s without it. */
+  FACEBOOK_APP_SECRET?: string;
+  /** Zalo OA webhook signing secret for `POST /webhooks/zalo-oa`, same role as
+   * `FACEBOOK_APP_SECRET` above. */
+  ZALO_OA_SECRET?: string;
+  /** Donve's own TikTok for Business Marketing API developer app (lead-integrations.md §D) —
+   * ONE shared app for the whole platform, not org-pasted, so an individual advertiser never
+   * has to create their own TikTok Developer App. `TIKTOK_APP_ID`/`TIKTOK_APP_SECRET` are used
+   * both to exchange an OAuth `auth_code` for an advertiser's `access_token`
+   * (`/webhooks/tiktok-oauth-callback`) and to verify the `Tiktok-Signature` header on
+   * `POST /webhooks/tiktok-leads` (HMAC-SHA256 of `{timestamp}.{rawBody}` — confirmed against
+   * TikTok's official Webhook verification doc, not the shared-secret-per-provider two-tier
+   * model the other providers use, since TikTok signs with the APP's secret, not a per-org one). */
+  TIKTOK_APP_ID?: string;
+  TIKTOK_APP_SECRET?: string;
+  /** The "Advertiser authorization URL" shown in Donve's TikTok App console (My Apps > App
+   * Detail > Basic Information) — TikTok generates this URL itself once the app's redirect URLs
+   * are configured; it is NOT constructed from a documented query-param template (unlike
+   * Facebook/Google's OAuth URLs), so it's stored as-is rather than built in code. The Settings
+   * UI appends `&state=<orgId>:<campaignId>` to it before showing the "Connect TikTok Ads"
+   * link — see `tiktok-oauth.ts`. */
+  TIKTOK_ADVERTISER_AUTH_URL?: string;
 }
 
 /** Per-request context set by middleware/route handlers. */
@@ -124,5 +161,8 @@ export const requiredBindingsSchema = z.object({
   AI_KEY_MASTER_SECRET: z.string().min(1, "AI_KEY_MASTER_SECRET is required"),
   PAYMENTS_KEY_MASTER_SECRET: z
     .string()
-    .min(1, "PAYMENTS_KEY_MASTER_SECRET is required")
+    .min(1, "PAYMENTS_KEY_MASTER_SECRET is required"),
+  WEBHOOK_KEY_MASTER_SECRET: z
+    .string()
+    .min(1, "WEBHOOK_KEY_MASTER_SECRET is required")
 });

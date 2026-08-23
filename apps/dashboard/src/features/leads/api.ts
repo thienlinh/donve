@@ -1,4 +1,5 @@
 import {
+  assignmentRuleSchema,
   dataSubjectRequestListSchema,
   dataSubjectRequestSchema,
   leadActivitySchema,
@@ -6,11 +7,17 @@ import {
   leadImportResultSchema,
   leadListResponseSchema,
   leadSchema,
+  notifyCredentialSchema,
   orderSchema,
   salesConfigListSchema,
+  savedViewSchema,
   type AssignLeadInput,
+  type AssignmentRule,
+  type BulkDeleteLeadsInput,
+  type BulkUpdateLeadsInput,
   type CreateDataSubjectRequestInput,
   type CreateLeadActivityInput,
+  type CreateSavedViewInput,
   type DataSubjectRequest,
   type DataSubjectRequestStatus,
   type Lead,
@@ -20,11 +27,23 @@ import {
   type LeadImportResult,
   type LeadListQuery,
   type LeadListResponse,
+  type NotifyCredential,
+  type NotifyProvider,
   type Order,
   type SalesConfigList,
+  type SavedView,
+  type TiktokConnection,
+  tiktokConnectionSchema,
   type UpdateLeadOrderStatusInput,
   type UpdateLeadStageInput,
-  type UpdateSalesConfigInput
+  type UpdateSalesConfigInput,
+  type UpsertAssignmentRuleInput,
+  type UpsertNotifyCredentialInput,
+  type UpsertWebhookCredentialInput,
+  type WebhookCredential,
+  type WebhookProvider,
+  webhookCredentialSchema,
+  generateGenericApiKeyResultSchema
 } from "@dv/contracts";
 import { z } from "zod";
 
@@ -195,4 +214,143 @@ export async function updateMemberSalesConfig(
     method: "PATCH",
     body: JSON.stringify(input)
   });
+}
+
+/** Bulk stage/assign — floating toolbar in the list view, one call for N selected rows. */
+export async function bulkUpdateLeads(
+  input: BulkUpdateLeadsInput
+): Promise<void> {
+  await leadsFetch("/bulk", { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export async function bulkDeleteLeads(
+  input: BulkDeleteLeadsInput
+): Promise<void> {
+  await leadsFetch("/bulk", { method: "DELETE", body: JSON.stringify(input) });
+}
+
+/** Fire-and-forget from `LeadDetailSheet` on open — clears the unread indicator. */
+export async function markLeadViewed(id: string): Promise<void> {
+  await leadsFetch(`/${id}/viewed`, { method: "PATCH" });
+}
+
+const assignmentRuleListSchema = z.array(assignmentRuleSchema);
+
+export async function fetchAssignmentRules(): Promise<AssignmentRule[]> {
+  const res = await leadsFetch("/assignment-rules");
+  return assignmentRuleListSchema.parse(await res.json());
+}
+
+export async function createAssignmentRule(
+  input: UpsertAssignmentRuleInput
+): Promise<AssignmentRule> {
+  const res = await leadsFetch("/assignment-rules", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+  return assignmentRuleSchema.parse(await res.json());
+}
+
+export async function updateAssignmentRule(
+  id: string,
+  input: Partial<UpsertAssignmentRuleInput>
+): Promise<AssignmentRule> {
+  const res = await leadsFetch(`/assignment-rules/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
+  return assignmentRuleSchema.parse(await res.json());
+}
+
+export async function deleteAssignmentRule(id: string): Promise<void> {
+  await leadsFetch(`/assignment-rules/${id}`, { method: "DELETE" });
+}
+
+const webhookCredentialListSchema = z.array(webhookCredentialSchema);
+
+export async function fetchWebhookCredentials(): Promise<WebhookCredential[]> {
+  const res = await leadsFetch("/webhook-credentials");
+  return webhookCredentialListSchema.parse(await res.json());
+}
+
+export async function upsertWebhookCredential(
+  provider: WebhookProvider,
+  input: UpsertWebhookCredentialInput
+): Promise<void> {
+  await leadsFetch(`/webhook-credentials/${provider}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteWebhookCredential(
+  provider: WebhookProvider
+): Promise<void> {
+  await leadsFetch(`/webhook-credentials/${provider}`, { method: "DELETE" });
+}
+
+export async function generateApiKey(
+  provider: "generic" | "google_ads"
+): Promise<string> {
+  const res = await leadsFetch(`/webhook-credentials/${provider}/generate`, {
+    method: "POST"
+  });
+  return generateGenericApiKeyResultSchema.parse(await res.json()).apiKey;
+}
+
+const tiktokConnectionListSchema = z.array(tiktokConnectionSchema);
+
+export async function fetchTiktokConnections(): Promise<TiktokConnection[]> {
+  const res = await leadsFetch("/tiktok-connections");
+  return tiktokConnectionListSchema.parse(await res.json());
+}
+
+export async function disconnectTiktokConnection(
+  campaignId: string
+): Promise<void> {
+  await leadsFetch(`/tiktok-connections/${campaignId}`, { method: "DELETE" });
+}
+
+const notifyCredentialListSchema = z.array(notifyCredentialSchema);
+
+export async function fetchNotifyCredentials(): Promise<NotifyCredential[]> {
+  const res = await leadsFetch("/notify-credentials");
+  return notifyCredentialListSchema.parse(await res.json());
+}
+
+export async function upsertNotifyCredential(
+  provider: NotifyProvider,
+  input: UpsertNotifyCredentialInput
+): Promise<void> {
+  await leadsFetch(`/notify-credentials/${provider}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteNotifyCredential(
+  provider: NotifyProvider
+): Promise<void> {
+  await leadsFetch(`/notify-credentials/${provider}`, { method: "DELETE" });
+}
+
+const savedViewListSchema = z.array(savedViewSchema);
+
+export async function fetchSavedViews(): Promise<SavedView[]> {
+  const res = await leadsFetch("/saved-views");
+  return savedViewListSchema.parse(await res.json());
+}
+
+export async function createSavedView(
+  input: CreateSavedViewInput
+): Promise<SavedView> {
+  const res = await leadsFetch("/saved-views", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+  return savedViewSchema.parse(await res.json());
+}
+
+export async function deleteSavedView(id: string): Promise<void> {
+  await leadsFetch(`/saved-views/${id}`, { method: "DELETE" });
 }

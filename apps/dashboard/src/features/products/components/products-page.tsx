@@ -40,6 +40,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { Pagination } from "@/components/pagination";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchProductsPage, removeProduct } from "../api";
@@ -110,31 +111,12 @@ export function ProductsPage() {
               </TableBody>
             </Table>
           )}
-          {data && totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page <= 1}
-                onClick={() => setPage(data.page - 1)}
-              >
-                {m.commonPrevious()}
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {m.productsPaginationLabel({
-                  page: data.page,
-                  total: totalPages
-                })}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page >= totalPages}
-                onClick={() => setPage(data.page + 1)}
-              >
-                {m.commonNext()}
-              </Button>
-            </div>
+          {data && (
+            <Pagination
+              page={data.page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           )}
         </CardContent>
       </Card>

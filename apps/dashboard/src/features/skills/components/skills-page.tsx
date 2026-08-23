@@ -103,7 +103,9 @@ export function SkillsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{m.skillColumnName()}</TableHead>
-                  <TableHead>{m.skillColumnSlug()}</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {m.skillColumnSlug()}
+                  </TableHead>
                   <TableHead>{m.skillColumnType()}</TableHead>
                   <TableHead>{m.skillColumnDefault()}</TableHead>
                   <TableHead className="text-end">
@@ -156,7 +158,9 @@ function SkillRow({ skill, canManage }: { skill: Skill; canManage: boolean }) {
   return (
     <TableRow>
       <TableCell className="font-medium">{skill.name}</TableCell>
-      <TableCell className="font-mono text-xs">{skill.slug}</TableCell>
+      <TableCell className="hidden font-mono text-xs sm:table-cell">
+        {skill.slug}
+      </TableCell>
       <TableCell>
         <Badge variant={isPlatform ? "secondary" : "outline"}>
           {isPlatform ? m.skillTypePlatform() : m.skillTypeTenant()}

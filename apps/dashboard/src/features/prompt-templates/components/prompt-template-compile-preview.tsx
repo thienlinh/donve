@@ -30,7 +30,7 @@ export function PromptTemplateCompilePreview({
   return (
     <div className="flex flex-col gap-4">
       {template.variables.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {template.variables.map((variable) => (
             <div key={variable.key} className="flex flex-col gap-1.5">
               <Label htmlFor={`compile-var-${variable.key}`}>

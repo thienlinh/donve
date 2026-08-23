@@ -127,6 +127,55 @@
       "when": 1787239464021,
       "tag": "0017_messy_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787372077894,
+      "tag": "0018_amused_vulture",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787375480034,
+      "tag": "0019_aberrant_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787381515403,
+      "tag": "0020_polite_archangel",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787386152119,
+      "tag": "0021_blue_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787386567167,
+      "tag": "0022_milky_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787388601328,
+      "tag": "0023_minor_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1787396033775,
+      "tag": "0024_numerous_freak",
+      "breakpoints": true
     }
   ]
 }

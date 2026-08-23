@@ -10,6 +10,7 @@ export type {
   ResetPasswordProps,
   SendEmailInput,
   SendEmailResult,
+  SlaBreachAlertProps,
   VerifyEmailProps
 } from "./types.js";
 

@@ -1,8 +1,13 @@
+import { encryptApiKey, importMasterKey } from "@dv/ai-gateway";
 import {
   assignLeadSchema,
+  assignmentRuleSchema,
+  bulkDeleteLeadsSchema,
+  bulkUpdateLeadsSchema,
   campaignPaymentConfigSchema,
   createDataSubjectRequestSchema,
   createLeadActivitySchema,
+  createSavedViewSchema,
   dataSubjectRequestListSchema,
   dataSubjectRequestSchema,
   dataSubjectRequestStatusSchema,
@@ -12,14 +17,23 @@ import {
   leadListQuerySchema,
   leadListResponseSchema,
   leadSchema,
+  notifyCredentialSchema,
   orgSettingsSchema,
   salesConfigListSchema,
   salesConfigSchema,
+  savedViewSchema,
+  tiktokConnectionSchema,
   updateLeadOrderStatusSchema,
   updateLeadStageSchema,
-  updateSalesConfigSchema
+  updateSalesConfigSchema,
+  upsertAssignmentRuleSchema,
+  upsertNotifyCredentialSchema,
+  upsertWebhookCredentialSchema,
+  webhookCredentialSchema,
+  generateGenericApiKeyResultSchema
 } from "@dv/contracts";
 import {
+  assignmentRulesRepository,
   auditLogsRepository,
   campaignsRepository,
   dataSubjectRequestsRepository,
@@ -27,14 +41,19 @@ import {
   leadActivitiesRepository,
   leadsRepository,
   membershipsRepository,
+  notifyCredentialsRepository,
   ordersRepository,
   organizationsRepository,
+  savedViewsRepository,
+  tiktokConnectionsRepository,
+  webhookCredentialsRepository,
   type Db
 } from "@dv/db";
-import { email, realtime } from "@dv/drivers";
+import { email } from "@dv/drivers";
 import { Hono, type Context } from "hono";
 import { streamSSE } from "hono/streaming";
 
+import { createRealtimeFromEnv } from "../../lib/cache.js";
 import { createDbFromEnv } from "../../lib/db.js";
 import { ApiError } from "../../lib/errors.js";
 import { log } from "../../lib/logger.js";
@@ -47,6 +66,8 @@ import {
 } from "../../lib/realtime.js";
 import type { AppEnv } from "../../types.js";
 import { findOrCreateLead } from "../public/routes.js";
+import { routeLead } from "./routing.js";
+import { disconnectTiktok } from "./tiktok.js";
 
 export const leadsRoutes = new Hono<AppEnv>();
 
@@ -54,6 +75,14 @@ function requireOrgId(c: Context<AppEnv>): string {
   const orgId = c.get("orgId");
   if (!orgId) throw new ApiError(500, "missing_org_context");
   return orgId;
+}
+
+/** Same owner/admin gate used by `/pipeline`-adjacent config screens (sales-config, routing
+ * rules, shared saved views) — everything an individual sales rep shouldn't be able to touch. */
+function requireAdminOrOwner(c: Context<AppEnv>): void {
+  const role = c.get("membershipRole");
+  if (role !== "owner" && role !== "admin")
+    throw new ApiError(403, "forbidden");
 }
 
 interface PipelineStage {
@@ -90,14 +119,12 @@ function scopedAssigneeFilter(c: Context<AppEnv>, requested?: string) {
   return requested;
 }
 
-/** architecture.md §5.3: dashboard SSE hub — Upstash pub/sub fanned out per-connection as SSE,
- * so a sales rep sees an order flip to `paid`/`fulfilled` without polling or refreshing. */
+/** architecture.md §5.3: dashboard SSE hub — pub/sub (Upstash on Workers, plain Redis on
+ * Bun/VPS, see `createRealtimeFromEnv`) fanned out per-connection as SSE, so a sales rep sees
+ * an order flip to `paid`/`fulfilled` without polling or refreshing. */
 leadsRoutes.get("/orders/stream", async (c) => {
   const orgId = requireOrgId(c);
-  const driver = realtime.createUpstashRealtimeDriver({
-    url: c.env.UPSTASH_REDIS_URL,
-    token: c.env.UPSTASH_REDIS_TOKEN
-  });
+  const driver = createRealtimeFromEnv(c.env);
 
   return streamSSE(c, async (stream) => {
     const controller = new AbortController();
@@ -112,14 +139,11 @@ leadsRoutes.get("/orders/stream", async (c) => {
   });
 });
 
-/** module E finding #4: in-app realtime bell — same Upstash-pub/sub-fanned-to-SSE shape as
+/** module E finding #4: in-app realtime bell — same pub/sub-fanned-to-SSE shape as
  * `/orders/stream` above, just a different channel (new-lead counts, not order transitions). */
 leadsRoutes.get("/stream", async (c) => {
   const orgId = requireOrgId(c);
-  const driver = realtime.createUpstashRealtimeDriver({
-    url: c.env.UPSTASH_REDIS_URL,
-    token: c.env.UPSTASH_REDIS_TOKEN
-  });
+  const driver = createRealtimeFromEnv(c.env);
 
   return streamSSE(c, async (stream) => {
     const controller = new AbortController();
@@ -235,7 +259,7 @@ leadsRoutes.post("/import", async (c) => {
       // each row's dedupe check depends on any earlier row for the same phone already
       // having committed, can't run in parallel
       // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop
-      const { merged: wasMerged } = await findOrCreateLead(
+      const { lead: importedLead, merged: wasMerged } = await findOrCreateLead(
         db,
         {
           orgId,
@@ -246,10 +270,15 @@ leadsRoutes.post("/import", async (c) => {
           utm: {}
         },
         campaign,
-        phone
+        phone,
+        "csv_import"
       );
       if (wasMerged) merged++;
-      else created++;
+      else {
+        created++;
+        // oxlint-disable-next-line no-await-in-loop -- same per-row sequencing as the dedupe call above
+        await routeLead(db, orgId, importedLead);
+      }
     } catch (err) {
       failed.push({
         row: index,
@@ -292,6 +321,455 @@ leadsRoutes.get("/data-subject-requests", async (c) => {
   );
 });
 
+/** `assignmentRules.onSlaBreach` is a DB text-enum, but the contract's field is a plain
+ * `z.string().nullable()` (SLA-breach automation is a later phase, see schema comment) — this
+ * is the narrowing the DB insert/update calls need since TS can't infer it from the contract. */
+const ON_SLA_BREACH_VALUES = [
+  "reassign_next_in_pool",
+  "notify_manager"
+] as const;
+type OnSlaBreach = (typeof ON_SLA_BREACH_VALUES)[number];
+
+function parseOnSlaBreach(
+  value: string | null | undefined
+): OnSlaBreach | null | undefined {
+  if (value == null) return value;
+  if (!(ON_SLA_BREACH_VALUES as readonly string[]).includes(value)) {
+    throw new ApiError(400, "invalid_on_sla_breach");
+  }
+  return value as OnSlaBreach;
+}
+
+/** module: auto-assignment routing engine — rule config, admin/owner only. Registered before
+ * `GET /:id` for the same single-path-segment reason as `/data-subject-requests` above. */
+leadsRoutes.get("/assignment-rules", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+
+  const rows = await assignmentRulesRepository.listActive(db, orgId);
+  return c.json(rows.map((row) => assignmentRuleSchema.parse(row)));
+});
+
+leadsRoutes.post("/assignment-rules", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const body = upsertAssignmentRuleSchema.parse(await c.req.json());
+
+  const created = await assignmentRulesRepository.insert(db, orgId, {
+    ...body,
+    onSlaBreach: parseOnSlaBreach(body.onSlaBreach)
+  });
+  if (!created) throw new ApiError(500, "assignment_rule_insert_failed");
+  return c.json(assignmentRuleSchema.parse(created), 201);
+});
+
+leadsRoutes.patch("/assignment-rules/:id", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const id = c.req.param("id");
+  const body = upsertAssignmentRuleSchema.partial().parse(await c.req.json());
+
+  const existing = await assignmentRulesRepository.findById(db, orgId, id);
+  if (!existing || existing.deletedAt) {
+    throw new ApiError(404, "assignment_rule_not_found");
+  }
+
+  // oxlint-disable-next-line react-doctor/server-sequential-independent-await -- existence check must throw before this write fires
+  const updated = await assignmentRulesRepository.update(db, orgId, id, {
+    ...body,
+    onSlaBreach: parseOnSlaBreach(body.onSlaBreach)
+  });
+  return c.json(assignmentRuleSchema.parse(updated));
+});
+
+leadsRoutes.delete("/assignment-rules/:id", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const id = c.req.param("id");
+
+  const existing = await assignmentRulesRepository.findById(db, orgId, id);
+  if (!existing || existing.deletedAt) {
+    throw new ApiError(404, "assignment_rule_not_found");
+  }
+
+  // oxlint-disable-next-line react-doctor/server-sequential-independent-await -- existence check must throw before this write fires
+  await assignmentRulesRepository.update(db, orgId, id, {
+    deletedAt: new Date()
+  });
+  return c.json({ ok: true });
+});
+
+const WEBHOOK_PROVIDERS = [
+  "facebook",
+  "zalo_oa",
+  "generic",
+  "google_ads"
+] as const;
+type WebhookProviderParam = (typeof WEBHOOK_PROVIDERS)[number];
+
+function parseWebhookProvider(raw: string): WebhookProviderParam {
+  if (!WEBHOOK_PROVIDERS.includes(raw as WebhookProviderParam)) {
+    throw new ApiError(400, "invalid_webhook_provider");
+  }
+  return raw as WebhookProviderParam;
+}
+
+// Donve-generated (never org-pasted) providers — `PUT .../:provider` is blocked for these, the
+// only way to set/rotate the secret is `POST .../:provider/generate` below, so an org can't
+// weaken it to a guessable value of their own choosing.
+const DONVE_GENERATED_PROVIDERS = new Set<WebhookProviderParam>([
+  "generic",
+  "google_ads"
+]);
+
+/** Per-org Facebook/Zalo OA webhook secret override (lead-integrations.md §4) — admin/owner
+ * only, since this controls who can inject leads into the org. The secret itself is write-only:
+ * `GET` never returns it, only whether one is configured. */
+leadsRoutes.get("/webhook-credentials", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+
+  const rows = await Promise.all(
+    WEBHOOK_PROVIDERS.map(async (provider) => {
+      const row = await webhookCredentialsRepository.findByOrgAndProvider(
+        db,
+        orgId,
+        provider
+      );
+      return webhookCredentialSchema.parse({
+        provider,
+        configured: Boolean(row),
+        verifyToken: row?.verifyToken ?? null,
+        pageAccessTokenConfigured: Boolean(row?.encryptedPageAccessToken),
+        updatedAt: row?.updatedAt ?? null,
+        lastUsedAt: row?.lastUsedAt ?? null
+      });
+    })
+  );
+  return c.json(rows);
+});
+
+leadsRoutes.put("/webhook-credentials/:provider", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const provider = parseWebhookProvider(c.req.param("provider"));
+  if (DONVE_GENERATED_PROVIDERS.has(provider)) {
+    throw new ApiError(400, "invalid_webhook_provider");
+  }
+  const body = upsertWebhookCredentialSchema.parse(await c.req.json());
+
+  const masterKey = await importMasterKey(c.env.WEBHOOK_KEY_MASTER_SECRET);
+  const encryptedSecret = await encryptApiKey(body.secret, masterKey);
+  const encryptedPageAccessToken = body.pageAccessToken
+    ? await encryptApiKey(body.pageAccessToken, masterKey)
+    : undefined;
+  await webhookCredentialsRepository.upsert(db, orgId, provider, {
+    encryptedSecret,
+    verifyToken: body.verifyToken ?? null,
+    ...(encryptedPageAccessToken ? { encryptedPageAccessToken } : {})
+  });
+  return c.json({ ok: true });
+});
+
+leadsRoutes.delete("/webhook-credentials/:provider", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const provider = parseWebhookProvider(c.req.param("provider"));
+
+  await webhookCredentialsRepository.remove(db, orgId, provider);
+  return c.json({ ok: true });
+});
+
+/** Generates (or rotates) the org's Donve-side API key for either `POST /webhooks/generic-leads`
+ * (the no-code-friendly bridge target for any server-to-server forwarder that can't produce a
+ * Turnstile token, lead-integrations.md §D) or `POST /webhooks/google-ads-leads` (`google_key`
+ * the org pastes into the Google Ads Lead Form asset's own webhook settings — Google echoes it
+ * back in every POST body, see lead-integrations.md §E). The plaintext key is returned ONLY in
+ * this response — `GET /webhook-credentials` only ever reports `configured: true` afterward,
+ * same as Facebook/Zalo secrets never being readable back. Rotating replaces the old key outright
+ * (single active key per org, no grace-period overlap — simplest correct behavior for a key an
+ * org can regenerate freely if a caller needs updating). */
+leadsRoutes.post("/webhook-credentials/:provider/generate", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const provider = parseWebhookProvider(c.req.param("provider"));
+  if (!DONVE_GENERATED_PROVIDERS.has(provider)) {
+    throw new ApiError(400, "invalid_webhook_provider");
+  }
+
+  const apiKey = crypto.randomUUID().replaceAll("-", "");
+  const masterKey = await importMasterKey(c.env.WEBHOOK_KEY_MASTER_SECRET);
+  const encryptedSecret = await encryptApiKey(apiKey, masterKey);
+  await webhookCredentialsRepository.upsert(db, orgId, provider, {
+    encryptedSecret,
+    verifyToken: null
+  });
+  return c.json(generateGenericApiKeyResultSchema.parse({ apiKey }));
+});
+
+/** Status for the "Kết nối TikTok Ads" card (lead-integrations.md §D) — admin/owner only, same
+ * gating as every other webhook-settings read. Returns every campaign that currently has a live
+ * connection for this org; the Settings UI matches rows to campaigns client-side the same way it
+ * already does for the campaign picker. */
+leadsRoutes.get("/tiktok-connections", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+
+  const rows = await tiktokConnectionsRepository.list(db, orgId);
+  return c.json(
+    rows.map((row) =>
+      tiktokConnectionSchema.parse({
+        campaignId: row.campaignId,
+        advertiserId: row.advertiserId,
+        connectedAt: row.createdAt
+      })
+    )
+  );
+});
+
+leadsRoutes.delete("/tiktok-connections/:campaignId", async (c) => {
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const campaignId = c.req.param("campaignId");
+
+  await disconnectTiktok(c.env, orgId, campaignId);
+  return c.json({ ok: true });
+});
+
+const NOTIFY_PROVIDERS = ["zalo_zns", "esms"] as const;
+type NotifyProviderParam = (typeof NOTIFY_PROVIDERS)[number];
+
+function parseNotifyProvider(raw: string): NotifyProviderParam {
+  if (!NOTIFY_PROVIDERS.includes(raw as NotifyProviderParam)) {
+    throw new ApiError(400, "invalid_notify_provider");
+  }
+  return raw as NotifyProviderParam;
+}
+
+function requireNotifyMasterKey(c: Context<AppEnv>): string {
+  if (!c.env.NOTIFY_KEY_MASTER_SECRET) {
+    throw new ApiError(501, "notify_key_master_secret_unconfigured");
+  }
+  return c.env.NOTIFY_KEY_MASTER_SECRET;
+}
+
+/** BYOK credentials for the `notify_manager` push channel (packages/drivers/src/notify) —
+ * admin/owner only, same secret-is-write-only shape as `/webhook-credentials`. */
+leadsRoutes.get("/notify-credentials", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+
+  const rows = await Promise.all(
+    NOTIFY_PROVIDERS.map(async (provider) => {
+      const row = await notifyCredentialsRepository.findByOrgAndProvider(
+        db,
+        orgId,
+        provider
+      );
+      return notifyCredentialSchema.parse({
+        provider,
+        configured: Boolean(row),
+        config: row?.config ?? {},
+        updatedAt: row?.updatedAt ?? null
+      });
+    })
+  );
+  return c.json(rows);
+});
+
+leadsRoutes.put("/notify-credentials/:provider", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const provider = parseNotifyProvider(c.req.param("provider"));
+  const body = upsertNotifyCredentialSchema.parse({
+    provider,
+    ...(await c.req.json())
+  });
+  if (body.provider !== provider) {
+    throw new ApiError(400, "invalid_notify_provider");
+  }
+
+  const masterKey = await importMasterKey(requireNotifyMasterKey(c));
+  const secret =
+    body.provider === "zalo_zns"
+      ? { accessToken: body.accessToken }
+      : { apiKey: body.apiKey, secretKey: body.secretKey };
+  const encryptedSecret = await encryptApiKey(
+    JSON.stringify(secret),
+    masterKey
+  );
+  const config: Record<string, string> =
+    body.provider === "zalo_zns"
+      ? { templateId: body.templateId }
+      : body.brandname
+        ? { brandname: body.brandname }
+        : {};
+
+  await notifyCredentialsRepository.upsert(db, orgId, provider, {
+    encryptedSecret,
+    config
+  });
+  return c.json({ ok: true });
+});
+
+leadsRoutes.delete("/notify-credentials/:provider", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireAdminOrOwner(c);
+  const provider = parseNotifyProvider(c.req.param("provider"));
+
+  await notifyCredentialsRepository.remove(db, orgId, provider);
+  return c.json({ ok: true });
+});
+
+/** Saved lead-list filter presets. `GET` returns the caller's own views plus every shared
+ * (org-wide) one; only owner/admin can create a shared view. */
+leadsRoutes.get("/saved-views", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+
+  const rows = await savedViewsRepository.listVisible(
+    db,
+    orgId,
+    c.get("userId")
+  );
+  return c.json(
+    rows.map((row) => savedViewSchema.parse({ ...row, ownerId: row.userId }))
+  );
+});
+
+leadsRoutes.post("/saved-views", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const body = createSavedViewSchema.parse(await c.req.json());
+  if (body.shared) requireAdminOrOwner(c);
+
+  const created = await savedViewsRepository.insert(db, orgId, {
+    userId: c.get("userId"),
+    name: body.name,
+    filterJson: body.filterJson,
+    shared: body.shared
+  });
+  if (!created) throw new ApiError(500, "saved_view_insert_failed");
+  return c.json(
+    savedViewSchema.parse({ ...created, ownerId: created.userId }),
+    201
+  );
+});
+
+leadsRoutes.delete("/saved-views/:id", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+
+  const existing = await savedViewsRepository.findById(db, orgId, id);
+  if (!existing) throw new ApiError(404, "saved_view_not_found");
+
+  const role = c.get("membershipRole");
+  const isOwnRow = existing.userId === c.get("userId");
+  if (!isOwnRow && role !== "owner" && role !== "admin") {
+    throw new ApiError(403, "forbidden");
+  }
+
+  await savedViewsRepository.remove(db, orgId, id);
+  return c.json({ ok: true });
+});
+
+/** `PATCH`/`DELETE /bulk` — table/kanban multi-select actions, reusing the exact same
+ * per-lead activity-logging paths (`applyStageChange`/`applyAssigneeChange`) as the
+ * single-lead endpoints so a bulk op leaves an identical audit trail. */
+leadsRoutes.patch("/bulk", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const body = bulkUpdateLeadsSchema.parse(await c.req.json());
+  if (body.leadIds.length > BULK_BATCH_MAX) {
+    throw new ApiError(400, "bulk_batch_too_large");
+  }
+
+  if (body.stage) {
+    const pipeline = await getPipeline(db, orgId);
+    if (!pipeline.some((stage) => stage.key === body.stage)) {
+      throw new ApiError(400, "invalid_stage");
+    }
+  }
+
+  const leadsInScope = await findVisibleLeadsForBulk(
+    c,
+    db,
+    orgId,
+    body.leadIds
+  );
+  const actorId = c.get("userId");
+  for (const lead of leadsInScope) {
+    // each row needs its own before/after values for the activity log — can't batch this write
+    if (body.stage) {
+      // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop
+      await applyStageChange(db, orgId, actorId, lead, body.stage);
+    }
+    if (body.assigneeId !== undefined) {
+      // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop
+      await applyAssigneeChange(db, orgId, actorId, lead, body.assigneeId);
+    }
+  }
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId,
+    action: "lead.bulk_update",
+    targetType: "lead",
+    targetId: null,
+    meta: {
+      requested: body.leadIds.length,
+      updated: leadsInScope.length,
+      stage: body.stage ?? null,
+      assigneeId: body.assigneeId ?? null
+    }
+  });
+
+  return c.json({ ok: true, updated: leadsInScope.length });
+});
+
+leadsRoutes.delete("/bulk", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const body = bulkDeleteLeadsSchema.parse(await c.req.json());
+  if (body.leadIds.length > BULK_BATCH_MAX) {
+    throw new ApiError(400, "bulk_batch_too_large");
+  }
+
+  const leadsInScope = await findVisibleLeadsForBulk(
+    c,
+    db,
+    orgId,
+    body.leadIds
+  );
+  const actorId = c.get("userId");
+  for (const lead of leadsInScope) {
+    // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop -- soft-delete, one row at a time
+    await leadsRepository.update(db, orgId, lead.id, { deletedAt: new Date() });
+  }
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId,
+    action: "lead.bulk_delete",
+    targetType: "lead",
+    targetId: null,
+    meta: { requested: body.leadIds.length, deleted: leadsInScope.length }
+  });
+
+  return c.json({ ok: true, deleted: leadsInScope.length });
+});
+
 async function findVisibleLead(
   c: Context<AppEnv>,
   db: ReturnType<typeof createDbFromEnv>,
@@ -312,6 +790,70 @@ async function findVisibleLead(
   }
   return lead;
 }
+
+/** Shared with `PATCH /bulk` — the exact stage-change write + activity log a single-lead
+ * `PATCH /:id/stage` does, so the bulk path never diverges from what one lead gets. */
+async function applyStageChange(
+  db: Db,
+  orgId: string,
+  actorId: string,
+  lead: NonNullable<Awaited<ReturnType<typeof leadsRepository.findById>>>,
+  stage: string
+) {
+  const updated = await leadsRepository.update(db, orgId, lead.id, { stage });
+  await leadActivitiesRepository.insert(db, orgId, {
+    leadId: lead.id,
+    type: "stage_change",
+    body: null,
+    meta: { from: lead.stage, to: stage },
+    actorId
+  });
+  return updated;
+}
+
+/** Shared with `PATCH /bulk` — the exact assignee-change write + activity log a single-lead
+ * `PATCH /:id/assignee` does. */
+async function applyAssigneeChange(
+  db: Db,
+  orgId: string,
+  actorId: string,
+  lead: NonNullable<Awaited<ReturnType<typeof leadsRepository.findById>>>,
+  assigneeId: string | null
+) {
+  const updated = await leadsRepository.update(db, orgId, lead.id, {
+    assigneeId
+  });
+  await leadActivitiesRepository.insert(db, orgId, {
+    leadId: lead.id,
+    type: "system",
+    body: null,
+    meta: { from: lead.assigneeId, to: assigneeId, kind: "assignment" },
+    actorId
+  });
+  return updated;
+}
+
+/** `PATCH`/`DELETE /bulk` — same org-scoping + FR-E-04 sales visibility rule as
+ * `findVisibleLead`, applied to a batch. Ids outside the caller's org or visibility are
+ * silently dropped rather than failing the whole request — the response's updated/deleted
+ * count tells the caller how many actually applied. */
+async function findVisibleLeadsForBulk(
+  c: Context<AppEnv>,
+  db: ReturnType<typeof createDbFromEnv>,
+  orgId: string,
+  ids: string[]
+) {
+  const rows = await leadsRepository.findManyByIds(db, orgId, ids);
+  const role = c.get("membershipRole");
+  const salesConfig = c.get("salesConfig");
+  if (role === "sales" && !salesConfig.seeAllLeads) {
+    const userId = c.get("userId");
+    return rows.filter((lead) => lead.assigneeId === userId);
+  }
+  return rows;
+}
+
+const BULK_BATCH_MAX = 500;
 
 leadsRoutes.get("/:id", async (c) => {
   const db = createDbFromEnv(c.env);
@@ -349,16 +891,13 @@ leadsRoutes.patch("/:id/stage", async (c) => {
     throw new ApiError(400, "invalid_stage");
   }
 
-  const updated = await leadsRepository.update(db, orgId, id, {
-    stage: body.stage
-  });
-  await leadActivitiesRepository.insert(db, orgId, {
-    leadId: id,
-    type: "stage_change",
-    body: null,
-    meta: { from: lead.stage, to: body.stage },
-    actorId: c.get("userId")
-  });
+  const updated = await applyStageChange(
+    db,
+    orgId,
+    c.get("userId"),
+    lead,
+    body.stage
+  );
   await auditLogsRepository.insert(db, orgId, {
     actorId: c.get("userId"),
     action: "lead.stage_change",
@@ -378,16 +917,13 @@ leadsRoutes.patch("/:id/assignee", async (c) => {
 
   const lead = await findVisibleLead(c, db, orgId, id);
   // oxlint-disable-next-line react-doctor/server-sequential-independent-await -- visibility check must throw before this write fires, not run alongside it
-  const updated = await leadsRepository.update(db, orgId, id, {
-    assigneeId: body.assigneeId
-  });
-  await leadActivitiesRepository.insert(db, orgId, {
-    leadId: id,
-    type: "system",
-    body: null,
-    meta: { from: lead.assigneeId, to: body.assigneeId, kind: "assignment" },
-    actorId: c.get("userId")
-  });
+  const updated = await applyAssigneeChange(
+    db,
+    orgId,
+    c.get("userId"),
+    lead,
+    body.assigneeId
+  );
   await auditLogsRepository.insert(db, orgId, {
     actorId: c.get("userId"),
     action: "lead.assignee_change",
@@ -396,6 +932,20 @@ leadsRoutes.patch("/:id/assignee", async (c) => {
     meta: { from: lead.assigneeId, to: body.assigneeId }
   });
 
+  return c.json(leadSchema.parse(updated));
+});
+
+/** Dashboard "unread" indicator — fired (fire-and-forget) when the lead detail sheet opens. */
+leadsRoutes.patch("/:id/viewed", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+
+  await findVisibleLead(c, db, orgId, id);
+  // oxlint-disable-next-line react-doctor/server-sequential-independent-await -- visibility check must throw before this write fires, not run alongside it
+  const updated = await leadsRepository.update(db, orgId, id, {
+    lastViewedAt: new Date()
+  });
   return c.json(leadSchema.parse(updated));
 });
 

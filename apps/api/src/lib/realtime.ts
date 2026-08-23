@@ -1,14 +1,13 @@
-import { realtime } from "@dv/drivers";
-
 import type { Bindings } from "../types.js";
+import { createRealtimeFromEnv } from "./cache.js";
 import { log } from "./logger.js";
 
 /**
  * Every caller of `publishOrderUpdate`/`publishNewLeads` sits on a critical path (webhook
  * payment confirmation, order status changes, lead creation/import) and already committed the
  * real database write before reaching this call — the realtime bell/SSE push is a nice-to-have
- * notification on top, not a condition of success. Found live: with Upstash unreachable or
- * misconfigured, the driver's `fetch()` throws and — since every call site does a bare
+ * notification on top, not a condition of success. Found live: with the pub/sub store
+ * unreachable or misconfigured, the driver throws and — since every call site does a bare
  * `await publish...(...)` with no try/catch — that took down the entire request with a 500,
  * discarding a write that had already succeeded. Swallowing (and logging) the error here once
  * fixes every call site at once, instead of wrapping each of the 6+ callers individually.
@@ -16,13 +15,10 @@ import { log } from "./logger.js";
 async function publishBestEffort(
   channel: string,
   payload: unknown,
-  env: Pick<Bindings, "UPSTASH_REDIS_URL" | "UPSTASH_REDIS_TOKEN">
+  env: Bindings
 ): Promise<void> {
   try {
-    const driver = realtime.createUpstashRealtimeDriver({
-      url: env.UPSTASH_REDIS_URL,
-      token: env.UPSTASH_REDIS_TOKEN
-    });
+    const driver = createRealtimeFromEnv(env);
     await driver.publish(channel, payload);
   } catch (err) {
     log("warn", {
@@ -41,7 +37,7 @@ export function orderStreamChannel(orgId: string): string {
 }
 
 export function publishOrderUpdate(
-  env: Pick<Bindings, "UPSTASH_REDIS_URL" | "UPSTASH_REDIS_TOKEN">,
+  env: Bindings,
   orgId: string,
   order: { id: string; code: string; status: string; campaignId: string }
 ): Promise<void> {
@@ -56,7 +52,7 @@ export function leadStreamChannel(orgId: string): string {
 }
 
 export function publishNewLeads(
-  env: Pick<Bindings, "UPSTASH_REDIS_URL" | "UPSTASH_REDIS_TOKEN">,
+  env: Bindings,
   orgId: string,
   count: number
 ): Promise<void> {

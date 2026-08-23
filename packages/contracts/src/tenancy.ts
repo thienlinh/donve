@@ -39,6 +39,14 @@ export const orgSettingsSchema = z
     leadDigestFrequency: leadDigestFrequencySchema.optional(),
     /** NFR-11 — org opt-out of the 12-month unpaid-lead anonymize job; default enabled. */
     leadRetentionAnonymizeDisabled: z.boolean().optional(),
+    /** FR-E `notify_manager` push channel — which of the org's configured notify credentials
+     * (packages/db/src/schema/crm.ts's `notifyCredentials`) `lead-sla-sweep.ts` uses. Defaults
+     * to `"email"` when unset — the only channel that needs no BYOK credential at all. */
+    notifyChannel: z.enum(["email", "zalo_zns", "sms"]).optional(),
+    /** Phone number the `zalo_zns`/`sms` notify channels send to — there is no per-user phone
+     * field in the membership model (better-auth's `user` table has none), so this is a single
+     * org-wide "manager's phone" setting rather than per-assignee. */
+    notifyPhone: z.string().optional(),
     /** FR-B-24 — brand tokens (colors/fonts) fed into the AI prompt (studio-ai's
      * compilePrompt/compileGeneratePrompt). Written by the Brand kit section of Org
      * Settings (primaryColor/secondaryColor/headingFont/bodyFont); `catchall` above

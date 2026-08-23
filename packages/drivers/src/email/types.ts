@@ -5,7 +5,8 @@ export type EmailTemplate =
   | "lead_digest"
   | "order_confirmation"
   | "traffic_spike_alert"
-  | "data_subject_request_sla";
+  | "data_subject_request_sla"
+  | "sla_breach_alert";
 
 export interface VerifyEmailProps {
   name: string;
@@ -70,7 +71,8 @@ export type SendEmailInput =
       to: string;
       template: "data_subject_request_sla";
       props: DataSubjectRequestSlaProps;
-    };
+    }
+  | { to: string; template: "sla_breach_alert"; props: SlaBreachAlertProps };
 
 /** NFR-10 (Nghị định 13/2023/NĐ-CP) — one entry in the daily SLA alert, sent to an org's
  * owner/admin when a lead's delete/export request is overdue or due within 24h. */
@@ -85,6 +87,16 @@ export interface DataSubjectRequestSlaProps {
   orgName: string;
   dashboardUrl: string;
   requests: DataSubjectRequestSlaItem[];
+}
+
+/** FR-E `notify_manager` — sent to the org owner (no separate "manager" role exists) when a
+ * lead's `onSlaBreach: "notify_manager"` rule fires, alongside the existing activity-timeline
+ * entry `lead-sla-sweep.ts` already writes. */
+export interface SlaBreachAlertProps {
+  orgName: string;
+  dashboardUrl: string;
+  leadFullName: string;
+  slaHours: number;
 }
 
 export interface SendEmailResult {

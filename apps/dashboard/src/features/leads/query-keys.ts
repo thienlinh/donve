@@ -13,5 +13,10 @@ export const leadKeys = {
   dataSubjectRequests: (leadId: string) =>
     ["leads", "dataSubjectRequests", leadId] as const,
   orgDataSubjectRequests: (status?: DataSubjectRequestStatus) =>
-    ["leads", "dataSubjectRequests", "org", status ?? "all"] as const
+    ["leads", "dataSubjectRequests", "org", status ?? "all"] as const,
+  assignmentRules: () => ["leads", "assignmentRules"] as const,
+  savedViews: () => ["leads", "savedViews"] as const,
+  webhookCredentials: () => ["leads", "webhookCredentials"] as const,
+  notifyCredentials: () => ["leads", "notifyCredentials"] as const,
+  tiktokConnections: () => ["leads", "tiktokConnections"] as const
 };

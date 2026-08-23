@@ -13,13 +13,14 @@ import {
   publishOutboxRepository,
   type Db
 } from "@dv/db";
-import { cache, storage } from "@dv/drivers";
+import { storage } from "@dv/drivers";
 import {
   buildPublishArtifacts,
   type PublishStructuredData
 } from "@dv/studio-core/publish";
 
 import type { Bindings } from "../types.js";
+import { createCacheFromEnv } from "./cache.js";
 import { createDbFromEnv } from "./db.js";
 import { ApiError } from "./errors.js";
 import { log } from "./logger.js";
@@ -40,9 +41,9 @@ interface HostnamePointerStore {
 /**
  * The "KV" side of the outbox pattern (architecture.md §5.2) — hostname -> deployment
  * pointer, read by apps/edge-router at serve time. CF Workers gets the real `HOSTNAME_KV`
- * binding; Bun/VPS (which doesn't run edge-router at all) reuses the already-wired Upstash
- * cache driver as an equivalent durable key/value store instead of standing up a redundant
- * one — same driver-per-runtime convention as `lib/db.ts`/`lib/storage.ts`.
+ * binding; Bun/VPS (which doesn't run edge-router at all) reuses `createCacheFromEnv`'s
+ * plain-Redis driver as an equivalent durable key/value store instead of standing up a
+ * redundant one — same driver-per-runtime convention as `lib/db.ts`/`lib/storage.ts`.
  */
 function createHostnamePointerStore(env: Bindings): HostnamePointerStore {
   if (env.RUNTIME === "workers") {
@@ -68,17 +69,7 @@ function createHostnamePointerStore(env: Bindings): HostnamePointerStore {
     };
   }
 
-  if (!env.UPSTASH_REDIS_URL || !env.UPSTASH_REDIS_TOKEN) {
-    throw new ApiError(
-      501,
-      "kv_unavailable",
-      "UPSTASH_REDIS_URL/UPSTASH_REDIS_TOKEN are required as the hostname-pointer store on the Bun runtime"
-    );
-  }
-  const driver = cache.createUpstashCacheDriver({
-    url: env.UPSTASH_REDIS_URL,
-    token: env.UPSTASH_REDIS_TOKEN
-  });
+  const driver = createCacheFromEnv(env);
   return {
     get: (hostname) => driver.get<HostnamePointer>(hostname),
     set: (hostname, pointer) => driver.set(hostname, pointer),

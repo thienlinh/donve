@@ -41,7 +41,7 @@ import { toast } from "@dv/ui/components/shadcn/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, MessageCircle, Phone } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -58,6 +58,7 @@ import {
   createLeadActivity,
   fetchLeadDataSubjectRequests,
   fetchLeadDetail,
+  markLeadViewed,
   updateLeadOrderStatus
 } from "../api";
 import { leadKeys } from "../query-keys";
@@ -124,6 +125,14 @@ function LeadDetailBody({ leadId }: { leadId: string }) {
     queryClient.invalidateQueries({ queryKey: leadKeys.detail(leadId) });
     queryClient.invalidateQueries({ queryKey: ["leads", "list"] });
   };
+
+  // Fire-and-forget — clears the unread dot without blocking the sheet on the round trip.
+  useEffect(() => {
+    void markLeadViewed(leadId).then(() => {
+      queryClient.invalidateQueries({ queryKey: leadKeys.detail(leadId) });
+      queryClient.invalidateQueries({ queryKey: ["leads", "list"] });
+    });
+  }, [leadId, queryClient]);
 
   const assign = useMutation({
     mutationFn: (assigneeId: string | null) =>

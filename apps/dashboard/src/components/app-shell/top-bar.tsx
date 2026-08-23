@@ -13,10 +13,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 
 import { authClient, useSession } from "@/features/auth/auth-client";
-import { DataSubjectRequestIndicator } from "@/features/leads/components/data-subject-request-indicator";
-import { LeadNotificationsBell } from "@/features/leads/components/lead-notifications-bell";
 import { OrgSwitcher } from "@/features/org-switcher/components/org-switcher";
 import * as m from "@/paraglide/messages.js";
+
+import { DataSubjectRequestIndicator } from "./data-subject-request-indicator";
+import { LeadNotificationsBell } from "./lead-notifications-bell";
+import { ThemeToggle } from "./theme-toggle";
 
 export function TopBar() {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ export function TopBar() {
         <OrgSwitcher />
       </div>
       <div className="flex items-center gap-1">
+        <ThemeToggle />
         <DataSubjectRequestIndicator />
         <LeadNotificationsBell />
         <DropdownMenu>

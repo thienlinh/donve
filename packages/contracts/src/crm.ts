@@ -26,9 +26,26 @@ export const leadSchema = z.object({
   ...timestampsSchema.shape,
   ...softDeleteSchema.shape,
   /** NFR-10/NFR-11 — set once phone/email/customFields have been scrubbed. */
-  anonymizedAt: z.coerce.date().nullable()
+  anonymizedAt: z.coerce.date().nullable(),
+  /** Auto-assignment + inbox UX (bulk workflows) — optional while the backend rollout is in
+   * flight, so older rows/clients don't break the parse. */
+  source: z
+    .enum([
+      "landing_page",
+      "facebook",
+      "zalo_oa",
+      "manual",
+      "csv_import",
+      "generic",
+      "google_ads",
+      "tiktok"
+    ])
+    .optional(),
+  lastViewedAt: z.coerce.date().nullable().optional(),
+  hoursSinceActivity: z.number().nonnegative().optional()
 });
 export type Lead = z.infer<typeof leadSchema>;
+export type LeadSource = NonNullable<Lead["source"]>;
 
 export const leadActivityTypeValues = [
   "note",
@@ -549,3 +566,167 @@ export const publicOrderStatusSchema = z.object({
   expiresAt: z.coerce.date().nullable()
 });
 export type PublicOrderStatus = z.infer<typeof publicOrderStatusSchema>;
+
+/** PATCH/DELETE /api/leads/bulk — table/kanban multi-select actions. */
+export const bulkUpdateLeadsSchema = z.object({
+  leadIds: z.array(ulidSchema).min(1),
+  stage: z.string().min(1).optional(),
+  assigneeId: ulidSchema.nullable().optional()
+});
+export type BulkUpdateLeadsInput = z.infer<typeof bulkUpdateLeadsSchema>;
+
+export const bulkDeleteLeadsSchema = z.object({
+  leadIds: z.array(ulidSchema).min(1)
+});
+export type BulkDeleteLeadsInput = z.infer<typeof bulkDeleteLeadsSchema>;
+
+/** GET/POST/PATCH /api/leads/assignment-rules — round-robin/least-active/fixed auto-assignment,
+ * evaluated in `priority` order (lower first) against new leads. */
+export const assignmentRuleStrategySchema = z.enum([
+  "round_robin",
+  "least_active_leads",
+  "fixed_assignee"
+]);
+export type AssignmentRuleStrategy = z.infer<
+  typeof assignmentRuleStrategySchema
+>;
+
+export const assignmentRuleSchema = z.object({
+  id: ulidSchema,
+  orgId: orgIdSchema,
+  priority: z.number().int().nonnegative(),
+  matchCampaignId: ulidSchema.nullable(),
+  matchPersona: z.string().nullable(),
+  strategy: assignmentRuleStrategySchema,
+  assigneePoolIds: z.array(ulidSchema),
+  fixedAssigneeId: ulidSchema.nullable(),
+  slaHours: z.number().positive().nullable(),
+  onSlaBreach: z.string().nullable()
+});
+export type AssignmentRule = z.infer<typeof assignmentRuleSchema>;
+
+export const upsertAssignmentRuleSchema = assignmentRuleSchema.omit({
+  id: true,
+  orgId: true
+});
+export type UpsertAssignmentRuleInput = z.infer<
+  typeof upsertAssignmentRuleSchema
+>;
+
+/** GET /api/leads/saved-views — a filter-bar snapshot, optionally shared org-wide. */
+export const savedViewSchema = z.object({
+  id: ulidSchema,
+  orgId: orgIdSchema,
+  ownerId: ulidSchema,
+  name: z.string().min(1),
+  filterJson: jsonRecordSchema,
+  shared: z.boolean()
+});
+export type SavedView = z.infer<typeof savedViewSchema>;
+
+export const createSavedViewSchema = z.object({
+  name: z.string().min(1),
+  filterJson: jsonRecordSchema,
+  shared: z.boolean()
+});
+export type CreateSavedViewInput = z.infer<typeof createSavedViewSchema>;
+
+export const webhookProviderSchema = z.enum([
+  "facebook",
+  "zalo_oa",
+  "generic",
+  "google_ads"
+]);
+export type WebhookProvider = z.infer<typeof webhookProviderSchema>;
+
+/** GET /api/leads/webhook-credentials — per-org override status for the Facebook/Zalo OA
+ * webhook secret (lead-integrations.md §4). The secret itself is never returned, only whether
+ * one is configured — `configured: false` means the org falls back to the shared env secret. */
+export const webhookCredentialSchema = z.object({
+  provider: webhookProviderSchema,
+  configured: z.boolean(),
+  verifyToken: z.string().nullable(),
+  /** Facebook only — whether a Page Access Token is stored for the Graph API `field_data`
+   * fetch (lead-integrations.md §1). Always `false` for `zalo_oa`. */
+  pageAccessTokenConfigured: z.boolean(),
+  updatedAt: z.coerce.date().nullable(),
+  /** Only ever set for `generic` today — see `webhookCredentials.lastUsedAt` doc comment. */
+  lastUsedAt: z.coerce.date().nullable()
+});
+export type WebhookCredential = z.infer<typeof webhookCredentialSchema>;
+
+export const upsertWebhookCredentialSchema = z.object({
+  secret: z.string().min(1),
+  verifyToken: z.string().min(1).optional(),
+  /** Facebook only — omit to leave an existing token untouched (e.g. when only rotating the
+   * App Secret); Zalo ignores this field entirely. */
+  pageAccessToken: z.string().min(1).optional()
+});
+export type UpsertWebhookCredentialInput = z.infer<
+  typeof upsertWebhookCredentialSchema
+>;
+
+/** GET /api/leads/tiktok-connections — one row per campaign that has connected a TikTok Ads
+ * account via OAuth (lead-integrations.md §D). No secret/token field here — unlike
+ * `webhookCredentialSchema`, TikTok never involves the org pasting or seeing any credential at
+ * all, the whole point of the shared-app OAuth model. */
+export const tiktokConnectionSchema = z.object({
+  campaignId: ulidSchema,
+  advertiserId: z.string(),
+  connectedAt: z.coerce.date()
+});
+export type TiktokConnection = z.infer<typeof tiktokConnectionSchema>;
+
+export const notifyProviderSchema = z.enum(["zalo_zns", "esms"]);
+export type NotifyProvider = z.infer<typeof notifyProviderSchema>;
+
+/** GET /api/leads/notify-credentials — BYOK status for the `notify_manager` push channel
+ * (packages/drivers/src/notify). Secrets are never returned, only whether one is configured;
+ * `config` holds the non-secret fields (Zalo ZNS `templateId`, eSMS `brandname`) verbatim. */
+export const notifyCredentialSchema = z.object({
+  provider: notifyProviderSchema,
+  configured: z.boolean(),
+  config: z.record(z.string(), z.string()),
+  updatedAt: z.coerce.date().nullable()
+});
+export type NotifyCredential = z.infer<typeof notifyCredentialSchema>;
+
+export const upsertNotifyCredentialSchema = z.discriminatedUnion("provider", [
+  z.object({
+    provider: z.literal("zalo_zns"),
+    /** OA access token an org obtained themselves via Zalo's OAuth flow — org keeps it valid
+     * (re-pastes when it expires), same BYOK-token model as Facebook's Page Access Token. */
+    accessToken: z.string().min(1),
+    templateId: z.string().min(1)
+  }),
+  z.object({
+    provider: z.literal("esms"),
+    apiKey: z.string().min(1),
+    secretKey: z.string().min(1),
+    brandname: z.string().optional()
+  })
+]);
+export type UpsertNotifyCredentialInput = z.infer<
+  typeof upsertNotifyCredentialSchema
+>;
+
+/** POST /api/leads/webhook-credentials/generic/generate — the plaintext key is returned exactly
+ * once, here, right after generation; it is never retrievable again (only `configured: true`
+ * shows afterward, same as Facebook/Zalo). */
+export const generateGenericApiKeyResultSchema = z.object({
+  apiKey: z.string().min(1)
+});
+export type GenerateGenericApiKeyResult = z.infer<
+  typeof generateGenericApiKeyResultSchema
+>;
+
+/** Body accepted by POST /webhooks/generic-leads — the normalized shape every non-native
+ * integration (Zapier/Make/n8n, a Zalo Mini App's own backend, a custom CRM, ...) forwards into,
+ * same fields `POST /public/leads` uses minus the browser-only `turnstileToken`. */
+export const genericLeadPayloadSchema = z.object({
+  fullName: z.string().min(1),
+  phone: z.string().min(1),
+  email: z.email().nullable().optional(),
+  customFields: z.record(z.string(), z.unknown()).default({})
+});
+export type GenericLeadPayloadInput = z.infer<typeof genericLeadPayloadSchema>;

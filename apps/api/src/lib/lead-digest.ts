@@ -2,17 +2,15 @@ import { orgSettingsSchema } from "@dv/contracts";
 import {
   emailLogsRepository,
   leadsRepository,
-  membershipsRepository,
   organizationsRepository,
-  schema,
   type Db
 } from "@dv/db";
 import { email } from "@dv/drivers";
-import { eq } from "drizzle-orm";
 
 import type { Bindings } from "../types.js";
 import { createDbFromEnv } from "./db.js";
 import { log } from "./logger.js";
+import { resolveOwnerEmail, resolveUserEmail } from "./user-email.js";
 
 type OrgRow = Awaited<
   ReturnType<typeof organizationsRepository.listAll>
@@ -26,26 +24,6 @@ const DAILY_DIGEST_HOUR_UTC = 15;
 // First-ever run for an org has no prior `lead_digest` email_logs cursor — bound the
 // lookback instead of dumping the org's entire lead history into one email.
 const FIRST_RUN_WINDOW_MS = 24 * 60 * 60 * 1000;
-
-async function resolveUserEmail(
-  db: Db,
-  userId: string
-): Promise<string | null> {
-  const rows = await db.raw
-    .select({ email: schema.user.email })
-    .from(schema.user)
-    .where(eq(schema.user.id, userId))
-    .limit(1);
-  return rows[0]?.email ?? null;
-}
-
-async function resolveOwnerEmail(
-  db: Db,
-  orgId: string
-): Promise<string | null> {
-  const [owner] = await membershipsRepository.listByRole(db, orgId, "owner");
-  return owner ? resolveUserEmail(db, owner.userId) : null;
-}
 
 function groupByAssignee(leads: LeadRow[]): Map<string, LeadRow[]> {
   const groups = new Map<string, LeadRow[]>();

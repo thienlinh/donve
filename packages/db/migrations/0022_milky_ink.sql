@@ -1,0 +1,1 @@
+ALTER TABLE "webhook_credentials" ADD COLUMN "last_used_at" timestamp;
