@@ -22,7 +22,16 @@ export const landingPages = pgTable(
     currentVersionId: text("current_version_id"),
     thumbnailKey: text("thumbnail_key"),
     chatSessionId: text("chat_session_id"),
-    source: text("source", { enum: ["ai", "import"] })
+    // "manual" = native PageSpec/json-render page created by hand in Studio, no AI involved
+    // (docs/features/landing-pages/page-system/custom-import.md's `native_manual`) — "ai" covers
+    // both the legacy srcmap AI flow and the new native-AI PageSpec flow, distinguished instead
+    // by whether `pageVersions.spec` is set. "import" is the legacy srcmap-editable import (still
+    // gets `htmlKey`+`srcmapKey`, edited via the old comment-mode/patch editor); "custom_import"
+    // (`page-system/custom-import.md`) is the new raw-HTML mode — `htmlKey` set, `srcmapKey`
+    // always null, no patch-based editing, tracked in `customPageBundles`.
+    source: text("source", {
+      enum: ["ai", "manual", "import", "custom_import"]
+    })
       .notNull()
       .default("ai"),
     ...timestamps,
@@ -38,8 +47,14 @@ export const pageVersions = pgTable(
     orgId: text("org_id").notNull(),
     landingPageId: text("landing_page_id").notNull(),
     seq: integer("seq").notNull(),
-    htmlKey: text("html_key").notNull(),
-    srcmapKey: text("srcmap_key").notNull(),
+    // Null for a native (PageSpec) version — `spec` is its source of truth instead; the
+    // legacy srcmap flow (source="ai/import") still always sets both.
+    htmlKey: text("html_key"),
+    srcmapKey: text("srcmap_key"),
+    // Native PageSpec source of truth (page-system/page-schema.md) — `{ pageSpec, tokens, seo }`.
+    // HTML is a derived artifact, rebuilt at publish time by `@dv/studio-render`, never stored
+    // here. Null for the legacy srcmap flow.
+    spec: jsonb("spec"),
     origin: text("origin", {
       enum: ["ai_patch", "ai_full", "manual", "import", "restore"]
     }).notNull(),
@@ -80,6 +95,34 @@ export const pageAssets = pgTable("page_assets", {
   usageConfirmed: boolean("usage_confirmed").notNull().default(false),
   createdAt: timestamps.createdAt
 });
+
+/**
+ * One image per (entity, kind) for entities that aren't landing pages — org logo, campaign OG
+ * image (`architecture-and-data-model.md` §Media/Asset). Deliberately one shared table rather
+ * than a column on `organizations`/`campaigns`: there were already 2 owner types at design time.
+ * `pageAssets` can't host these — its `landingPageId` is NOT NULL.
+ */
+export const entityImages = pgTable(
+  "entity_images",
+  {
+    id: id(),
+    // RLS org-scope — always set, even when the owner is a campaign.
+    orgId: text("org_id").notNull(),
+    ownerType: text("owner_type", {
+      enum: ["organization", "campaign"]
+    }).notNull(),
+    ownerId: text("owner_id").notNull(),
+    // "favicon" etc. can be added here later without changing the table shape.
+    kind: text("kind", { enum: ["logo", "og_image"] }).notNull(),
+    r2Key: text("r2_key").notNull(),
+    mime: text("mime").notNull(),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("ux_entity_image").on(t.ownerType, t.ownerId, t.kind),
+    orgIsolationPolicy()
+  ]
+).enableRLS();
 
 export const studioComments = pgTable("studio_comments", {
   id: id(),

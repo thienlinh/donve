@@ -22,13 +22,6 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -38,9 +31,10 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Star, TriangleAlert, Trash2 } from "lucide-react";
+import { Bot, Gauge, Star, TriangleAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -78,24 +72,18 @@ function UsageCard() {
         <CardDescription>{m.aiUsageDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.aiUsageLoadErrorTitle()}</EmptyTitle>
-              <EmptyDescription>{error.message}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={false}
+          errorTitle={m.aiUsageLoadErrorTitle()}
+          emptyTitle=""
+        />
         {usage && (
           <>
             {(usage.aiCreditBalance === 0 ||
               usage.trialUsesRemaining === 0) && (
-              <Alert variant="destructive">
+              <Alert variant="warning">
                 <TriangleAlert />
                 <AlertTitle>
                   {usage.aiCreditBalance === 0
@@ -123,11 +111,14 @@ function UsageCard() {
               </div>
             </div>
             {usage.recentUsage.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{m.aiUsageEmptyTitle()}</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
+              <QueryState
+                isPending={false}
+                error={null}
+                isEmpty
+                errorTitle=""
+                emptyTitle={m.aiUsageEmptyTitle()}
+                emptyIcon={<Gauge />}
+              />
             ) : (
               <Table>
                 <TableHeader>
@@ -185,26 +176,14 @@ function ConnectionsCard() {
         </CardAction>
       </CardHeader>
       <CardContent>
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.aiConnectionsLoadErrorTitle()}</EmptyTitle>
-              <EmptyDescription>{error.message}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-        {connections && connections.length === 0 && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.aiConnectionsEmptyTitle()}</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={connections?.length === 0}
+          errorTitle={m.aiConnectionsLoadErrorTitle()}
+          emptyTitle={m.aiConnectionsEmptyTitle()}
+          emptyIcon={<Bot />}
+        />
         {connections && connections.length > 0 && (
           <Table>
             <TableHeader>

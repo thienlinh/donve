@@ -1,14 +1,11 @@
-import { decryptApiKey, getProvider } from "@dv/ai-gateway";
 import {
   chatMessageSchema,
   orgSettingsSchema,
   pageAssetSchema,
   stockImageCandidateSchema,
-  studioCommentSchema,
-  type ChatContentPart
+  studioCommentSchema
 } from "@dv/contracts";
 import {
-  aiConnectionsRepository,
   chatMessagesRepository,
   landingPagesRepository,
   organizationsRepository,
@@ -35,9 +32,9 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { importAiMasterKeyFromEnv } from "../../lib/ai-gateway.js";
 import { createDbFromEnv } from "../../lib/db.js";
 import { ApiError } from "../../lib/errors.js";
+import { requireSrcmapVersion } from "../../lib/page-version-guards.js";
 import {
   isAllowedStockImageUrl,
   searchStockImages
@@ -45,7 +42,9 @@ import {
 import { createStorageFromEnv } from "../../lib/storage.js";
 import {
   requireChatSessionId,
-  requireLandingPage
+  requireLandingPage,
+  resolveChatModel,
+  uiMessageToChatContent
 } from "../../lib/studio-chat.js";
 import type { AppEnv } from "../../types.js";
 
@@ -234,45 +233,6 @@ studioRoutes.get("/messages", async (c) => {
   return c.json({ messages: z.array(chatMessageSchema).parse(messages) });
 });
 
-type PatchToolOutput = {
-  success: true;
-  pageVersionId: string;
-  summary: string;
-};
-
-function isSuccessfulPatchOutput(output: unknown): output is PatchToolOutput {
-  return (
-    typeof output === "object" &&
-    output !== null &&
-    (output as { success?: unknown }).success === true
-  );
-}
-
-/** AI SDK `UIMessage` parts → our stored `ChatContentPart[]` (comment-context parts don't
- * round-trip; apply_patch/apply_full_html tool results become `patch-summary` parts). */
-function uiMessageToChatContent(message: UIMessage): ChatContentPart[] {
-  const parts: ChatContentPart[] = [];
-  for (const part of message.parts) {
-    if (part.type === "text") {
-      parts.push({ type: "text", text: part.text });
-    } else if (part.type === "file" && part.mediaType.startsWith("image/")) {
-      parts.push({ type: "image", url: part.url });
-    } else if (
-      (part.type === "tool-apply_patch" ||
-        part.type === "tool-apply_full_html") &&
-      "output" in part &&
-      isSuccessfulPatchOutput(part.output)
-    ) {
-      parts.push({
-        type: "patch-summary",
-        pageVersionId: part.output.pageVersionId,
-        summary: part.output.summary
-      });
-    }
-  }
-  return parts;
-}
-
 /** `data-comment-context` parts don't reach the model — `convertToModelMessages` drops
  * data-* parts, so the srcmapId (unlike the comment body, which is a sibling text part)
  * would otherwise never tell the model which element a comment targets. */
@@ -320,11 +280,7 @@ studioRoutes.post("/chat/stream", async (c) => {
   }
   const sessionId = await requireChatSessionId(db, orgId, landingPage);
 
-  const connections = await aiConnectionsRepository.list(db, orgId);
-  const connection = connections.find((row) => row.isDefault);
-  if (!connection?.encryptedKey || connection.provider === "platform") {
-    throw new ApiError(400, "no_ai_connection");
-  }
+  const model = await resolveChatModel(db, c.env, orgId);
 
   const lastMessage = messages.at(-1);
   if (lastMessage?.role === "user") {
@@ -343,7 +299,9 @@ studioRoutes.post("/chat/stream", async (c) => {
     landingPage.currentVersionId
   );
   if (!currentVersion) throw new ApiError(404, "page_version_not_found");
-  const htmlObject = await storage.get(currentVersion.htmlKey);
+  const htmlObject = await storage.get(
+    requireSrcmapVersion(currentVersion).htmlKey
+  );
   if (!htmlObject) throw new ApiError(404, "html_not_found");
   let currentHtml = await new Response(htmlObject.body).text();
   let lastAppliedVersionId: string | null = null;
@@ -427,11 +385,6 @@ studioRoutes.post("/chat/stream", async (c) => {
       return { success: true as const, pageVersionId: version.id, summary };
     }
   });
-
-  const provider = getProvider(connection.provider);
-  const masterKey = await importAiMasterKeyFromEnv(c.env);
-  const apiKey = await decryptApiKey(connection.encryptedKey, masterKey);
-  const model = provider.model(connection.defaultModel, { apiKey });
 
   const [skills, org] = await Promise.all([
     skillsRepository.listEnabledForLandingPage(db, orgId, landingPageId),
@@ -519,12 +472,13 @@ studioRoutes.post("/images/apply", async (c) => {
   if (!landingPage.currentVersionId) {
     throw new ApiError(400, "landing_page_no_version");
   }
-  const currentVersion = await pageVersionsRepository.findById(
+  const foundVersion = await pageVersionsRepository.findById(
     db,
     orgId,
     landingPage.currentVersionId
   );
-  if (!currentVersion) throw new ApiError(404, "page_version_not_found");
+  if (!foundVersion) throw new ApiError(404, "page_version_not_found");
+  const currentVersion = requireSrcmapVersion(foundVersion);
 
   const storage = createStorageFromEnv(c.env);
   const htmlObject = await storage.get(currentVersion.htmlKey);

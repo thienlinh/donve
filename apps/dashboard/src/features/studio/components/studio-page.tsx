@@ -32,6 +32,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup
 } from "@dv/ui/components/shadcn/resizable";
+import { useSidebar } from "@dv/ui/components/shadcn/sidebar";
 import { Skeleton } from "@dv/ui/components/shadcn/skeleton";
 import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import {
@@ -132,6 +133,15 @@ function generateErrorCopy(
 }
 
 export function StudioPage() {
+  // The builder canvas needs the width the main nav sidebar otherwise eats — collapse it on
+  // entry, restore whatever the user had on exit rather than forcing it back open.
+  const { open: sidebarWasOpen, setOpen: setSidebarOpen } = useSidebar();
+  React.useEffect(() => {
+    setSidebarOpen(false);
+    return () => setSidebarOpen(sidebarWasOpen);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- collapse once on mount, restore once on unmount; re-running on every sidebarWasOpen/setSidebarOpen render would fight the user's own toggle clicks while the builder is open
+  }, []);
+
   const { id } = routeApi.useParams();
   const { prompt, missingLeadForm, missingSeoMeta } = routeApi.useSearch();
   const navigate = routeApi.useNavigate();

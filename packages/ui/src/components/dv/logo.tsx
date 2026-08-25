@@ -14,6 +14,14 @@ const variants = {
   wordmark: { light: wordmarkLight, dark: wordmarkDark }
 } as const;
 
+// The dark lockup's baked-in icon/wordmark proportions sit smaller inside its
+// crop than the light lockup's do, so at equal CSS height the dark wordmark
+// reads visibly smaller. Scale it up (from its own top-left, matching where
+// the icon sits in both crops) to match apparent text size.
+const darkScaleFix: Partial<Record<keyof typeof variants, string>> = {
+  full: "dark:origin-top-left dark:scale-[1.11]"
+};
+
 export function Logo({
   variant = "full",
   className
@@ -27,12 +35,19 @@ export function Logo({
       <img
         src={light}
         alt="Donve"
-        className={cn("block dark:hidden", className)}
+        className={cn(
+          "block object-contain object-left dark:hidden",
+          className
+        )}
       />
       <img
         src={dark}
         alt="Donve"
-        className={cn("hidden dark:block", className)}
+        className={cn(
+          "hidden object-contain object-left dark:block",
+          darkScaleFix[variant],
+          className
+        )}
       />
     </>
   );

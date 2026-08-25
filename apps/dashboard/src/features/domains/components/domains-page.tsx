@@ -30,7 +30,7 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { Globe, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { QueryState } from "@/components/query-state";
@@ -92,6 +92,7 @@ export function DomainsPage() {
             isEmpty={domains?.length === 0}
             errorTitle={m.domainsLoadErrorTitle()}
             emptyTitle={m.domainsEmptyTitle()}
+            emptyIcon={<Globe />}
           />
           {domains && domains.length > 0 && (
             <Table>

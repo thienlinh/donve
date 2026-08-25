@@ -12,6 +12,7 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "@dv/contracts": "workspace:*",
     "@dv/studio-core": "workspace:*",
     "linkedom": "catalog:content",
     "zod": "catalog:"

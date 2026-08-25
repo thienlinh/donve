@@ -7,19 +7,15 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import {
   NativeSelect,
   NativeSelectOption
 } from "@dv/ui/components/shadcn/native-select";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Lock } from "lucide-react";
 
+import { EntityImageField } from "@/components/entity-image-field";
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
@@ -56,34 +52,43 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent>
           {!canManage && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.settingsForbiddenTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
+            <QueryState
+              isPending={false}
+              error={null}
+              isEmpty
+              errorTitle=""
+              emptyTitle={m.settingsForbiddenTitle()}
+              emptyIcon={<Lock />}
+            />
           )}
 
-          {canManage && isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-
-          {canManage && error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.settingsLoadErrorTitle()}</EmptyTitle>
-                {error.message && (
-                  <EmptyDescription>{error.message}</EmptyDescription>
-                )}
-              </EmptyHeader>
-            </Empty>
+          {canManage && (
+            <QueryState
+              isPending={isPending}
+              error={error}
+              isEmpty={false}
+              errorTitle={m.settingsLoadErrorTitle()}
+              emptyTitle=""
+            />
           )}
 
           {canManage && settings && (
-            <LeadDigestFrequencyField
-              value={settings.leadDigestFrequency ?? "hourly"}
-            />
+            <div className="flex flex-col gap-6">
+              <LeadDigestFrequencyField
+                value={settings.leadDigestFrequency ?? "hourly"}
+              />
+              {activeOrganization && (
+                <EntityImageField
+                  image={{
+                    ownerType: "organization",
+                    ownerId: activeOrganization.id,
+                    kind: "logo"
+                  }}
+                  label={m.settingsLogoLabel()}
+                  description={m.settingsLogoDescription()}
+                />
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

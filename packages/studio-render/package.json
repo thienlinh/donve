@@ -1,0 +1,32 @@
+{
+  "name": "@dv/studio-render",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e:generate": "bun run e2e/generate-previews.ts",
+    "e2e": "bun run e2e:generate && playwright test",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@dv/studio-catalog": "workspace:*",
+    "@dv/studio-core": "workspace:*",
+    "@json-render/core": "catalog:ui",
+    "@tailwindcss/postcss": "catalog:content",
+    "postcss": "catalog:content",
+    "tailwindcss": "catalog:react"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "catalog:",
+    "@dv/config": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

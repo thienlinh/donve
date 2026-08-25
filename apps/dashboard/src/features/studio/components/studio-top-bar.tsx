@@ -151,7 +151,7 @@ export function StudioTopBar({
   }
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b px-2">
+    <header className="flex h-12 shrink-0 items-center gap-2 overflow-x-auto border-b px-2">
       <Tooltip>
         <TooltipTrigger
           render={
@@ -214,9 +214,9 @@ export function StudioTopBar({
             setNameDraft(landingPage.name);
             setIsRenaming(true);
           }}
-          className="group/rename flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm font-medium hover:bg-muted"
+          className="group/rename flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm font-medium hover:bg-muted"
         >
-          <span className="truncate">{landingPage.name}</span>
+          <span className="max-w-56 truncate">{landingPage.name}</span>
           <Pencil className="size-3.5 shrink-0 text-muted-foreground opacity-0 group-hover/rename:opacity-100" />
         </button>
       )}

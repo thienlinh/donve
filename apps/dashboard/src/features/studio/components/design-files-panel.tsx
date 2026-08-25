@@ -10,6 +10,7 @@ import {
 } from "@dv/ui/components/shadcn/dialog";
 import { Empty, EmptyDescription } from "@dv/ui/components/shadcn/empty";
 import { ScrollArea } from "@dv/ui/components/shadcn/scroll-area";
+import { useDropzone } from "@dv/ui/components/upload";
 import { cn } from "@dv/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import { compressToWebp } from "@/lib/image-compress";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -33,14 +35,12 @@ import {
   thumbnailUrl,
   uploadAsset
 } from "../api";
-import { compressToWebp } from "../lib/image-compress";
-import { extractVideoPoster } from "../lib/video-poster";
+import {
+  extractVideoPoster,
+  MAX_VIDEO_BYTES,
+  VIDEO_MIME_TYPES
+} from "../lib/video-poster";
 import { pageAssetKeys, pageSrcmapKeys } from "../query-keys";
-
-const VIDEO_MIME_TYPES = new Set(["video/mp4", "video/webm"]);
-// FR-B-29 — video isn't compressed client-side the way images are (compressToWebp), so it
-// needs its own, higher cap; kept in sync with the API's MAX_VIDEO_BYTES (landings/routes.ts).
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 function TreeGroup({
   label,
@@ -97,8 +97,6 @@ export function DesignFilesPanel({
   fileName: string;
 }) {
   const queryClient = useQueryClient();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [dragOver, setDragOver] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<
     "generic" | "video_too_large" | null
   >(null);
@@ -131,52 +129,37 @@ export function DesignFilesPanel({
     onError: () => setUploadError("generic")
   });
 
-  function handleFiles(files: FileList | null) {
-    const file = files?.[0];
-    if (!file) return;
-    if (VIDEO_MIME_TYPES.has(file.type)) {
-      if (file.size > MAX_VIDEO_BYTES) {
-        setUploadError("video_too_large");
+  const { dragOver, open, dropProps, inputProps } = useDropzone({
+    accept: "image/*,video/mp4,video/webm",
+    disabled: uploadMutation.isPending,
+    onFiles: ([file]) => {
+      if (!file) return;
+      if (VIDEO_MIME_TYPES.has(file.type)) {
+        if (file.size > MAX_VIDEO_BYTES) {
+          setUploadError("video_too_large");
+          return;
+        }
+        uploadMutation.mutate(file);
         return;
       }
-      uploadMutation.mutate(file);
-      return;
+      if (file.type.startsWith("image/")) uploadMutation.mutate(file);
     }
-    if (file.type.startsWith("image/")) uploadMutation.mutate(file);
-  }
+  });
 
   return (
-    <div
-      className="flex h-full flex-col"
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragOver(true);
-      }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDragOver(false);
-        handleFiles(e.dataTransfer.files);
-      }}
-    >
+    <div className="flex h-full flex-col" {...dropProps}>
       <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
         <span className="text-sm font-medium">
           {m.studioFilesProjectTitle()}
         </span>
         <div className="flex items-center gap-1">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/mp4,video/webm"
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
+          <input {...inputProps} />
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label={m.studioFilesUploadLabel()}
             disabled={uploadMutation.isPending}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={open}
           >
             <Upload />
           </Button>

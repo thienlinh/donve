@@ -10,6 +10,7 @@ import {
   TableRow
 } from "@dv/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
+import { Users } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Pagination } from "@/components/pagination";
@@ -71,6 +72,7 @@ export function LeadsTable({
         isEmpty
         errorTitle={m.leadsLoadErrorTitle()}
         emptyTitle={m.leadsEmptyTitle()}
+        emptyIcon={<Users />}
       />
     );
   }

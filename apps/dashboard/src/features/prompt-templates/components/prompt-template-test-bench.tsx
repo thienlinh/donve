@@ -1,12 +1,6 @@
 import type { PromptTemplate, PromptTestRun } from "@dv/contracts";
 import { Badge } from "@dv/ui/components/shadcn/badge";
 import { Button } from "@dv/ui/components/shadcn/button";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
@@ -15,8 +9,10 @@ import {
 } from "@dv/ui/components/shadcn/native-select";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { History } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import { fetchAiConnections } from "@/features/ai-connections/api";
 import { aiConnectionKeys } from "@/features/ai-connections/query-keys";
 import * as m from "@/paraglide/messages.js";
@@ -133,14 +129,15 @@ export function PromptTemplateTestBench({
           {m.promptTemplateHistoryHeading()}
         </h3>
         {!testRuns || testRuns.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.promptTemplateHistoryEmptyTitle()}</EmptyTitle>
-              <EmptyDescription>
-                {m.promptTemplateHistoryEmptyBody()}
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <QueryState
+            isPending={false}
+            error={null}
+            isEmpty
+            errorTitle=""
+            emptyTitle={m.promptTemplateHistoryEmptyTitle()}
+            emptyDescription={m.promptTemplateHistoryEmptyBody()}
+            emptyIcon={<History />}
+          />
         ) : (
           <ul className="flex flex-col gap-1">
             {testRuns.map((run) => (

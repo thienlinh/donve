@@ -23,11 +23,11 @@ export function Sidebar() {
         <div className="grid place-items-center">
           <Logo
             variant="full"
-            className="col-start-1 row-start-1 h-8 w-auto opacity-100 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0"
+            className="col-start-1 row-start-1 h-9 w-[130px] opacity-100 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0"
           />
           <Logo
             variant="mark"
-            className="col-start-1 row-start-1 h-7 w-7 opacity-0 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-100"
+            className="col-start-1 row-start-1 h-8 w-8 opacity-0 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-100"
           />
         </div>
       </SidebarHeader>

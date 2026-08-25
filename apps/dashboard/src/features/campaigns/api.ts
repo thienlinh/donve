@@ -2,6 +2,8 @@ import {
   campaignAnalyticsSchema,
   campaignListResponseSchema,
   campaignWithProductsSchema,
+  type BulkDeleteCampaignsInput,
+  type BulkUpdateCampaignsInput,
   type CampaignAnalytics,
   type CampaignListQuery,
   type CampaignListResponse,
@@ -21,6 +23,7 @@ export async function fetchCampaignsPage(
     page: String(query.page),
     pageSize: String(query.pageSize)
   });
+  if (query.search) params.set("search", query.search);
   const res = await campaignsFetch(`?${params.toString()}`);
   return campaignListResponseSchema.parse(await res.json());
 }
@@ -56,6 +59,33 @@ export async function updateCampaign(
 
 export async function removeCampaign(id: string): Promise<void> {
   await campaignsFetch(`/${id}`, { method: "DELETE" });
+}
+
+export async function duplicateCampaign(
+  id: string
+): Promise<CampaignWithProducts> {
+  const res = await campaignsFetch(`/${id}/duplicate`, { method: "POST" });
+  return campaignWithProductsSchema.parse(await res.json());
+}
+
+/** Bulk status-change/delete — floating toolbar in the campaigns table, one call for N
+ * selected rows (same shape as `bulkUpdateLeads`/`bulkDeleteLeads`). */
+export async function bulkUpdateCampaigns(
+  input: BulkUpdateCampaignsInput
+): Promise<void> {
+  await campaignsFetch("/bulk", {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function bulkDeleteCampaigns(
+  input: BulkDeleteCampaignsInput
+): Promise<void> {
+  await campaignsFetch("/bulk", {
+    method: "DELETE",
+    body: JSON.stringify(input)
+  });
 }
 
 export async function fetchCampaignAnalytics(

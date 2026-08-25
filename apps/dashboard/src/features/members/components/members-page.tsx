@@ -20,13 +20,6 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { Switch } from "@dv/ui/components/shadcn/switch";
 import {
   Table,
@@ -38,9 +31,10 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Mail, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import {
   authClient,
   useActiveOrganization,
@@ -93,22 +87,13 @@ export function MembersPage() {
           )}
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.membersLoadErrorTitle()}</EmptyTitle>
-                {error.message && (
-                  <EmptyDescription>{error.message}</EmptyDescription>
-                )}
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={false}
+            errorTitle={m.membersLoadErrorTitle()}
+            emptyTitle=""
+          />
 
           {activeOrganization && (
             <Table>
@@ -117,7 +102,9 @@ export function MembersPage() {
                   <TableHead>{m.membersColumnMember()}</TableHead>
                   <TableHead>{m.membersColumnRole()}</TableHead>
                   {canManage && (
-                    <TableHead>{m.membersColumnSeeAllLeads()}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {m.membersColumnSeeAllLeads()}
+                    </TableHead>
                   )}
                   {canManage && (
                     <TableHead className="text-end">
@@ -129,20 +116,20 @@ export function MembersPage() {
               <TableBody>
                 {activeOrganization.members.map((member) => (
                   <TableRow key={member.id}>
-                    <TableCell>
+                    <TableCell className="max-w-40 sm:max-w-none">
                       <div className="flex items-center gap-2">
-                        <Avatar size="sm">
+                        <Avatar size="sm" className="shrink-0">
                           <AvatarFallback>
                             {(member.user.name || member.user.email)
                               .slice(0, 1)
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium">
                             {member.user.name || member.user.email}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="truncate text-xs text-muted-foreground">
                             {member.user.email}
                           </span>
                         </div>
@@ -154,7 +141,7 @@ export function MembersPage() {
                       </Badge>
                     </TableCell>
                     {canManage && (
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {member.role === "sales" && (
                           <SeeAllLeadsToggle
                             membershipId={member.id}
@@ -197,18 +184,23 @@ export function MembersPage() {
           </CardHeader>
           <CardContent>
             {pendingInvitations.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{m.membersPendingEmptyTitle()}</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
+              <QueryState
+                isPending={false}
+                error={null}
+                isEmpty
+                errorTitle=""
+                emptyTitle={m.membersPendingEmptyTitle()}
+                emptyIcon={<Mail />}
+              />
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>{m.membersColumnEmail()}</TableHead>
                     <TableHead>{m.membersColumnRole()}</TableHead>
-                    <TableHead>{m.membersColumnExpires()}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {m.membersColumnExpires()}
+                    </TableHead>
                     <TableHead className="text-end">
                       {m.membersColumnActions()}
                     </TableHead>
@@ -229,7 +221,7 @@ export function MembersPage() {
                             {roleLabel(invitation.role)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="hidden text-muted-foreground sm:table-cell">
                           <span className="flex items-center gap-2">
                             {expiresAt.toLocaleDateString()}
                             {isExpired && (

@@ -23,8 +23,9 @@
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "@dv/contracts": "workspace:*",
     "@testcontainers/postgresql": "catalog:db",
-    "bun-types": "catalog:",
+    "@types/bun": "catalog:",
     "drizzle-kit": "catalog:db",
     "typescript": "catalog:",
     "vitest": "catalog:"

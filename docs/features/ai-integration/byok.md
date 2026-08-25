@@ -40,6 +40,16 @@ Phân tích ToS ở §1.1/§1.2 chỉ đúng **tại thời điểm viết tài 
 - **Vì sao `packages/ai-gateway` (kiến trúc ở §2) là hướng đúng**: abstraction cắm-được-provider-mới giúp giảm chi phí kỹ thuật khi phải đổi chiến lược provider — ví dụ nếu sau này Anthropic/OpenAI mở chương trình "Sign in with Claude/ChatGPT" chính thức theo điều khoản khác (xem FR-H-04), chỉ cần thêm 1 provider mới vào gateway chứ không phải viết lại pipeline. Nhưng **abstraction kỹ thuật không thay thế được việc con người chủ động theo dõi chính sách** — gateway sẵn sàng thêm provider không có nghĩa là tự động biết khi nào cần thêm.
 - **Rủi ro nếu bỏ qua**: phát hiện muộn một thay đổi ToS có thể khiến tính năng BYOK hiện tại vô tình vi phạm điều khoản nhà cung cấp mà nền tảng không hay biết, ảnh hưởng tới toàn bộ tenant đang dùng provider đó (tài khoản bị khoá, key bị thu hồi hàng loạt) chứ không chỉ 1 user.
 
+## 1.5. UX cho non-tech user — đóng khoảng trống đã xác nhận (08/2026)
+
+Rà soát business/UX xác nhận: khoản mục yếu nhất của toàn hệ thống với người dùng không rành kỹ thuật là bước kết nối AI — dashboard hiện không giải thích "vì sao cần key" / "lấy key ở đâu", chỉ có 1 form dán key trần. Chiến lược OpenRouter-first + free trial ở §1.3/6 đã đúng hướng nhưng **chưa có UI thật cho FR-H-05** (dùng thử không cần key qua Cloudflare Workers AI). Việc cần làm, theo đúng mẫu đã chứng minh hiệu quả ở `payment-connections-page.tsx`'s `GuideCard` (hướng dẫn từng bước có ảnh/video cho bước "nhập Bank BIN" — điểm nghẽn tương tự):
+
+1. **`GuideCard` tương tự cho AI connection** — mỗi provider (OpenRouter/Anthropic/OpenAI/Groq/NVIDIA) có 1 hướng dẫn từng bước ("Vào openrouter.ai → Đăng ký → Vào Keys → Tạo key mới → Dán vào đây"), kèm ảnh chụp màn hình/video ngắn, hiện ngay trong `connect-ai-dialog.tsx` khi chọn provider — không bắt user tự đi tìm tài liệu ngoài.
+2. **Dùng thử không cần key (FR-H-05) — cần build thật, không chỉ là ý tưởng trong doc**: N lượt generate đầu (dùng Cloudflare Workers AI qua `env.AI` binding, chi phí gần 0đ nhờ free Neuron pool — xem §6 bảng provider) chạy được **trước khi** user phải kết nối bất kỳ key nào. Bộ đếm hiển thị rõ trên UI ("còn 2/3 lượt dùng thử"), banner mềm khi gần hết ("Kết nối AI của bạn để tiếp tục, hoàn toàn miễn phí với OpenRouter") — không chặn cứng đột ngột giữa lúc đang thao tác.
+3. **Copy giải thích lý do, không chỉ label field** — dòng mô tả ngắn dưới mỗi provider option: "OpenRouter: 1 key dùng được nhiều model, có model miễn phí để thử trước." — người dùng lần đầu tạo API key trong đời cần biết _tại sao_ trước khi biết _làm sao_.
+
+Nguyên tắc chung: đây là điểm chạm đầu tiên quyết định onboarding có hoàn tất hay không (drop-off point) — đầu tư UI ở đây tương xứng, không coi là "chi tiết nhỏ của form".
+
 ## 2. AI Gateway (packages/ai-gateway)
 
 ```ts

@@ -1,5 +1,10 @@
 const POSTER_QUALITY = 0.82;
 
+export const VIDEO_MIME_TYPES = new Set(["video/mp4", "video/webm"]);
+// FR-B-29 — video isn't compressed client-side the way images are (compressToWebp), so it
+// needs its own, higher cap; kept in sync with the API's MAX_VIDEO_BYTES (lib/image-upload.ts).
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
 /**
  * FR-B-29: extract the first frame of an uploaded video as a JPEG blob, for use as a
  * poster/thumbnail — same canvas `drawImage` technique `image-compress.ts` uses for images,

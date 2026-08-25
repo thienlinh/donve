@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@dv/ui/components/shadcn/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator
@@ -17,7 +18,7 @@ import {
 } from "@dv/ui/components/shadcn/dropdown-menu";
 import { Separator } from "@dv/ui/components/shadcn/separator";
 import { SidebarTrigger } from "@dv/ui/components/shadcn/sidebar";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 
 import { authClient, useSession } from "@/features/auth/auth-client";
@@ -35,7 +36,12 @@ function useCurrentNavCrumb() {
   for (const group of navGroups) {
     const item = group.items.find((navItem) => pathname.startsWith(navItem.to));
     if (item) {
-      return { group: group.label(), page: item.label() };
+      return {
+        group: group.label(),
+        page: item.label(),
+        to: item.to,
+        isCurrent: pathname === item.to
+      };
     }
   }
 
@@ -64,21 +70,34 @@ export function TopBar() {
         />
         <OrgSwitcher />
         {crumb && (
-          <>
+          <div className="hidden min-w-0 items-center gap-3 lg:flex">
             <Separator
               orientation="vertical"
               className="h-5 data-vertical:self-center"
             />
-            <Breadcrumb>
+            <Breadcrumb className="min-w-0">
               <BreadcrumbList className="flex-nowrap">
-                <BreadcrumbItem>{crumb.group}</BreadcrumbItem>
+                <BreadcrumbItem className="truncate">
+                  {crumb.group}
+                </BreadcrumbItem>
                 <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{crumb.page}</BreadcrumbPage>
+                <BreadcrumbItem className="min-w-0">
+                  {crumb.isCurrent ? (
+                    <BreadcrumbPage className="truncate">
+                      {crumb.page}
+                    </BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      className="truncate"
+                      render={<Link to={crumb.to} />}
+                    >
+                      {crumb.page}
+                    </BreadcrumbLink>
+                  )}
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-          </>
+          </div>
         )}
       </div>
       <div className="flex items-center gap-3">

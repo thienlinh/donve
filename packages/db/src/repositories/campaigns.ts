@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 
 import type { Db } from "../client/types.js";
@@ -26,9 +26,20 @@ export const campaignsRepository = {
   ...base,
 
   /** Paginated, non-deleted campaigns — used by `GET /api/campaigns` (FR-C list, avoids loading
-   * the whole org table like the old unbounded `list()` did). */
-  async listPage(db: Db, orgId: string, page: number, pageSize: number) {
-    const where = and(eq(campaigns.orgId, orgId), isNull(campaigns.deletedAt));
+   * the whole org table like the old unbounded `list()` did). `search` matches campaign name,
+   * same case-insensitive substring match as `leadsRepository.listFiltered`'s name search. */
+  async listPage(
+    db: Db,
+    orgId: string,
+    page: number,
+    pageSize: number,
+    search?: string
+  ) {
+    const where = and(
+      eq(campaigns.orgId, orgId),
+      isNull(campaigns.deletedAt),
+      search ? ilike(campaigns.name, `%${search}%`) : undefined
+    );
     const [rows, countRows] = await Promise.all([
       withOrgScope<(typeof campaigns.$inferSelect)[]>(db, orgId, (qb) =>
         qb
@@ -47,6 +58,24 @@ export const campaignsRepository = {
       )
     ]);
     return { rows, total: countRows[0]?.count ?? 0 };
+  },
+
+  /** Bulk PATCH/DELETE (`/api/campaigns/bulk`) — one query for every id in the batch, same
+   * shape as `leadsRepository.findManyByIds`. */
+  async findManyByIds(db: Db, orgId: string, ids: string[]) {
+    if (ids.length === 0) return [];
+    return withOrgScope<(typeof campaigns.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(campaigns)
+        .where(
+          and(
+            eq(campaigns.orgId, orgId),
+            inArray(campaigns.id, ids),
+            isNull(campaigns.deletedAt)
+          )
+        )
+    );
   },
 
   async findByPublicId(db: Db, orgId: string, publicId: string) {

@@ -14,13 +14,6 @@ import { Badge } from "@dv/ui/components/shadcn/badge";
 import { Button } from "@dv/ui/components/shadcn/button";
 import { Card, CardHeader, CardTitle } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Tabs,
   TabsContent,
   TabsList,
@@ -29,9 +22,10 @@ import {
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
+import { FileQuestion, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
@@ -81,36 +75,19 @@ export function PromptTemplateDetailPage() {
       toast.add({ title: m.promptTemplateRemoveErrorToast(), type: "error" })
   });
 
-  if (isPending) {
-    return (
-      <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
-  }
+  const template = templates?.find((t) => t.id === id);
 
-  if (error) {
+  if (isPending || error || !template) {
     return (
       <div className="p-6">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{m.promptTemplatesLoadErrorTitle()}</EmptyTitle>
-            <EmptyDescription>{error.message}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-
-  const template = templates.find((t) => t.id === id);
-  if (!template) {
-    return (
-      <div className="p-6">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{m.promptTemplateNotFoundTitle()}</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={!isPending && !error}
+          errorTitle={m.promptTemplatesLoadErrorTitle()}
+          emptyTitle={m.promptTemplateNotFoundTitle()}
+          emptyIcon={<FileQuestion />}
+        />
       </div>
     );
   }

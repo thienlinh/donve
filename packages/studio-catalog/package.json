@@ -1,0 +1,33 @@
+{
+  "name": "@dv/studio-catalog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@dv/contracts": "workspace:*",
+    "@dv/ui": "workspace:*",
+    "@json-render/core": "catalog:ui",
+    "@json-render/react": "catalog:ui",
+    "@puckeditor/core": "catalog:ui",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -184,12 +184,31 @@ export const campaignWithProductsSchema = campaignSchema.extend({
 });
 export type CampaignWithProducts = z.infer<typeof campaignWithProductsSchema>;
 
-/** GET /api/campaigns query params — page/pageSize only, no filters (org campaign lists are small). */
+/** GET /api/campaigns query params — page/pageSize plus an optional name search (leads-page
+ * parity, FR-C list). */
 export const campaignListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20)
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().optional()
 });
 export type CampaignListQuery = z.infer<typeof campaignListQuerySchema>;
+
+/** PATCH/DELETE /api/campaigns/bulk — table multi-select bulk actions, same
+ * row-cap discipline as `bulkUpdateLeadsSchema`/`bulkDeleteLeadsSchema`. */
+export const bulkUpdateCampaignsSchema = z.object({
+  campaignIds: z.array(ulidSchema).min(1),
+  status: campaignStatusSchema
+});
+export type BulkUpdateCampaignsInput = z.infer<
+  typeof bulkUpdateCampaignsSchema
+>;
+
+export const bulkDeleteCampaignsSchema = z.object({
+  campaignIds: z.array(ulidSchema).min(1)
+});
+export type BulkDeleteCampaignsInput = z.infer<
+  typeof bulkDeleteCampaignsSchema
+>;
 
 export const campaignListResponseSchema = z.object({
   campaigns: z.array(campaignWithProductsSchema),

@@ -64,6 +64,9 @@ export const organizationSchema = z.object({
   aiCreditBalance: z.number().int().nonnegative().default(0),
   trialUsesRemaining: z.number().int().nonnegative().default(3),
   settings: orgSettingsSchema.default({}),
+  /** Non-null while the org is locked out by `POST /platform/orgs/:id/disable`
+   * (docs/architecture/platform-admin.md §11). */
+  disabledAt: z.coerce.date().nullable().default(null),
   ...timestampsSchema.shape
 });
 export type Organization = z.infer<typeof organizationSchema>;

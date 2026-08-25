@@ -20,9 +20,9 @@
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
+    "@types/bun": "catalog:",
     "@types/html-minifier-terser": "catalog:content",
     "@types/sanitize-html": "catalog:content",
-    "bun-types": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

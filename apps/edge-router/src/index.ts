@@ -1,4 +1,4 @@
-import { eventTypeValues } from "@dv/contracts";
+import { eventTypeValues, landingUtmSchema } from "@dv/contracts";
 
 interface DeploymentPointer {
   deployId: string;
@@ -12,6 +12,9 @@ interface QueuedEvent {
   deploymentId: string | null;
   type: string;
   sessionHash: string;
+  anonymousId: string | null;
+  landingPageId: string | null;
+  pageVersionId: string | null;
   meta: Record<string, unknown>;
 }
 
@@ -106,6 +109,19 @@ async function handleSeoFile(env: Env, url: URL): Promise<Response> {
   );
   if (!pointer) return notFound();
 
+  // A `seo.noindex` page ships its own robots.txt/sitemap.xml with the deployment (see
+  // apps/api/src/lib/publish.ts) — that copy wins over the generated default below, and
+  // rollback swaps it along with everything else in the deployment.
+  const shipped = await env.DEPLOYMENTS_BUCKET.get(
+    `deployments/${pointer.deployId}${url.pathname}`
+  );
+  if (shipped) {
+    const headers = new Headers();
+    shipped.writeHttpMetadata(headers);
+    headers.set("Cache-Control", ROOT_DOCUMENT_CACHE);
+    return new Response(shipped.body, { headers });
+  }
+
   const origin = `https://${url.hostname}`;
   const body =
     url.pathname === "/sitemap.xml"
@@ -119,7 +135,9 @@ async function handleSeoFile(env: Env, url: URL): Promise<Response> {
   return new Response(body, {
     headers: {
       "content-type": contentType,
-      "Cache-Control": IMMUTABLE_ASSET_CACHE
+      // Not immutable: toggling `seo.noindex` republishes and swaps this file's content for the
+      // same URL, so it has to expire on the same short horizon as the root document.
+      "Cache-Control": ROOT_DOCUMENT_CACHE
     }
   });
 }
@@ -148,12 +166,24 @@ async function handleBeacon(
   const { success } = await env.BEACON_RL.limit({ key: rateLimitKey });
   if (!success) return new Response(null, { status: 429 });
 
-  const meta = await request
+  const body: Record<string, unknown> = await request
     .json()
-    .then((body) =>
-      body && typeof body === "object" ? (body as Record<string, unknown>) : {}
+    .then((value): Record<string, unknown> =>
+      value && typeof value === "object"
+        ? (value as Record<string, unknown>)
+        : {}
     )
-    .catch(() => ({}));
+    .catch((): Record<string, unknown> => ({}));
+  const meta =
+    body.meta && typeof body.meta === "object"
+      ? (body.meta as Record<string, unknown>)
+      : {};
+
+  // `tracking-and-attribution.md` §UTM governance: reject before it ever reaches `events`,
+  // don't silently drop or pass through an unrecognized shape.
+  if (meta.utm !== undefined && !landingUtmSchema.safeParse(meta.utm).success) {
+    return new Response(null, { status: 400 });
+  }
 
   const event: QueuedEvent = {
     orgId: pointer.orgId,
@@ -161,6 +191,11 @@ async function handleBeacon(
     deploymentId: pointer.deployId,
     type,
     sessionHash: await hashSession(ip, request.headers.get("user-agent") ?? ""),
+    anonymousId: typeof body.anonymousId === "string" ? body.anonymousId : null,
+    landingPageId:
+      typeof body.landingPageId === "string" ? body.landingPageId : null,
+    pageVersionId:
+      typeof body.pageVersionId === "string" ? body.pageVersionId : null,
     meta
   };
 

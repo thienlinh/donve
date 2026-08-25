@@ -21,13 +21,6 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { Switch } from "@dv/ui/components/shadcn/switch";
 import {
   Table,
@@ -39,9 +32,10 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
@@ -78,26 +72,14 @@ export function SkillsPage() {
           )}
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.skillsLoadErrorTitle()}</EmptyTitle>
-                <EmptyDescription>{error.message}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-          {skills && skills.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.skillsEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={skills?.length === 0}
+            errorTitle={m.skillsLoadErrorTitle()}
+            emptyTitle={m.skillsEmptyTitle()}
+            emptyIcon={<Sparkles />}
+          />
           {skills && skills.length > 0 && (
             <Table>
               <TableHeader>

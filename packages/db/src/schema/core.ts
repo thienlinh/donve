@@ -22,6 +22,14 @@ export const organizations = pgTable("organizations", {
   // FR-H-05 — free generations on the platform's Workers AI key before BYOK/credits kick in.
   trialUsesRemaining: integer("trial_uses_remaining").notNull().default(3),
   settings: jsonb("settings").notNull().default({}),
+  /**
+   * Set by `POST /platform/orgs/:id/disable` (platform-admin.md §11) — ToS violation or long
+   * overdue payment. Data is kept untouched; `requireOrgSession` rejects every `/api/*` request
+   * for the org while this is non-null, which is the one chokepoint all tenant access goes
+   * through. The mandatory reason lives in `platform_audit_logs`, not here — the audit trail
+   * keeps the full history of disable/enable cycles instead of just the latest reason.
+   */
+  disabledAt: timestamp("disabled_at"),
   ...timestamps
 });
 

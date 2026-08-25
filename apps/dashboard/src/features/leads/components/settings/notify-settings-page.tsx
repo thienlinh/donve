@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import { Empty, EmptyHeader, EmptyTitle } from "@dv/ui/components/shadcn/empty";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
@@ -17,8 +16,10 @@ import {
 } from "@dv/ui/components/shadcn/native-select";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Lock } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import {
   fetchOrgSettings,
@@ -62,11 +63,14 @@ export function NotifySettingsPage() {
   if (!canManage) {
     return (
       <LeadsPageLayout>
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{m.settingsForbiddenTitle()}</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
+        <QueryState
+          isPending={false}
+          error={null}
+          isEmpty
+          errorTitle=""
+          emptyTitle={m.settingsForbiddenTitle()}
+          emptyIcon={<Lock />}
+        />
       </LeadsPageLayout>
     );
   }

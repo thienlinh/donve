@@ -30,7 +30,7 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Package, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Pagination } from "@/components/pagination";
@@ -70,6 +70,7 @@ export function ProductsPage() {
             isEmpty={products?.length === 0}
             errorTitle={m.productsLoadErrorTitle()}
             emptyTitle={m.productsEmptyTitle()}
+            emptyIcon={<Package />}
           />
           {products && products.length > 0 && (
             <Table>

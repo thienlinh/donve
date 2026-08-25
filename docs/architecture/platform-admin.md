@@ -11,12 +11,12 @@ Bổ sung cho architecture.md §6/§6.1 (multi-tenant & RLS). Tài liệu này t
 - Helper DB tương đương `withOrgScope` nhưng cho platform staff.
 - Bảng audit riêng cho hành động platform-level.
 
-**CHƯA làm ngay** (đợi có nhu cầu vận hành thật, tránh xây thứ không ai dùng):
+**Cập nhật 08/2026 — quyết định chủ động mở rộng phạm vi, không còn giữ nguyên tắc "chờ nhu cầu thật" cho các mục dưới đây.** Nền tảng đã qua giai đoạn chỉ-làm-nền-móng; rà soát business/UX xác nhận không có gì ở đây nên tiếp tục ở dạng tối giản. Giữ nguyên toàn bộ nền móng đã đúng ở mục 1–7 (bảng `platform_staff`/`platform_audit_logs`, RLS chỉ-đọc, `withPlatformScope`, không có "ghi xuyên-tenant tổng quát") — mở rộng thêm role tiers, UI quản lý đầy đủ, và feature-flags-theo-subscription ở §10–12 dưới đây.
 
-- UI quản lý — chỉ cần route/API đọc cơ bản (list org, xem chi tiết 1 org), chưa cần dashboard đẹp.
-- Phân cấp nhiều role platform (`support`, `billing_ops`, `platform_admin`...) — bắt đầu 1 role duy nhất `platform_admin`, tách khi thực sự có ≥2 nhóm người dùng khác nhau.
-- App riêng (`apps/admin`) — dùng route-group trong `apps/api`/`apps/dashboard` hiện có, tách app khi có lý do cụ thể (team riêng, cần isolate deploy/security domain).
-- "Ghi xuyên-tenant tổng quát" (kiểu god-mode update mọi bảng) — mọi hành động ghi (disable org, hoàn tiền hộ...) vẫn phải là 1 endpoint nghiệp vụ cụ thể, tự gọi `withOrgScope(targetOrgId, ...)` bình thường + ghi audit, không có đường ghi "không cần org context".
+**Vẫn giữ nguyên tắc, không đổi** (đây là nguyên tắc an toàn, không phải "cắt MVP"):
+
+- App riêng (`apps/admin`) — dùng route-group trong `apps/api`/`apps/dashboard` hiện có; tách app chỉ khi có lý do cụ thể (team riêng, cần isolate deploy/security domain) — chưa có lý do đó.
+- "Ghi xuyên-tenant tổng quát" (kiểu god-mode update mọi bảng) — mọi hành động ghi (disable org, hoàn tiền hộ...) vẫn phải là 1 endpoint nghiệp vụ cụ thể, tự gọi `withOrgScope(targetOrgId, ...)` bình thường + ghi audit, không có đường ghi "không cần org context". Mở rộng role/quyền ở §10 không thay đổi nguyên tắc này — role mới chỉ mở thêm _endpoint nghiệp vụ cụ thể nào_ mỗi role được gọi, không mở "ghi tự do".
 
 ## 1. Data model
 
@@ -183,3 +183,93 @@ DATABASE_URL="<lấy từ GitHub Environment secret hoặc Neon console>" \
 - **Điều kiện**: user đó phải đã signup/login vào đúng environment đó ít nhất 1 lần trước (script tra theo email trong bảng `user`, chưa có thì báo lỗi `no user with email ...`).
 - **Mỗi environment tách biệt**: staging và prod là 2 database khác nhau (Neon branch riêng — `docs/runbooks/ci-cd-setup.md` mục 3) → cấp quyền ở staging không tự có ở prod, phải chạy lại lệnh trên với `DATABASE_URL` của prod.
 - Idempotent — chạy lại không sao, chỉ báo "đã là staff".
+
+## 10. Phân cấp role platform (mở rộng từ 1 role)
+
+```ts
+// packages/db/src/schema/platform.ts — mở rộng enum đã có, không đổi bảng
+export const platformStaff = pgTable("platform_staff", {
+  id: id(),
+  userId: text("user_id").notNull().unique(),
+  role: text("role", {
+    enum: ["support", "billing_ops", "platform_admin"]
+  }).notNull(),
+  ...timestamps
+});
+```
+
+- `support`: đọc xuyên-tenant (dùng `withPlatformScope` như hiện có) — xem chi tiết 1 org, lịch sử lead/campaign để hỗ trợ ticket. Không có quyền ghi (disable org, refund).
+- `billing_ops`: đọc + 1 nhóm endpoint ghi hẹp, cụ thể — "assist refund" (gọi thẳng driver payment đã có qua `withOrgScope(targetOrgId, ...)`, không phải ghi tự do), xem tổng quan usage/cost AI credit xuyên-tenant.
+- `platform_admin`: mọi quyền của 2 role trên + disable/enable org, cấp/thu hồi platform staff khác (qua UI thay vì chỉ CLI — xem mục 11).
+
+Middleware `requirePlatformStaff` thêm tham số role tối thiểu: `requirePlatformStaff("support")` cho phép cả 3 role (thứ tự quyền support < billing_ops < platform_admin), `requirePlatformStaff("platform_admin")` chỉ role cao nhất. Không đổi cơ chế RLS/audit ở mục 2–4 — role chỉ quyết định endpoint nào được gọi, không đổi cách đọc/ghi dữ liệu.
+
+## 11. Super admin dashboard — mở rộng UI thật
+
+Vẫn route `/platform` trong `apps/dashboard` (không tách `apps/admin`), nhưng UI đầy đủ thay vì chỉ list-org:
+
+- Org list + detail: filter theo trạng thái (active/disabled), search theo tên/email owner, click vào 1 org → tab Overview (thành viên, campaign count, lead count, ngày tạo), tab Billing (subscription plan hiện tại, lịch sử thanh toán, usage AI credit), tab Audit (log hành động platform-level đã tác động lên org này — join `platformAuditLogs.targetOrgId`).
+- Hành động ghi (role `platform_admin`/`billing_ops` tuỳ hành động, mỗi hành động là 1 endpoint nghiệp vụ cụ thể như nguyên tắc ở mục 0):
+  - `POST /platform/orgs/:id/disable` / `/enable` — khoá đăng nhập cho mọi member của org (không xoá dữ liệu), dùng khi vi phạm ToS hoặc quá hạn thanh toán dài ngày.
+  - `POST /platform/orgs/:id/refund-assist` — gọi driver payment hiện có thay mặt org (billing_ops), luôn ghi `platformAuditLogs` kèm lý do (bắt buộc nhập, không optional).
+  - `PATCH /platform/orgs/:id/subscription` — đổi plan/feature-flag override cho 1 org cụ thể (xem mục 12) — dùng khi sale/support cần bật thử 1 feature cho 1 khách hàng trước khi họ tự nâng cấp.
+- Tổng quan xuyên-tenant (dashboard, không phải theo từng org): tổng usage AI credit theo ngày/tuần (phát hiện org nào burn bất thường), tổng số org theo từng subscription plan, danh sách org sắp hết trial/quá hạn thanh toán.
+- Vẫn dùng `@dv/ui` (shadcn) như mọi trang khác, không viết design system riêng cho `/platform`.
+
+## 12. Feature flags theo subscription — bảng mới
+
+```ts
+// packages/db/src/schema/billing.ts (cạnh bảng subscription/payment hiện có, không tạo file rời)
+export const featureFlags = pgTable("feature_flags", {
+  id: id(),
+  key: text("key").notNull().unique(), // "ab_testing", "custom_domain", "media_upload_video"...
+  description: text("description").notNull(),
+  ...timestamps
+});
+
+export const planFeatures = pgTable(
+  "plan_features",
+  {
+    id: id(),
+    planId: text("plan_id").notNull(), // ref subscriptionPlans (bảng billing hiện có/sắp có)
+    featureKey: text("feature_key").notNull(), // ref featureFlags.key
+    ...timestamps
+  },
+  (t) => [uniqueIndex("ux_plan_feature").on(t.planId, t.featureKey)]
+);
+
+// Override riêng cho 1 org — dùng cho case "bật thử 1 tính năng cho khách hàng cụ thể" ở
+// mục 11, hoặc "org này bị tắt tạm 1 tính năng vì lạm dụng". Ưu tiên cao hơn plan_features.
+export const orgFeatureOverrides = pgTable(
+  "org_feature_overrides",
+  {
+    id: id(),
+    orgId: text("org_id").notNull(),
+    featureKey: text("feature_key").notNull(),
+    enabled: text("enabled").notNull(), // "true" | "false"
+    reason: text("reason").notNull(), // bắt buộc — mọi override phải giải thích được vì sao
+    ...timestamps
+  },
+  (t) => [uniqueIndex("ux_org_feature").on(t.orgId, t.featureKey)]
+);
+```
+
+Check tại runtime — 1 helper duy nhất, dùng cả ở API middleware lẫn dashboard:
+
+```ts
+// packages/db/src/feature-flags.ts
+export async function hasFeature(
+  db: Db,
+  orgId: string,
+  key: string
+): Promise<boolean> {
+  const override = await orgFeatureOverridesRepository.find(db, orgId, key);
+  if (override) return override.enabled === "true";
+  const plan = await organizationsRepository.getPlan(db, orgId);
+  return planFeaturesRepository.has(db, plan.id, key);
+}
+```
+
+Enforcement: middleware `requireFeature(key)` chặn ở tầng API cho endpoint gắn với tính năng trả phí (vd A/B testing — chặn 403 kèm message rõ "cần nâng cấp plan X"); dashboard ẩn/khoá UI tương ứng (nút khoá 🔒 + link nâng cấp thay vì biến mất hoàn toàn — người dùng cần biết tính năng tồn tại để có động lực nâng cấp).
+
+Không xây ngay (ranh giới hợp lý, khác các mục đã "không còn MVP" ở trên — chờ có ≥2 plan trả phí thật mới cần): UI tự-phục-vụ cho tenant tự đổi plan (checkout flow) — hiện đủ dùng bằng `PATCH /platform/orgs/:id/subscription` (mục 11) do platform staff thao tác thủ công khi có khách hàng ký hợp đồng.

@@ -2,9 +2,11 @@ import {
   Empty,
   EmptyDescription,
   EmptyHeader,
+  EmptyMedia,
   EmptyTitle
 } from "@dv/ui/components/shadcn/empty";
 import { Spinner } from "@dv/ui/components/shadcn/spinner";
+import type { ReactNode } from "react";
 
 import * as m from "@/paraglide/messages.js";
 
@@ -20,6 +22,9 @@ export function QueryState({
   isEmpty,
   errorTitle,
   emptyTitle,
+  emptyDescription,
+  emptyIcon,
+  emptyAction,
   loadingLabel = m.commonLoading(),
   className = "flex items-center gap-2 text-sm text-muted-foreground"
 }: {
@@ -28,6 +33,9 @@ export function QueryState({
   isEmpty: boolean;
   errorTitle: string;
   emptyTitle: string;
+  emptyDescription?: string;
+  emptyIcon?: ReactNode;
+  emptyAction?: ReactNode;
   loadingLabel?: string;
   className?: string;
 }) {
@@ -54,8 +62,13 @@ export function QueryState({
     return (
       <Empty>
         <EmptyHeader>
+          {emptyIcon && <EmptyMedia variant="icon">{emptyIcon}</EmptyMedia>}
           <EmptyTitle>{emptyTitle}</EmptyTitle>
+          {emptyDescription && (
+            <EmptyDescription>{emptyDescription}</EmptyDescription>
+          )}
         </EmptyHeader>
+        {emptyAction}
       </Empty>
     );
   }

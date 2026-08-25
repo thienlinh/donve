@@ -19,9 +19,16 @@ apps/dashboard        Vite 8 + React 19 + TanStack Router/Query, Tailwind v4
 apps/api              Hono — workers.ts (CF) / bun.ts (VPS) entrypoints
 apps/edge-router      CF Worker: landing serving (KV+R2+Cache), event beacon
 apps/landing-runtime  Vanilla TS, built as IIFE via tsdown (the one compiled package)
-packages/studio-core  srcmap engine, patch ops, undo/redo
-packages/studio-ui    Canvas/LayerTree/Inspector (from @dv/studio)
-packages/studio-ai    patch protocol, prompt compiler (from @dv/ai)
+packages/studio-core     srcmap engine, patch ops, undo/redo — legacy Studio, still live in prod
+packages/studio-ui       Canvas/LayerTree/Inspector (from @dv/studio) — legacy Studio, still live in prod
+packages/studio-ai       patch protocol, prompt compiler (from @dv/ai) — legacy Studio, still live in prod
+packages/studio-catalog  json-render defineCatalog/defineRegistry, ~25 PageSpec components
+                         (docs/features/landing-pages/) — new Studio rewrite, built alongside the
+                         legacy one above; cutover happens once the new stack is complete, not yet
+packages/studio-render   PageSpec + catalog → publish-ready HTML/CSS (build-time SSR, never on the
+                         request path) — reuses @dv/studio-core's buildPublishArtifacts (shared
+                         sanitize/asset-hash/canonical/OG/JSON-LD/minify pipeline) rather than
+                         reimplementing it; part of the same new-Studio rewrite as studio-catalog
 packages/db           drizzle schema + org-scoped repositories
 packages/auth         better-auth config + organization plugin + RBAC
 packages/contracts    zod schemas / API types shared FE+BE
@@ -66,4 +73,4 @@ This needs `@rolldown/plugin-babel`, `@babel/core`, `babel-plugin-react-compiler
 
 ## Verifying changes to this scaffold
 
-After touching `package.json`/tsconfig/oxlint/oxfmt config anywhere in the repo, run all of: `bun install`, `bun run lint`, `bun run fmt:check`, `bun run typecheck`, `bun run build`. All were green as of this setup — don't let a "quick tweak" silently break one of them.
+After touching `package.json`/tsconfig/oxlint/oxfmt config anywhere in the repo, run all of: `bun install`, `bun run lint`, `bun run fmt`, `bun run typecheck`, `bun run build`. All were green as of this setup — don't let a "quick tweak" silently break one of them.

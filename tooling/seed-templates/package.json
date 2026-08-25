@@ -1,0 +1,20 @@
+{
+  "name": "@dv/seed-templates",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "bun run.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf node_modules"
+  },
+  "dependencies": {
+    "@dv/db": "workspace:*",
+    "drizzle-orm": "catalog:db"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

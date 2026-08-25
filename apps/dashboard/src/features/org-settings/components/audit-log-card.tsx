@@ -6,13 +6,6 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -21,7 +14,9 @@ import {
   TableRow
 } from "@dv/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollText } from "lucide-react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchAuditLogs } from "../api";
@@ -45,30 +40,14 @@ export function AuditLogCard() {
         <CardDescription>{m.auditLogDescription()}</CardDescription>
       </CardHeader>
       <CardContent>
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.auditLogLoadErrorTitle()}</EmptyTitle>
-              {error.message && (
-                <EmptyDescription>{error.message}</EmptyDescription>
-              )}
-            </EmptyHeader>
-          </Empty>
-        )}
-
-        {logs && logs.length === 0 && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.auditLogEmptyTitle()}</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={logs?.length === 0}
+          errorTitle={m.auditLogLoadErrorTitle()}
+          emptyTitle={m.auditLogEmptyTitle()}
+          emptyIcon={<ScrollText />}
+        />
 
         {logs && logs.length > 0 && (
           <Table>

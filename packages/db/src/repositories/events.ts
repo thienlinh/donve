@@ -10,7 +10,10 @@ export interface QueuedEventInput {
   campaignId: string | null;
   deploymentId: string | null;
   type: string;
-  sessionHash: string;
+  sessionHash: string | null;
+  anonymousId: string | null;
+  landingPageId: string | null;
+  pageVersionId: string | null;
   meta: Record<string, unknown>;
 }
 
@@ -30,6 +33,29 @@ export const eventsRepository = {
           and(
             eq(events.orgId, orgId),
             eq(events.campaignId, campaignId),
+            gte(events.createdAt, since)
+          )
+        )
+    );
+  },
+
+  /** Raw events for one landing page since a cutoff — Optimization Agent's own analytics input
+   * (`landingPageId` only lands on events fired since the tracking-and-attribution step, so a
+   * page published before that has none here even with real `campaignId`-scoped traffic). */
+  async listByLandingPageSince(
+    db: Db,
+    orgId: string,
+    landingPageId: string,
+    since: Date
+  ) {
+    return withOrgScope<(typeof events.$inferSelect)[]>(db, orgId, (qb) =>
+      qb
+        .select()
+        .from(events)
+        .where(
+          and(
+            eq(events.orgId, orgId),
+            eq(events.landingPageId, landingPageId),
             gte(events.createdAt, since)
           )
         )
@@ -62,6 +88,9 @@ export const eventsRepository = {
                 deploymentId: event.deploymentId,
                 type: event.type,
                 sessionHash: event.sessionHash,
+                anonymousId: event.anonymousId,
+                landingPageId: event.landingPageId,
+                pageVersionId: event.pageVersionId,
                 meta: event.meta
               }))
             )
@@ -70,6 +99,22 @@ export const eventsRepository = {
       )
     );
     return results.reduce((sum, rows) => sum + rows.length, 0);
+  },
+
+  /** Server-side single-row write — no beacon/queue involved (`lead_created`,
+   * `lead_stage_changed`: the offline conversion loop, `tracking-and-attribution.md`
+   * §Conversion hierarchy). */
+  async insert(db: Db, orgId: string, event: Omit<QueuedEventInput, "orgId">) {
+    const rows = await withOrgScope<(typeof events.$inferSelect)[]>(
+      db,
+      orgId,
+      (qb) =>
+        qb
+          .insert(events)
+          .values({ ...event, orgId })
+          .returning()
+    );
+    return rows[0];
   },
 
   /**

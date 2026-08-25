@@ -20,15 +20,8 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@dv/ui/components/shadcn/dialog";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import {
   Table,
   TableBody,
@@ -41,10 +34,11 @@ import { toast } from "@dv/ui/components/shadcn/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import * as m from "@/paraglide/messages.js";
 
@@ -83,26 +77,14 @@ export function PromptTemplatesPage() {
           )}
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.promptTemplatesLoadErrorTitle()}</EmptyTitle>
-                <EmptyDescription>{error.message}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-          {templates && templates.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.promptTemplatesEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={templates?.length === 0}
+            errorTitle={m.promptTemplatesLoadErrorTitle()}
+            emptyTitle={m.promptTemplatesEmptyTitle()}
+            emptyIcon={<FileText />}
+          />
           {templates && templates.length > 0 && (
             <Table>
               <TableHeader>

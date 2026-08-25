@@ -21,13 +21,6 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
-import {
   Table,
   TableBody,
   TableCell,
@@ -37,9 +30,10 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Landmark, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -79,26 +73,14 @@ function ConnectionsCard() {
         </CardAction>
       </CardHeader>
       <CardContent>
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.paymentConnectionsLoadErrorTitle()}</EmptyTitle>
-              <EmptyDescription>{error.message}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-        {connections && connections.length === 0 && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.paymentConnectionsEmptyTitle()}</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={connections?.length === 0}
+          errorTitle={m.paymentConnectionsLoadErrorTitle()}
+          emptyTitle={m.paymentConnectionsEmptyTitle()}
+          emptyIcon={<Landmark />}
+        />
         {connections && connections.length > 0 && (
           <Table>
             <TableHeader>
@@ -218,19 +200,13 @@ function GuideCard() {
         <CardDescription>{m.paymentGuideDescription()}</CardDescription>
       </CardHeader>
       <CardContent>
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.paymentGuideLoadErrorTitle()}</EmptyTitle>
-              <EmptyDescription>{error.message}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={false}
+          errorTitle={m.paymentGuideLoadErrorTitle()}
+          emptyTitle=""
+        />
         {guide && (
           <ol className="flex flex-col gap-4">
             {guide.steps.map((step, index) => (

@@ -10,7 +10,13 @@ import { id, timestamps } from "./columns.js";
 export const platformStaff = pgTable("platform_staff", {
   id: id(),
   userId: text("user_id").notNull().unique(),
-  role: text("role", { enum: ["platform_admin"] }).notNull(),
+  // Ordered least → most privileged (platform-admin.md §10): `support` reads cross-tenant,
+  // `billing_ops` adds the narrow billing writes (refund-assist, subscription),
+  // `platform_admin` adds org disable/enable. The ordering itself lives in
+  // `apps/api/src/middleware/require-platform-staff.ts`.
+  role: text("role", {
+    enum: ["support", "billing_ops", "platform_admin"]
+  }).notNull(),
   ...timestamps
 });
 

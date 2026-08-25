@@ -14,7 +14,7 @@ const leadsSubNavItems = [
 
 export function LeadsSubNav() {
   return (
-    <nav className="flex flex-wrap gap-1 border-b px-4 py-2">
+    <nav className="flex gap-1 overflow-x-auto border-b px-4 py-2">
       {leadsSubNavItems.map((item) => (
         <Link
           key={item.to}
@@ -22,7 +22,7 @@ export function LeadsSubNav() {
           // `/leads` would otherwise fuzzy-match every /leads/* sub-route and stay
           // marked active (TanStack Router's default `isActive` is prefix-based).
           activeOptions={{ exact: true }}
-          className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground aria-[current]:bg-accent aria-[current]:text-accent-foreground"
+          className="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground aria-[current]:bg-accent aria-[current]:text-accent-foreground"
         >
           {item.label()}
         </Link>

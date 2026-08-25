@@ -12,13 +12,20 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@dv/ui/components/shadcn/dialog";
-import { Empty, EmptyHeader, EmptyTitle } from "@dv/ui/components/shadcn/empty";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@dv/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchCampaignAnalytics } from "../api";
@@ -60,18 +67,13 @@ export function CampaignAnalyticsDialog({
             {m.campaignsAnalyticsDescription()}
           </DialogDescription>
         </DialogHeader>
-        {isPending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> {m.commonLoading()}
-          </div>
-        )}
-        {error && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.campaignsAnalyticsLoadErrorTitle()}</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
+        <QueryState
+          isPending={isPending}
+          error={error}
+          isEmpty={false}
+          errorTitle={m.campaignsAnalyticsLoadErrorTitle()}
+          emptyTitle=""
+        />
         {analytics && (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -130,6 +132,46 @@ export function CampaignAnalyticsDialog({
                 />
               </LineChart>
             </ChartContainer>
+
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium">
+                {m.campaignsAnalyticsBySourceTitle()}
+              </h3>
+              {analytics.bySource.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {m.campaignsAnalyticsBySourceEmpty()}
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        {m.campaignsAnalyticsSourceColumn()}
+                      </TableHead>
+                      <TableHead>{m.campaignsAnalyticsViews()}</TableHead>
+                      <TableHead>{m.campaignsAnalyticsSubmits()}</TableHead>
+                      <TableHead>{m.campaignsAnalyticsOrders()}</TableHead>
+                      <TableHead>{m.campaignsAnalyticsConversion()}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analytics.bySource.map((row) => (
+                      <TableRow key={row.source}>
+                        <TableCell className="font-medium capitalize">
+                          {row.source}
+                        </TableCell>
+                        <TableCell>{row.views}</TableCell>
+                        <TableCell>{row.submits}</TableCell>
+                        <TableCell>{row.orders}</TableCell>
+                        <TableCell>
+                          {(row.conversionRate * 100).toFixed(1)}%
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
           </div>
         )}
       </DialogContent>

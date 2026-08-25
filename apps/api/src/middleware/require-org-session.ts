@@ -1,5 +1,5 @@
 import { salesConfigSchema } from "@dv/contracts";
-import { membershipsRepository } from "@dv/db";
+import { membershipsRepository, organizationsRepository } from "@dv/db";
 import { createMiddleware } from "hono/factory";
 
 import { createAuthFromEnv } from "../lib/auth.js";
@@ -22,12 +22,15 @@ export const requireOrgSession = createMiddleware<AppEnv>(async (c, next) => {
   if (!orgId) throw new ApiError(403, "no_active_organization");
 
   const db = createDbFromEnv(c.env);
-  const membership = await membershipsRepository.findByUserId(
-    db,
-    orgId,
-    session.user.id
-  );
+  // One extra read per request, deliberately: this is the single chokepoint every tenant
+  // `/api/*` call passes through, so a platform-level disable (platform-admin.md §11) only
+  // actually locks the org out if it's checked here rather than in each module.
+  const [membership, org] = await Promise.all([
+    membershipsRepository.findByUserId(db, orgId, session.user.id),
+    organizationsRepository.findById(db, orgId)
+  ]);
   if (!membership) throw new ApiError(403, "forbidden");
+  if (org?.disabledAt) throw new ApiError(403, "org_disabled");
 
   c.set("orgId", orgId);
   c.set("userId", session.user.id);

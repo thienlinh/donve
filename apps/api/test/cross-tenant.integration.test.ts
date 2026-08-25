@@ -883,4 +883,28 @@ describe("cross-tenant isolation on /api/campaigns, /api/products, /api/leads (N
     const res = await req("/api/campaigns");
     expect(res.status).toBe(401);
   });
+
+  // `entityImages` has no FK to its owner, so the only thing standing between org A and
+  // "attach my logo to org B's campaign" is the explicit ownership check in the route
+  // (`requireOwnedRef`) — which deliberately runs before the body is even parsed.
+  it("blocks attaching an entity image to org B's campaign or org B itself while acting as org A (404)", async () => {
+    const createRes = await authed(cookieB, "/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({ name: "Org B campaign for OG image" })
+    });
+    expect(createRes.status).toBe(201);
+    const campaignB = (await createRes.json()) as { id: string };
+
+    const attempts = [
+      `/api/entity-images/campaign/${campaignB.id}/og_image`,
+      `/api/entity-images/organization/${orgB.id}/logo`
+    ].flatMap((path) =>
+      ["PUT", "DELETE", "GET"].map((method) =>
+        authed(cookieA, path, { method })
+      )
+    );
+    for (const res of await Promise.all(attempts)) {
+      expect(res.status).toBe(404);
+    }
+  });
 });

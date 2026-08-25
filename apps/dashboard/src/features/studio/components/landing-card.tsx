@@ -97,13 +97,19 @@ export function LandingCard({
     }
   }
 
+  // 3 distinct editors: `custom_import` (raw HTML, no canvas), native (`isNative` — a PageSpec
+  // canvas, whether AI- or hand-authored; `source` alone can't tell since a native-AI page keeps
+  // `source: "ai"` forever), or the legacy srcmap editor for everything else.
+  const studioRoute =
+    landingPage.source === "custom_import"
+      ? ("/landings/$id/custom-import" as const)
+      : landingPage.isNative
+        ? ("/landings/$id/studio-native" as const)
+        : ("/landings/$id/studio" as const);
+
   return (
     <Card className="group/landing-card overflow-hidden py-0">
-      <Link
-        to="/landings/$id/studio"
-        params={{ id: landingPage.id }}
-        className="block"
-      >
+      <Link to={studioRoute} params={{ id: landingPage.id }} className="block">
         {thumbnailFailed ? (
           <div className="flex aspect-video items-center justify-center bg-muted text-muted-foreground">
             <ImageIcon className="size-8" />
@@ -139,7 +145,7 @@ export function LandingCard({
             />
           ) : (
             <Link
-              to="/landings/$id/studio"
+              to={studioRoute}
               params={{ id: landingPage.id }}
               className="line-clamp-1 font-medium hover:underline"
             >

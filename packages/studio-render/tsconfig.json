@@ -1,0 +1,9 @@
+{
+  "extends": "@dv/config/react-library.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["bun"]
+  },
+  "include": ["src", "test", "e2e"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,7 +1,7 @@
 {
   "extends": "@dv/config/node-library.json",
   "compilerOptions": {
-    "types": ["bun-types"],
+    "types": ["bun"],
     "lib": ["ESNext", "DOM"]
   },
   "include": ["src"],

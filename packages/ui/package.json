@@ -7,6 +7,7 @@
     "#components/shadcn/*": "./src/components/shadcn/*.tsx",
     "#components/ai-elements/*": "./src/components/ai-elements/*.tsx",
     "#components/dv/*": "./src/components/dv/*.tsx",
+    "#components/upload": "./src/components/upload/index.ts",
     "#lib/*": "./src/lib/*.ts",
     "#hooks/*": "./src/hooks/*.ts",
     "#assets/*": "./src/assets/*"
@@ -17,6 +18,7 @@
     "./components/shadcn/*": "./src/components/shadcn/*.tsx",
     "./components/ai-elements/*": "./src/components/ai-elements/*.tsx",
     "./components/dv/*": "./src/components/dv/*.tsx",
+    "./components/upload": "./src/components/upload/index.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./assets/*": "./src/assets/*"
   },

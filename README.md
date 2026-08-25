@@ -4,7 +4,7 @@ CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation cho non-tec
 
 ## Yêu cầu môi trường
 
-- [Bun](https://bun.sh) 1.3.14 (đúng version pin trong `.github/workflows/ci.yml`)
+- [Bun](https://bun.sh) 1.4.0 (đúng version pin trong `.github/workflows/ci.yml`)
 - Docker Desktop đang chạy — bắt buộc cho test tích hợp (`@testcontainers/postgresql` tự bật/tắt Postgres thật cho mỗi lần chạy test, không mock DB) và cho local dev stack ở dưới.
 
 ## Cài đặt
@@ -53,7 +53,7 @@ Không cần tự tạo DB cho test — `apps/api/test/*.integration.test.ts` v�
 ## Kiểm tra trước khi commit / trước khi báo xong việc
 
 ```bash
-bun run lint && bun run fmt:check && bun run typecheck && bun run build && bun run test
+bun run lint && bun run fmt && bun run typecheck && bun run build && bun run test
 ```
 
 Đây là rule bắt buộc ở `.claude/rules/tech-stack.md` — lefthook đã tự chạy lint+fmt ở pre-commit và typecheck (affected) ở pre-push, nhưng chạy full command trên trước khi coi một task là "xong".

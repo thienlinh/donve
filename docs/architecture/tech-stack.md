@@ -16,8 +16,8 @@
 | --- | --- | --- |
 | `typescript` | **7.0.2** | Go-native GA. `strict` + `esnext` là default mới; deprecations của 6.0 thành hard error → codebase mới không dính gì |
 | Node.js | **22 LTS** (engines `>=22.12`) | Yêu cầu tối thiểu của Vite 8; CI + VPS đồng nhất |
-| Bun | **1.3.x** (`bun-types` 1.3.14) | Runtime cho `apps/api` entrypoint VPS + test runner phụ; không dùng làm package manager (bun catalog tốt hơn cho monorepo) |
-| bun | **1.3.4** + **catalogs** | `catalogs:` trong root `package.json` = một nguồn version duy nhất cho cả monorepo — hết drift version giữa packages, đổi version 1 chỗ |
+| Bun | **1.4.x** (`bun-types` 1.4.0) | Runtime cho `apps/api` entrypoint VPS + test runner phụ; không dùng làm package manager (bun catalog tốt hơn cho monorepo) |
+| bun | **1.4.0** + **catalogs** | `catalogs:` trong root `package.json` = một nguồn version duy nhất cho cả monorepo — hết drift version giữa packages, đổi version 1 chỗ |
 | `turbo` | **2.10.10** | Remote cache (Vercel free hoặc self-host lên R2) |
 | `oxlint` | **1.78.0** | Rust, nhanh hơn ESLint ~50–100×, type-aware rules ngày càng đủ; chạy được trong pre-commit không cảm nhận độ trễ |
 | `oxfmt` | **0.63.0** | Thay Prettier, cùng hệ Oxc. Còn pre-1.0 → pin exact version trong catalog, format output có thể đổi nhẹ giữa minor |
@@ -212,7 +212,7 @@
 ```jsonc
 // package.json (root) — scripts chính
 {
-  "engines": { "node": ">=22.12", "bun": ">=1.3" },
+  "engines": { "node": ">=22.12", "bun": ">=1.4" },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",

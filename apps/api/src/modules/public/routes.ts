@@ -10,6 +10,7 @@ import {
 import {
   campaignsRepository,
   consentsRepository,
+  eventsRepository,
   leadActivitiesRepository,
   leadsRepository,
   membershipsRepository,
@@ -23,7 +24,9 @@ import { clientIp } from "../../lib/client-ip.js";
 import { createDbFromEnv } from "../../lib/db.js";
 import { ApiError } from "../../lib/errors.js";
 import { normalizeVnPhone } from "../../lib/phone.js";
+import { PREVIEW_KEY_PREFIX } from "../../lib/publish.js";
 import { publishNewLeads, publishOrderUpdate } from "../../lib/realtime.js";
+import { createStorageFromEnv } from "../../lib/storage.js";
 import { DEFAULT_TRANSFER_PREFIX } from "../../lib/transfer-prefix.js";
 import { verifyTurnstileToken } from "../../lib/turnstile.js";
 import { buildVietQrUrl } from "../../lib/vietqr.js";
@@ -94,6 +97,19 @@ publicRoutes.post("/leads", async (c) => {
     await publishNewLeads(c.env, body.orgId, 1);
     // auto-assignment routing engine — only a genuinely new lead is ever routed, never a merge.
     await routeLead(db, body.orgId, lead);
+    // `tracking-and-attribution.md` §Conversion hierarchy — server-side, authoritative
+    // `lead_created` (the client's own `submit` beacon in landing-runtime fires before this
+    // API call is even confirmed, so it can't be the source of truth for this step).
+    await eventsRepository.insert(db, body.orgId, {
+      campaignId: campaign.id,
+      deploymentId: null,
+      type: "lead_created",
+      sessionHash: null,
+      anonymousId: body.anonymousId ?? null,
+      landingPageId: body.landingPageId ?? null,
+      pageVersionId: body.pageVersionId ?? null,
+      meta: { leadId: lead.id }
+    });
   }
 
   await leadActivitiesRepository.insert(db, body.orgId, {
@@ -191,6 +207,34 @@ publicRoutes.get("/orders/:code/status", async (c) => {
       expiresAt: order.expiresAt
     })
   );
+});
+
+/**
+ * Serves one pre-publish preview's artifacts (`lib/publish.ts` `previewLandingPage`). Lives in
+ * the public module because the whole point is opening it in any browser/phone — the
+ * unguessable token in the path is the access control, exactly like a signed URL, and it only
+ * ever reaches bytes written under `previews/`, never any other draft-storage key.
+ */
+publicRoutes.get("/preview/:token/*", async (c) => {
+  const token = c.req.param("token");
+  const rest = c.req.path.split(`/preview/${token}/`)[1] ?? "";
+  // No `..` traversal: `token` is matched as a single path segment, and the remainder is
+  // rejected outright rather than normalized.
+  if (rest.includes("..")) throw new ApiError(404, "preview_not_found");
+
+  const object = await createStorageFromEnv(c.env).get(
+    `${PREVIEW_KEY_PREFIX}/${token}/${rest === "" ? "index.html" : rest}`
+  );
+  if (!object) throw new ApiError(404, "preview_not_found");
+
+  return new Response(object.body, {
+    headers: {
+      "content-type": object.contentType ?? "application/octet-stream",
+      // A preview is a draft of an unpublished page — never cached, never indexed.
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex"
+    }
+  });
 });
 
 /** Fields `findOrCreateLead` actually reads — lets callers that don't go through the public

@@ -48,9 +48,10 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { MessageSquare, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { ConnectAiDialog } from "@/features/ai-connections/components/connect-ai-dialog";
 import * as m from "@/paraglide/messages.js";
 
-import { chatMessageToUIMessage } from "../chat-adapters";
+import { chatErrorCopy, chatMessageToUIMessage } from "../chat-adapters";
 import { fetchChatMessages } from "../comments-api";
 import { chatMessageKeys } from "../query-keys";
 
@@ -355,7 +356,19 @@ export function ChatPanel({
             ))}
           </Suggestions>
         )}
-        {error && <p className="text-xs text-destructive">{error.message}</p>}
+        {error &&
+          (() => {
+            const copy = chatErrorCopy(error.message);
+            return copy ? (
+              <div className="flex flex-col gap-1 text-xs">
+                <p className="font-medium text-destructive">{copy.title}</p>
+                <p className="text-muted-foreground">{copy.description}</p>
+                <ConnectAiDialog />
+              </div>
+            ) : (
+              <p className="text-xs text-destructive">{error.message}</p>
+            );
+          })()}
         <PromptInput accept="image/*" multiple onSubmit={handleSubmit}>
           <PromptInputHeader>
             <ChatAttachmentsPreview />

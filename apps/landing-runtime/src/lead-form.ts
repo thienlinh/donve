@@ -1,8 +1,10 @@
 import { sendEvent } from "./beacon.js";
 import type { RuntimeConfig } from "./config.js";
+import { getAnonymousId } from "./identity.js";
 import { normalizeVnPhone } from "./phone.js";
 import { showRegisteredPopup, type PopupOrder } from "./popup.js";
 import { getTurnstileToken } from "./turnstile.js";
+import { utmFromLocation } from "./utm.js";
 
 const KNOWN_FIELDS = new Set([
   "fullName",
@@ -15,14 +17,6 @@ const KNOWN_FIELDS = new Set([
 
 function str(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
-}
-
-function utmFromLocation(): Record<string, string> {
-  const utm: Record<string, string> = {};
-  for (const [key, value] of new URL(location.href).searchParams) {
-    if (key.startsWith("utm_")) utm[key] = value;
-  }
-  return utm;
 }
 
 function errorSlot(form: HTMLFormElement): HTMLElement {
@@ -111,7 +105,10 @@ async function submitLead(
         utm: utmFromLocation(),
         consent: true,
         honeypot,
-        turnstileToken
+        turnstileToken,
+        anonymousId: getAnonymousId(),
+        landingPageId: config.landingPageId ?? null,
+        pageVersionId: config.pageVersionId ?? null
       })
     });
     if (!res.ok) throw new Error(`http_${res.status}`);
@@ -119,7 +116,10 @@ async function submitLead(
 
     form.reset();
     showRegisteredPopup(config, result.order);
+    // "submit" kept for the legacy campaign-analytics dashboard's `submits` bucket;
+    // "form_submitted" is the new conversion-hierarchy name (`tracking-and-attribution.md`).
     sendEvent(config, "submit", { campaignId: config.campaignId });
+    sendEvent(config, "form_submitted", { campaignId: config.campaignId });
   } catch {
     error.textContent = "Không gửi được, vui lòng thử lại.";
   } finally {
@@ -131,6 +131,14 @@ export function bindLeadForms(config: RuntimeConfig): void {
   for (const form of document.querySelectorAll<HTMLFormElement>(
     'form[data-dv-form="lead"]'
   )) {
+    // `form_started` fires once per form, on the first real interaction — `{ once: true }`
+    // does the dedup, no extra state to track.
+    form.addEventListener(
+      "focusin",
+      () =>
+        sendEvent(config, "form_started", { campaignId: config.campaignId }),
+      { once: true }
+    );
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       void submitLead(config, form);

@@ -3,9 +3,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  auditResultSchema,
+  nativePageDocumentSchema,
+  passesLaunchThreshold
+} from "@dv/contracts";
+import {
+  auditFindingsRepository,
+  auditRunsRepository,
   campaignsRepository,
   customDomainsRepository,
   deploymentsRepository,
+  entityImagesRepository,
   landingPagesRepository,
   pageAssetsRepository,
   pageVersionsRepository,
@@ -16,8 +24,12 @@ import {
 import { storage } from "@dv/drivers";
 import {
   buildPublishArtifacts,
+  type PublishPipelineInput,
+  type PublishPipelineOutput,
   type PublishStructuredData
 } from "@dv/studio-core/publish";
+import { renderPageArtifact } from "@dv/studio-render";
+import type { Spec } from "@json-render/core";
 
 import type { Bindings } from "../types.js";
 import { createCacheFromEnv } from "./cache.js";
@@ -172,22 +184,121 @@ async function readRuntimeScript(
   return cachedRuntimeScript;
 }
 
+/** Draft-storage prefix a pre-publish preview's artifacts live under, and the public route
+ * that serves them back (`modules/public/routes.ts`) — the two have to agree, so they're
+ * declared together here rather than duplicated at each end. */
+export const PREVIEW_KEY_PREFIX = "previews";
+export const PREVIEW_BASE_PATH = "/public/preview";
+
 export function hostnameFor(env: Bindings, subdomain: string): string {
   return `${subdomain}.${env.PUBLISH_BASE_DOMAIN}`;
 }
 
-/** FR-G-05 og:image — reads the landing page's already-captured `.thumbnail.jpg`, if any. */
-async function resolveOgImage(
+type OgImage = { bytes: Uint8Array; mime: string };
+
+async function readStorageImage(
   draftStorage: ReturnType<typeof createStorageFromEnv>,
-  thumbnailKey: string | null
-): Promise<{ bytes: Uint8Array; mime: string } | undefined> {
-  if (!thumbnailKey) return undefined;
-  const object = await draftStorage.get(thumbnailKey);
+  key: string,
+  fallbackMime: string
+): Promise<OgImage | undefined> {
+  const object = await draftStorage.get(key);
   if (!object) return undefined;
   return {
     bytes: new Uint8Array(await new Response(object.body).arrayBuffer()),
-    mime: object.contentType ?? "image/jpeg"
+    mime: object.contentType ?? fallbackMime
   };
+}
+
+/** The page's own SEO tab picks an og:image out of its `pageAssets`, and stores the same
+ * authenticated URL the Studio renders (`/api/landings/:id/assets/:assetId/file`) — this maps
+ * that URL back to the row so publish can ship the bytes. */
+const PAGE_ASSET_FILE_URL = /\/assets\/([^/]+)\/file$/;
+
+/**
+ * FR-G-05 og:image, most specific source first: the page's own `seo.ogImage` (Studio SEO tab)
+ * → the campaign's OG image (`entityImages`, shared by every page of that campaign) → the
+ * auto-captured `.thumbnail.jpg` fallback. Each step falls through if its bytes are gone.
+ */
+async function resolveOgImage(
+  db: Db,
+  orgId: string,
+  draftStorage: ReturnType<typeof createStorageFromEnv>,
+  landingPage: {
+    id: string;
+    campaignId: string | null;
+    thumbnailKey: string | null;
+  },
+  seoOgImageSrc: string | undefined
+): Promise<OgImage | undefined> {
+  const assetId = seoOgImageSrc
+    ? PAGE_ASSET_FILE_URL.exec(seoOgImageSrc)?.[1]
+    : undefined;
+  if (assetId) {
+    const asset = await pageAssetsRepository.findById(db, orgId, assetId);
+    if (asset && asset.landingPageId === landingPage.id) {
+      const image = await readStorageImage(
+        draftStorage,
+        asset.r2Key,
+        asset.mime
+      );
+      if (image) return image;
+    }
+  }
+
+  if (landingPage.campaignId) {
+    const row = await entityImagesRepository.findByRef(db, orgId, {
+      ownerType: "campaign",
+      ownerId: landingPage.campaignId,
+      kind: "og_image"
+    });
+    if (row) {
+      const image = await readStorageImage(draftStorage, row.r2Key, row.mime);
+      if (image) return image;
+    }
+  }
+
+  if (!landingPage.thumbnailKey) return undefined;
+  return readStorageImage(draftStorage, landingPage.thumbnailKey, "image/jpeg");
+}
+
+/**
+ * Every uploaded asset of this page as bytes + the draft URL the editor wrote into the markup,
+ * for `buildPublishArtifacts` to hash into `/assets/*` and rewrite. Shared by both publish
+ * branches: a `pageAssets` row is reachable from the legacy srcmap editor AND from the native
+ * Studio's image/video fields.
+ */
+async function loadPageAssets(
+  db: Db,
+  orgId: string,
+  landingPageId: string,
+  draftStorage: ReturnType<typeof createStorageFromEnv>
+): Promise<PublishPipelineInput["assets"]> {
+  const rows = await pageAssetsRepository.listByLandingPage(
+    db,
+    orgId,
+    landingPageId
+  );
+  async function load(key: string, originalUrl: string, mime: string) {
+    const object = await draftStorage.get(key);
+    if (!object) throw new ApiError(404, "asset_not_found", key);
+    return {
+      originalUrl,
+      bytes: new Uint8Array(await new Response(object.body).arrayBuffer()),
+      mime
+    };
+  }
+
+  const loads = rows.flatMap((asset) => {
+    const base = `/api/landings/${landingPageId}/assets/${asset.id}`;
+    const entries = [load(asset.r2Key, `${base}/file`, asset.mime)];
+    // FR-B-29 video poster — `video[poster]` is one of the attributes the rewriter fixes up,
+    // so the poster has to be bundled alongside the video or it stays behind auth.
+    if (asset.posterKey) {
+      entries.push(load(asset.posterKey, `${base}/poster`, "image/jpeg"));
+    }
+    return entries;
+  });
+  return Promise.all(loads);
 }
 
 /**
@@ -218,6 +329,100 @@ async function resolveStructuredData(
   }));
 }
 
+type LandingPageRow = NonNullable<
+  Awaited<ReturnType<typeof landingPagesRepository.findById>>
+>;
+type PageVersionRow = NonNullable<
+  Awaited<ReturnType<typeof pageVersionsRepository.findById>>
+>;
+
+/**
+ * Builds the final HTML + asset bytes for one landing page — everything the publish pipeline
+ * does *before* it decides to go live. Shared by `publishLandingPage` (writes to the deployment
+ * bucket, flips the hostname pointer) and `previewLandingPage` (writes to a token path, changes
+ * nothing live), so a preview is byte-for-byte what publishing would produce.
+ */
+async function buildLandingArtifacts(
+  db: Db,
+  env: Bindings,
+  orgId: string,
+  landingPage: LandingPageRow,
+  version: PageVersionRow,
+  options: { hostname: string; deployId: string; assetBasePath?: string }
+): Promise<{ artifacts: PublishPipelineOutput; noindex: boolean }> {
+  const { hostname, deployId, assetBasePath } = options;
+  const draftStorage = createStorageFromEnv(env);
+  // Native (PageSpec) vs legacy (srcmap HTML) — `seo.title`/`noindex`/`ogImage` only exist on
+  // the native document; a legacy page carries its own <head> markup.
+  const doc = version.spec
+    ? nativePageDocumentSchema.parse(version.spec)
+    : null;
+  const seo = doc?.seo;
+
+  const [ogImage, structuredData] = await Promise.all([
+    resolveOgImage(db, orgId, draftStorage, landingPage, seo?.ogImage?.src),
+    resolveStructuredData(db, orgId, landingPage.campaignId)
+  ]);
+
+  const runtimeConfig = {
+    orgId,
+    campaignId: landingPage.campaignId,
+    deployId,
+    // FR-D-01/03: the embedded runtime script's own public API origin + Turnstile site
+    // key — both were previously never injected, so a published landing's form could
+    // never actually reach `/public/leads` nor produce a valid Turnstile token.
+    apiUrl: env.BETTER_AUTH_URL,
+    turnstileSiteKey: env.TURNSTILE_SITE_KEY,
+    // `tracking-and-attribution.md` §Identity — page_id/page_version_id travel to the
+    // beacon/lead-submit via this config, not from edge-router's KV pointer (which only
+    // knows org/campaign/deploy).
+    landingPageId: landingPage.id,
+    pageVersionId: version.id
+  };
+  const runtimeScript = (await readRuntimeScript(env)) ?? undefined;
+  const shared = {
+    hostname,
+    // `seo.title` overrides the page name (architecture-and-data-model.md §Publish · SEO).
+    title: seo?.title?.trim() || landingPage.name,
+    ogImage,
+    structuredData,
+    runtimeConfig,
+    runtimeScript,
+    assetBasePath
+  };
+
+  // `renderPageArtifact` already wraps `buildPublishArtifacts` internally (roadmap.md
+  // §Publish-time SSR renderer), so the two branches converge on the same output shape.
+  const artifacts: PublishPipelineOutput = doc
+    ? await renderPageArtifact({
+        ...shared,
+        spec: doc.pageSpec as Spec,
+        tokens: doc.tokens,
+        description: seo?.description,
+        noindex: seo?.noindex,
+        // A native page's images come from the same `pageAssets` table (Studio's image
+        // fields upload there) — without this they'd ship pointing at the authenticated
+        // draft endpoint, which no published visitor can read.
+        assets: await loadPageAssets(db, orgId, landingPage.id, draftStorage)
+      })
+    : await (async () => {
+        if (!version.htmlKey) throw new ApiError(404, "html_not_found");
+        const htmlKey = version.htmlKey;
+        const [object, assets] = await Promise.all([
+          draftStorage.get(htmlKey),
+          loadPageAssets(db, orgId, landingPage.id, draftStorage)
+        ]);
+        if (!object) throw new ApiError(404, "html_not_found");
+        return buildPublishArtifacts({
+          ...shared,
+          html: await new Response(object.body).text(),
+          assets
+        });
+      })();
+
+  return { artifacts, noindex: seo?.noindex === true };
+}
+
 type DeploymentRow = NonNullable<
   Awaited<ReturnType<typeof deploymentsRepository.findById>>
 >;
@@ -230,14 +435,13 @@ interface PublishResult {
   live: boolean;
 }
 
-/** Runs the whole build_deploy pipeline for one landing page (architecture.md §5.2). */
-export async function publishLandingPage(
+/** The page + the version that would go live right now — the same lookup (and the same 404s)
+ * for a real publish and for a preview of what it would produce. */
+async function loadCurrentVersion(
   db: Db,
-  env: Bindings,
   orgId: string,
-  landingPageId: string,
-  subdomain: string
-): Promise<PublishResult> {
+  landingPageId: string
+): Promise<{ landingPage: LandingPageRow; version: PageVersionRow }> {
   const landingPage = await landingPagesRepository.findById(
     db,
     orgId,
@@ -246,51 +450,136 @@ export async function publishLandingPage(
   if (!landingPage || landingPage.deletedAt || !landingPage.currentVersionId) {
     throw new ApiError(404, "landing_page_not_found");
   }
-  const currentVersionId = landingPage.currentVersionId;
+  const version = await pageVersionsRepository.findById(
+    db,
+    orgId,
+    landingPage.currentVersionId
+  );
+  if (!version) throw new ApiError(404, "page_version_not_found");
+  return { landingPage, version };
+}
 
+/**
+ * Private pre-publish preview (`ui-ux-design.md` §Studio "Nút [Preview] ở TopBar") — renders
+ * exactly what publishing would ship, to an unguessable token path in draft storage. No
+ * `deployments` row, no outbox entry, no hostname pointer: nothing about what's live changes,
+ * and none of publish's gates (audit threshold, asset confirmation, subdomain claim) apply,
+ * since this IS the step where the user checks the page before facing those gates.
+ */
+export async function previewLandingPage(
+  db: Db,
+  env: Bindings,
+  orgId: string,
+  landingPageId: string
+): Promise<{ path: string }> {
+  const { landingPage, version } = await loadCurrentVersion(
+    db,
+    orgId,
+    landingPageId
+  );
+
+  // 122 bits of randomness in the path is the access control here — the preview is served by
+  // an unauthenticated route (a phone/other browser has to be able to open it).
+  const token = crypto.randomUUID();
+  const basePath = `${PREVIEW_BASE_PATH}/${token}`;
+  const { artifacts } = await buildLandingArtifacts(
+    db,
+    env,
+    orgId,
+    landingPage,
+    version,
+    {
+      hostname: hostnameFor(env, "preview"),
+      deployId: `preview-${token}`,
+      assetBasePath: basePath
+    }
+  );
+
+  // ponytail: previews are never garbage-collected — they're small and unreachable once the
+  // token is forgotten. Add a retention sweep alongside the `pageVersions` pruning job if the
+  // draft bucket's size ever becomes a real cost.
   const draftStorage = createStorageFromEnv(env);
-  const [{ versionId, html }, assetRows] = await Promise.all([
-    (async () => {
-      const version = await pageVersionsRepository.findById(
-        db,
-        orgId,
-        currentVersionId
-      );
-      if (!version) throw new ApiError(404, "page_version_not_found");
-      const object = await draftStorage.get(version.htmlKey);
-      if (!object) throw new ApiError(404, "html_not_found");
-      return {
-        versionId: version.id,
-        html: await new Response(object.body).text()
-      };
-    })(),
-    pageAssetsRepository.listByLandingPage(db, orgId, landingPageId)
+  await Promise.all([
+    draftStorage.put({
+      key: `${PREVIEW_KEY_PREFIX}/${token}/index.html`,
+      body: artifacts.html,
+      contentType: "text/html"
+    }),
+    ...artifacts.assets.map((asset) =>
+      draftStorage.put({
+        key: `${PREVIEW_KEY_PREFIX}/${token}/${asset.key}`,
+        body: asset.bytes,
+        contentType: asset.mime
+      })
+    )
   ]);
 
-  // FR-B-35: an import-flagged asset (unverifiedSource) blocks publish until the tenant ticks
-  // "Tôi có quyền sử dụng ảnh này" (landings/routes.ts PATCH .../assets/:assetId) — the
-  // platform only warns, the tenant takes on copyright responsibility by confirming.
-  const unconfirmed = assetRows.filter(
-    (asset) => asset.unverifiedSource && !asset.usageConfirmed
+  // Trailing slash: the serving route matches `/preview/:token/*`, and `""` there is the
+  // page itself (`index.html`).
+  return { path: `${basePath}/` };
+}
+
+/** Runs the whole build_deploy pipeline for one landing page (architecture.md §5.2). */
+export async function publishLandingPage(
+  db: Db,
+  env: Bindings,
+  orgId: string,
+  landingPageId: string,
+  subdomain: string
+): Promise<PublishResult> {
+  const { landingPage, version } = await loadCurrentVersion(
+    db,
+    orgId,
+    landingPageId
   );
-  if (unconfirmed.length > 0) {
-    throw new ApiError(409, "unverified_assets_pending_confirmation");
+
+  // FR-B-35 (legacy srcmap flow only — native pages don't use draftStorage-hosted pageAssets):
+  // an import-flagged asset (unverifiedSource) blocks publish until the tenant ticks "Tôi có
+  // quyền sử dụng ảnh này" (landings/routes.ts PATCH .../assets/:assetId) — the platform only
+  // warns, the tenant takes on copyright responsibility by confirming.
+  if (!version.spec) {
+    const assetRows = await pageAssetsRepository.listByLandingPage(
+      db,
+      orgId,
+      landingPageId
+    );
+    const unconfirmed = assetRows.filter(
+      (asset) => asset.unverifiedSource && !asset.usageConfirmed
+    );
+    if (unconfirmed.length > 0) {
+      throw new ApiError(409, "unverified_assets_pending_confirmation");
+    }
   }
 
-  const assets = await Promise.all(
-    assetRows.map(async (asset) => {
-      const object = await draftStorage.get(asset.r2Key);
-      if (!object) throw new ApiError(404, "asset_not_found", asset.r2Key);
-      const bytes = new Uint8Array(
-        await new Response(object.body).arrayBuffer()
+  // quality-spec.md §Launch threshold — native pages only; the legacy srcmap flow never had a
+  // quality-audit system to begin with. Must be an audit *of this exact version*, not a stale
+  // one from before the last edit.
+  if (version.spec) {
+    const auditRuns = await auditRunsRepository.listByLandingPage(
+      db,
+      orgId,
+      landingPageId
+    );
+    const latestAudit = auditRuns.find(
+      (run) => run.pageVersionId === version.id
+    );
+    if (!latestAudit) throw new ApiError(409, "audit_required");
+    const findingRows = await auditFindingsRepository.listByAuditRun(
+      db,
+      orgId,
+      latestAudit.id
+    );
+    const { ok, reasons } = passesLaunchThreshold(
+      auditResultSchema.parse({ ...latestAudit, findings: findingRows })
+    );
+    if (!ok) {
+      throw new ApiError(
+        409,
+        "audit_launch_threshold_not_met",
+        reasons.join(",")
       );
-      return {
-        originalUrl: `/api/landings/${landingPageId}/assets/${asset.id}/file`,
-        bytes,
-        mime: asset.mime
-      };
-    })
-  );
+    }
+  }
 
   const hostname = hostnameFor(env, subdomain);
 
@@ -308,7 +597,7 @@ export async function publishLandingPage(
 
   const deployment = await deploymentsRepository.insert(db, orgId, {
     landingPageId,
-    pageVersionId: versionId,
+    pageVersionId: version.id,
     hostname,
     status: "building",
     r2Prefix: "", // filled in right below, once the deployment id (part of the prefix) exists
@@ -318,32 +607,36 @@ export async function publishLandingPage(
   const r2Prefix = `deployments/${deployment.id}`;
   await deploymentsRepository.update(db, orgId, deployment.id, { r2Prefix });
 
-  const [ogImage, structuredData] = await Promise.all([
-    resolveOgImage(draftStorage, landingPage.thumbnailKey),
-    resolveStructuredData(db, orgId, landingPage.campaignId)
-  ]);
-
   const deployStorage = createDeploymentStorage(env);
   try {
-    const artifacts = await buildPublishArtifacts({
-      html,
-      assets,
-      hostname,
-      title: landingPage.name,
-      ogImage,
-      structuredData,
-      runtimeConfig: {
-        orgId,
-        campaignId: landingPage.campaignId,
-        deployId: deployment.id,
-        // FR-D-01/03: the embedded runtime script's own public API origin + Turnstile site
-        // key — both were previously never injected, so a published landing's form could
-        // never actually reach `/public/leads` nor produce a valid Turnstile token.
-        apiUrl: env.BETTER_AUTH_URL,
-        turnstileSiteKey: env.TURNSTILE_SITE_KEY
-      },
-      runtimeScript: (await readRuntimeScript(env)) ?? undefined
-    });
+    const { artifacts, noindex } = await buildLandingArtifacts(
+      db,
+      env,
+      orgId,
+      landingPage,
+      version,
+      { hostname, deployId: deployment.id }
+    );
+
+    // FR-G-05 — edge-router generates robots.txt/sitemap.xml per hostname, but serves a
+    // deployment-local copy when one exists; a `seo.noindex` page ships that copy so the
+    // opt-out survives rollback to (or from) any other deployment of the same hostname.
+    if (noindex) {
+      artifacts.assets.push(
+        {
+          key: "robots.txt",
+          bytes: new TextEncoder().encode("User-agent: *\nDisallow: /\n"),
+          mime: "text/plain; charset=utf-8"
+        },
+        {
+          key: "sitemap.xml",
+          bytes: new TextEncoder().encode(
+            '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n'
+          ),
+          mime: "application/xml; charset=utf-8"
+        }
+      );
+    }
 
     await deployStorage.put({
       key: `${r2Prefix}/index.html`,

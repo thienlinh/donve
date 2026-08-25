@@ -5,11 +5,13 @@ import { createAuthFromEnv } from "./lib/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { rateLimit } from "./middleware/rate-limit.js";
 import { requestContext } from "./middleware/request-context.js";
+import { requireFeature } from "./middleware/require-feature.js";
 import { requireOrgSession } from "./middleware/require-org-session.js";
 import { requirePlatformStaff } from "./middleware/require-platform-staff.js";
 import { aiRoutes } from "./modules/ai/routes.js";
 import { campaignsRoutes } from "./modules/campaigns/routes.js";
 import { domainsRoutes } from "./modules/domains/routes.js";
+import { entityImagesRoutes } from "./modules/entity-images/routes.js";
 import { landingsRoutes } from "./modules/landings/routes.js";
 import { leadsRoutes } from "./modules/leads/routes.js";
 import { tiktokWebhooksRoutes } from "./modules/leads/tiktok.js";
@@ -19,6 +21,7 @@ import { paymentsRoutes } from "./modules/payments/routes.js";
 import { platformRoutes } from "./modules/platform/routes.js";
 import { productsRoutes } from "./modules/products/routes.js";
 import { publicRoutes } from "./modules/public/routes.js";
+import { studioNativeChatRoutes } from "./modules/studio/native-chat.js";
 import { studioRoutes } from "./modules/studio/routes.js";
 import { webhooksRoutes } from "./modules/webhooks/routes.js";
 import type { AppEnv } from "./types.js";
@@ -65,10 +68,18 @@ export function createApp() {
   app.use("/webhooks/*", rateLimit({ windowSeconds: 60, max: 60 }));
   // Separate gate from tenant auth entirely (platform-admin.md §4) — a valid tenant
   // session is not enough, the user must also have a `platform_staff` row.
-  app.use("/platform/*", requirePlatformStaff);
+  // `support` is the floor — the write endpoints re-apply the middleware with the higher role
+  // they need (platform-admin.md §10, modules/platform/routes.ts).
+  app.use("/platform/*", requirePlatformStaff("support"));
   // First tenant-scoped module — resolves `orgId` from the session's active org.
   app.use("/api/landings/*", requireOrgSession);
   app.use("/api/domains/*", requireOrgSession);
+  // FR-G-04 custom domains are the one genuinely paid-tier surface today, so it's where the
+  // subscription gate from platform-admin.md §12 actually applies (`plan_features` seeds
+  // `custom_domain` for starter/pro in migration 0033). Order matters: this reads the `orgId`
+  // that `requireOrgSession` above sets.
+  app.use("/api/domains/*", requireFeature("custom_domain"));
+  app.use("/api/entity-images/*", requireOrgSession);
   app.use("/api/studio/*", requireOrgSession);
   app.use("/api/ai/*", requireOrgSession);
   app.use("/api/products/*", requireOrgSession);
@@ -91,7 +102,9 @@ export function createApp() {
   app.route("/platform", platformRoutes);
   app.route("/api/landings", landingsRoutes);
   app.route("/api/domains", domainsRoutes);
+  app.route("/api/entity-images", entityImagesRoutes);
   app.route("/api/studio", studioRoutes);
+  app.route("/api/studio/native-chat", studioNativeChatRoutes);
   app.route("/api/ai", aiRoutes);
   app.route("/api/products", productsRoutes);
   app.route("/api/campaigns", campaignsRoutes);

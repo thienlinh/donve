@@ -1,5 +1,7 @@
 # 05 — Landing Studio: Spec kỹ thuật chi tiết
 
+> **Đây là spec cho Studio CŨ (HTML/srcmap, `packages/studio-core`/`studio-ui`/`studio-ai`) — vẫn live in prod, tài liệu này vẫn đúng cho hệ đó.** Có 1 Studio thứ 2 (native, PageSpec + Puck canvas) đang được xây song song — xem `docs/features/landing-pages/README.md` cho thiết kế đó. Riêng mục 2 dưới đây (prompt bar một-lượt dẫn thẳng vào Studio cũ trên `/landings`) là luồng đang bị coi là tàn dư cần gỡ, theo `docs/features/landing-pages/README.md` §"Việc cần làm" — không phải hướng đi cho landing page tạo mới nữa.
+
 Tài liệu này map trực tiếp 8 screenshot tham chiếu vào spec triển khai.
 
 ## 1. Các khối chức năng cần implement
@@ -10,7 +12,7 @@ Tài liệu này map trực tiếp 8 screenshot tham chiếu vào spec triển k
 | Mode system view/select/edit/comment/draw (`packages/studio-ui`) | FR-B-08, B-12, B-14 | Kèm trạng thái "queue comments" + badge |
 | Context state layout (panel sizes, active mode) | Toàn bộ studio UI | Nhúng vào `apps/dashboard/features/studio` như package L2 |
 | Undo/redo (`packages/studio-core`) | FR-B-15 | Thiết kế để hợp nhất được nguồn thay đổi thứ 3 ở Phase 2: AI patch (patch layer cùng shape op, chủ yếu là wiring lúc đó) |
-| Patch protocol (`packages/studio-ai`, khung sườn Phase 1, logic thật Phase 2) | FR-B-22 | Chốt schema tool `apply_patch` (ai-integration-byok.md §4), validate server-side |
+| Patch protocol (`packages/studio-ai`, khung sườn Phase 1, logic thật Phase 2) | FR-B-22 | Chốt schema tool `apply_patch` (`docs/features/ai-integration/byok.md` §4), validate server-side |
 
 ## 2. Trang quản lý Landing Pages (FR-B-00, trước khi vào Studio)
 

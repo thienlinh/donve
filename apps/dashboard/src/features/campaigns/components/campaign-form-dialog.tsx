@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { EntityImageField } from "@/components/entity-image-field";
 import { FormDialog } from "@/components/form-dialog";
 import { fetchProducts } from "@/features/products/api";
 import { productKeys } from "@/features/products/query-keys";
@@ -359,6 +360,27 @@ export function CampaignFormDialog({
             ))
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-md border p-3">
+        <span className="text-xs font-medium text-muted-foreground">
+          {m.campaignsOgImageSectionTitle()}
+        </span>
+        {campaign ? (
+          <EntityImageField
+            image={{
+              ownerType: "campaign",
+              ownerId: campaign.id,
+              kind: "og_image"
+            }}
+            label={m.campaignsOgImageLabel()}
+            description={m.campaignsOgImageDescription()}
+          />
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            {m.campaignsOgImageCreateFirstHint()}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 rounded-md border p-3">

@@ -431,7 +431,12 @@ export const publicLeadSubmitSchema = z.object({
   consent: z.literal(true),
   /** Hidden form field bots fill in — non-empty means silently drop the submit. */
   honeypot: z.string().default(""),
-  turnstileToken: z.string().min(1)
+  turnstileToken: z.string().min(1),
+  /** `tracking-and-attribution.md` §Identity — from `window.__DV__`/`localStorage`, only present
+   * on submits from a native (`PageSpec`) page's runtime; legacy pages never send these. */
+  anonymousId: z.string().nullish(),
+  landingPageId: ulidSchema.nullish(),
+  pageVersionId: ulidSchema.nullish()
 });
 export type PublicLeadSubmitInput = z.infer<typeof publicLeadSubmitSchema>;
 

@@ -15,9 +15,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <SidebarInset className="min-w-0">
         <TopBar />
-        <main className="flex flex-1 flex-col overflow-y-auto">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <PendingInvitationsBanner />
-          <div className="min-w-0 flex-1">{children}</div>
+          <div className="min-h-0 min-w-0 flex-1">{children}</div>
         </main>
       </SidebarInset>
       <CommandPalette />

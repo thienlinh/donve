@@ -22,15 +22,23 @@ import { Input } from "@dv/ui/components/shadcn/input";
 import { Separator } from "@dv/ui/components/shadcn/separator";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, History, Loader2, TriangleAlert } from "lucide-react";
+import {
+  ExternalLink,
+  Eye,
+  History,
+  Loader2,
+  TriangleAlert
+} from "lucide-react";
 import * as React from "react";
 
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
+import { ApiClientError } from "@/lib/api-client";
 import * as m from "@/paraglide/messages.js";
 
 import {
   assignLandingPageToCampaign,
+  createLandingPagePreview,
   fetchDeployments,
   publishLandingPage,
   rollbackDeployment,
@@ -42,6 +50,26 @@ import { deploymentKeys, landingKeys } from "../query-keys";
 /** The landing runtime's own lead-form selector (`apps/landing-runtime/src/lead-form.ts`,
  * `bindLeadForms`) — a plain substring/attribute match is enough, no need to parse the HTML. */
 const LEAD_FORM_MARKER = /data-dv-form=["']lead["']/;
+
+/** `apps/api/src/lib/publish.ts`'s native-page publish gate throws one of these specific codes
+ * before a generic 500 would ever fire — surfacing them tells the user what to actually do next
+ * ("run an audit") instead of a dead-end "publish failed, try again" (`ApiClientError`'s `.code`
+ * only exists because `createApiFetch` now parses the API's `{error:{code,message}}` body). */
+function publishErrorTitle(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    switch (error.code) {
+      case "audit_required":
+        return m.studioPublishAuditRequiredToast();
+      case "audit_launch_threshold_not_met":
+        return m.studioPublishAuditThresholdToast();
+      case "subdomain_taken":
+        return m.studioPublishSubdomainTakenToast();
+      case "unverified_assets_pending_confirmation":
+        return m.studioPublishUnverifiedAssetsToast();
+    }
+  }
+  return m.studioPublishErrorToast();
+}
 
 /** FR-G-01/02/03 — publish/rollback/unpublish, all through the same outbox mechanism
  * (architecture.md §5.2) already implemented server-side; this dialog is just the UI on top. */
@@ -163,8 +191,19 @@ function PublishDialogBody({
         type: "success"
       });
     },
+    onError: (error) =>
+      toast.add({ title: publishErrorTitle(error), type: "error" })
+  });
+
+  // Pre-publish preview — renders the real publish output to a private URL and opens it, with
+  // no deployment/hostname change. Opened via `window.open` in the mutation's `onSuccess`
+  // rather than an `<a href>` because the URL only exists once the server has rendered it;
+  // popup blockers accept it since the call chain starts from the click.
+  const previewMutation = useMutation({
+    mutationFn: () => createLandingPagePreview(landingPageId),
+    onSuccess: (url) => window.open(url, "_blank", "noopener"),
     onError: () =>
-      toast.add({ title: m.studioPublishErrorToast(), type: "error" })
+      toast.add({ title: m.studioPreviewErrorToast(), type: "error" })
   });
 
   const rollbackMutation = useMutation({
@@ -302,6 +341,18 @@ function PublishDialogBody({
             placeholder="my-landing-page"
           />
         </div>
+        <Button
+          variant="outline"
+          disabled={previewMutation.isPending}
+          onClick={() => previewMutation.mutate()}
+        >
+          {previewMutation.isPending ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Eye />
+          )}
+          {m.studioPreviewButton()}
+        </Button>
         <Button
           disabled={
             !trimmedSubdomain ||

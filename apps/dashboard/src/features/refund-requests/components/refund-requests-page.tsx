@@ -8,16 +8,9 @@ import {
   CardTitle
 } from "@dv/ui/components/shadcn/card";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
-import {
   NativeSelect,
   NativeSelectOption
 } from "@dv/ui/components/shadcn/native-select";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import {
   Table,
   TableBody,
@@ -27,8 +20,10 @@ import {
   TableRow
 } from "@dv/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
+import { Undo2 } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchRefundRequests } from "../api";
@@ -96,28 +91,14 @@ export function RefundRequestsPage() {
             </NativeSelectOption>
           </NativeSelect>
 
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-
-          {error && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.refundRequestsLoadErrorTitle()}</EmptyTitle>
-                <EmptyDescription>{error.message}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-
-          {data && data.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.refundRequestsEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={error}
+            isEmpty={data?.length === 0}
+            errorTitle={m.refundRequestsLoadErrorTitle()}
+            emptyTitle={m.refundRequestsEmptyTitle()}
+            emptyIcon={<Undo2 />}
+          />
 
           {data && data.length > 0 && (
             <Table>

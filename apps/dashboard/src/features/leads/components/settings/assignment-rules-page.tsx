@@ -35,19 +35,18 @@ import {
   DialogHeader,
   DialogTitle
 } from "@dv/ui/components/shadcn/dialog";
-import { Empty, EmptyHeader, EmptyTitle } from "@dv/ui/components/shadcn/empty";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
   NativeSelect,
   NativeSelectOption
 } from "@dv/ui/components/shadcn/native-select";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, ListChecks, Lock, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
@@ -125,11 +124,14 @@ export function AssignmentRulesPage() {
   if (!canManage) {
     return (
       <LeadsPageLayout>
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{m.settingsForbiddenTitle()}</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
+        <QueryState
+          isPending={false}
+          error={null}
+          isEmpty
+          errorTitle=""
+          emptyTitle={m.settingsForbiddenTitle()}
+          emptyIcon={<Lock />}
+        />
       </LeadsPageLayout>
     );
   }
@@ -165,19 +167,14 @@ export function AssignmentRulesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {isPending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> {m.commonLoading()}
-            </div>
-          )}
-
-          {rules && rules.length === 0 && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>{m.leadsAssignmentEmptyTitle()}</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+          <QueryState
+            isPending={isPending}
+            error={null}
+            isEmpty={rules?.length === 0}
+            errorTitle=""
+            emptyTitle={m.leadsAssignmentEmptyTitle()}
+            emptyIcon={<ListChecks />}
+          />
 
           {rules && rules.length > 0 && (
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>

@@ -14,6 +14,10 @@ export interface RuntimeConfig {
    * this script itself never throws over it, it just surfaces the server's rejection as the
    * normal "couldn't submit" error. */
   turnstileSiteKey?: string;
+  /** `tracking-and-attribution.md` §Identity — absent on a page published before this field
+   * existed; every beacon/lead-submit call just omits `landingPageId`/`pageVersionId` then. */
+  landingPageId?: string;
+  pageVersionId?: string;
 }
 
 declare global {

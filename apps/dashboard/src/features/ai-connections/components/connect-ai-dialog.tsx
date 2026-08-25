@@ -40,6 +40,109 @@ const providerLabels: Record<ByokProvider, string> = {
   nvidia: "NVIDIA NIM"
 };
 
+function providerDescriptions(): Record<ByokProvider, string> {
+  return {
+    openrouter: m.aiProviderDescriptionOpenrouter(),
+    anthropic: m.aiProviderDescriptionAnthropic(),
+    openai: m.aiProviderDescriptionOpenai(),
+    groq: m.aiProviderDescriptionGroq(),
+    nvidia: m.aiProviderDescriptionNvidia()
+  };
+}
+
+/**
+ * Step-by-step "where do I get this key" guide per provider (byok.md §1.5), mirroring the
+ * GuideCard shown on the payment-connections page. Payments serves this from the backend
+ * driver (`payments.getConnectionGuide()`) because it has one provider; here the content is
+ * static prose across five providers with nothing org-specific, so it's kept as plain data in
+ * the dialog instead of round-tripping five near-identical guide endpoints.
+ * ponytail: hardcoded, not routed through paraglide (same as payments' guide steps) — only the
+ * card title above is localized. Add per-provider i18n if this ever needs non-Vietnamese steps.
+ */
+const providerGuideSteps: Record<
+  ByokProvider,
+  { title: string; body: string }[]
+> = {
+  openrouter: [
+    {
+      title: "Vào openrouter.ai",
+      body: "Truy cập openrouter.ai và đăng ký tài khoản (có thể đăng nhập bằng Google/GitHub)."
+    },
+    {
+      title: "Tạo API key",
+      body: "Vào mục Keys trong tài khoản, nhấn Create Key, đặt tên và tạo key mới."
+    },
+    {
+      title: "Dán key vào đây",
+      body: "Copy key vừa tạo và dán vào ô API Key bên dưới — model miễn phí có sẵn để thử ngay."
+    }
+  ],
+  anthropic: [
+    {
+      title: "Vào console.anthropic.com",
+      body: "Đăng ký hoặc đăng nhập tài khoản Anthropic Console."
+    },
+    {
+      title: "Tạo API key",
+      body: "Vào mục API Keys, nhấn Create Key và đặt tên cho key."
+    },
+    {
+      title: "Nạp tiền (nếu cần)",
+      body: "Vào Billing để nạp một khoản nhỏ trước khi key có thể gọi được model."
+    },
+    {
+      title: "Dán key vào đây",
+      body: "Copy key vừa tạo và dán vào ô API Key bên dưới."
+    }
+  ],
+  openai: [
+    {
+      title: "Vào platform.openai.com",
+      body: "Đăng ký hoặc đăng nhập tài khoản OpenAI Platform."
+    },
+    {
+      title: "Tạo API key",
+      body: "Vào mục API Keys, nhấn Create new secret key."
+    },
+    {
+      title: "Nạp tiền (nếu cần)",
+      body: "Vào Billing để nạp một khoản nhỏ trước khi key có thể gọi được model."
+    },
+    {
+      title: "Dán key vào đây",
+      body: "Copy key vừa tạo và dán vào ô API Key bên dưới."
+    }
+  ],
+  groq: [
+    {
+      title: "Vào console.groq.com",
+      body: "Đăng ký hoặc đăng nhập tài khoản GroqCloud."
+    },
+    {
+      title: "Tạo API key",
+      body: "Vào mục API Keys, tạo key mới."
+    },
+    {
+      title: "Dán key vào đây",
+      body: "Copy key vừa tạo và dán vào ô API Key bên dưới — free tier đủ dùng cho tác vụ nhỏ."
+    }
+  ],
+  nvidia: [
+    {
+      title: "Vào build.nvidia.com",
+      body: "Đăng ký hoặc đăng nhập tài khoản NVIDIA."
+    },
+    {
+      title: "Lấy API key",
+      body: "Chọn 1 model bất kỳ, nhấn Get API Key."
+    },
+    {
+      title: "Dán key vào đây",
+      body: "Copy key vừa tạo và dán vào ô API Key bên dưới — model miễn phí có sẵn để thử ngay."
+    }
+  ]
+};
+
 /**
  * OpenRouter's and NVIDIA NIM's `/models` endpoints are genuinely public catalogs (verified:
  * both return 200 with no Authorization header) — their model list can load the moment the
@@ -194,6 +297,27 @@ export function ConnectAiDialog() {
                 </NativeSelectOption>
               ))}
             </NativeSelect>
+            <p className="text-xs text-muted-foreground">
+              {providerDescriptions()[provider]}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 rounded-md border p-3">
+            <p className="text-sm font-medium">{m.aiConnectGuideTitle()}</p>
+            <ol className="flex flex-col gap-2">
+              {providerGuideSteps[provider].map((step, index) => (
+                <li key={step.title} className="flex gap-2">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                    {index + 1}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{step.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {step.body}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="ai-api-key">{m.aiApiKeyLabel()}</Label>

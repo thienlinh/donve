@@ -4,8 +4,16 @@
 @import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
-@source "../../../apps/**/*.{ts,tsx}";
-@source "../../../components/**/*.{ts,tsx}";
+/* 4 levels up from packages/ui/src/styles/ reaches the repo root — these were previously off by
+   one level (`../../../apps/**` resolves to the nonexistent `packages/apps/**`, silently
+   matching zero files) so `apps/**`'s own Tailwind classes were relying entirely on
+   `@tailwindcss/vite`'s automatic per-build module-graph scan, not this explicit source list.
+   `studio-catalog` is a new addition — its component files (`@dv/studio-catalog`) are consumed
+   by the dashboard's Puck integration (`buildPuckConfig`), and being a monorepo sibling package
+   outside this file's own directory tree, its utility classes are NOT picked up by automatic
+   detection the way `apps/dashboard`'s own files are. */
+@source "../../../../apps/**/*.{ts,tsx}";
+@source "../../../../packages/studio-catalog/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 @source "../node_modules/streamdown/dist/*.js";
 @source "../node_modules/@streamdown/code/dist/*.js";
@@ -260,6 +268,303 @@
   --automation: oklch(0.7 0.16 150);
   --automation-foreground: oklch(0.12 0.01 150);
   --automation-soft: oklch(0.25 0.03 150);
+}
+
+/*
+ * Puck editor theme (`@puckeditor/core`, used by the Studio-native canvas) — overrides its
+ * semantic token layer to match this design system instead of its own default rose/azure/grey
+ * palette. Puck's own tokens live inside `@layer puck-tokens`; plain (unlayered) rules like these
+ * always win over anything in a named layer regardless of declaration order, so no `!important`
+ * is needed. Only the semantic layer is touched, never the raw `--puck-color-{rose,azure,...}-NN`
+ * palette those semantics are built from. Puck auto-copies this stylesheet into its own preview
+ * iframe (`packages/studio-catalog`'s components never use `--puck-*`, so that's harmless there
+ * too — it just keeps the selection/drag-overlay chrome on-brand inside the canvas as well).
+ */
+:root {
+  /* -- Global color/typography (api-reference/theming/global) -----------------------------
+     Every value here is a plain `var(--xxx)` reference into this file's own light/dark tokens
+     (defined above, further up this same file) — those tokens already flip under `.dark`, so
+     this whole block resolves correctly in both modes without being repeated. The only things
+     that DO need a `.dark` override below are the handful of `color-mix(..., black/white)`
+     calls, since mixing a dark-mode-bright `--primary` toward black would darken it the wrong
+     way — those need the opposite mix direction, not a different source token. */
+  --puck-font-family: inherit;
+
+  /* -- Density overrides (measured against this app's own shadcn defaults — see
+     `packages/ui/src/components/shadcn/{input,label,button}.tsx` — not guessed) --------------
+     Puck's own default scale assumes a bigger, touch-friendly editor chrome: its ambient text
+     size is `--puck-font-size-xs` = 16px (this token doubles as `--puck-font-size-base`, so it's
+     what "Trang"/"Cấu trúc trang" panel headers and the "Trang > Hero" header breadcrumb render
+     at, both via Puck's `Heading--xs` style) against this app's own 14px (`text-sm`) ambient
+     size everywhere else, and its field/label/drawer-item padding uses `--puck-space-3`/`-4`
+     (12px/16px) where this app's own `Input` is `h-8` with `py-1` (4px) — stacked together this
+     is what read as "too big, doesn't match" once it was on screen instead of just in isolated
+     color swatches. Font-weight-bold (700, Heading's only consumer) softened to 600 to match
+     this app's own semibold (not bold) convention for compact chrome. */
+  --puck-font-size-xs: 0.875rem;
+  --puck-font-weight-bold: var(--puck-font-weight-semibold);
+  --puck-field-font-size: 0.875rem;
+  --puck-field-space-y: 0.375rem;
+  --puck-field-space-x: 0.625rem;
+  --puck-field-space-surface-y: 0.625rem;
+  --puck-field-space-surface-x: 0.625rem;
+  --puck-field-label-space-y: 0.375rem;
+  --puck-field-label-font-weight: var(--puck-font-weight-medium);
+  --puck-drawer-item-space: 0.5rem;
+  /* Header row padding + the zoom-toolbar-to-canvas gutter share this one token
+     (`chunk-55V3NZVF.mjs`'s `PuckHeader`/canvas-area rules both reference it) — default 16px. */
+  --puck-space-chrome-gutter: 0.625rem;
+
+  --puck-color-surface: var(--card);
+  --puck-color-surface-muted: var(--muted);
+  --puck-color-surface-subtle: var(--secondary);
+  --puck-color-surface-inverse: var(--foreground);
+  --puck-color-border: var(--border);
+  --puck-color-border-hover: var(--ring);
+  --puck-color-border-muted: var(--border);
+  --puck-color-border-inverse: var(--background);
+  --puck-color-text: var(--foreground);
+  --puck-color-text-secondary: var(--muted-foreground);
+  --puck-color-text-muted: var(--muted-foreground);
+  --puck-color-text-subtle: var(--muted-foreground);
+  --puck-color-text-inverse: var(--background);
+  --puck-color-interactive: var(--primary);
+  --puck-color-interactive-hover: color-mix(
+    in oklch,
+    var(--primary) 85%,
+    black
+  );
+  --puck-color-interactive-active: color-mix(
+    in oklch,
+    var(--primary) 70%,
+    black
+  );
+  --puck-color-interactive-subtle: var(--accent);
+  --puck-color-interactive-soft: var(--accent);
+  --puck-color-interactive-soft-hover: color-mix(
+    in oklch,
+    var(--accent) 80%,
+    var(--primary)
+  );
+  --puck-color-interactive-neutral-hover: var(--muted);
+  --puck-color-interactive-inverse-hover: color-mix(
+    in oklch,
+    var(--primary) 80%,
+    white
+  );
+  --puck-color-interactive-inverse-active: color-mix(
+    in oklch,
+    var(--primary) 60%,
+    white
+  );
+  --puck-color-focus-ring: var(--ring);
+  --puck-color-selection-bg: var(--brand-glow);
+  --puck-color-selection-border: var(--brand-border);
+  --puck-color-line-placeholder: var(--primary);
+  --puck-color-highlight: var(--warning);
+  --puck-color-bg-disabled: var(--muted);
+  --puck-color-text-disabled: var(--muted-foreground);
+  --puck-color-overlay-backdrop: color-mix(
+    in oklch,
+    var(--foreground) 55%,
+    transparent
+  );
+
+  /* -- Radius (global) — shares this app's own radius scale so Puck controls match every
+     shadcn control elsewhere in the dashboard. */
+  --puck-radius-xs: calc(var(--radius) * 0.3);
+  --puck-radius-s: calc(var(--radius) * 0.45);
+  --puck-radius-m: var(--radius-sm);
+  --puck-radius-l: var(--radius-md);
+
+  /* -- Button (theming/button) -- */
+  --puck-button-primary-color-bg: var(--primary);
+  --puck-button-primary-color-bg-hover: color-mix(
+    in oklch,
+    var(--primary) 90%,
+    black
+  );
+  --puck-button-primary-color-bg-active: color-mix(
+    in oklch,
+    var(--primary) 80%,
+    black
+  );
+  --puck-button-primary-color-bg-disabled: var(--muted);
+  --puck-button-primary-color-text: var(--primary-foreground);
+  --puck-button-primary-color-text-disabled: var(--muted-foreground);
+  --puck-button-primary-color-border: var(--primary);
+  --puck-button-secondary-color-bg: var(--secondary);
+  --puck-button-secondary-color-bg-hover: var(--accent);
+  --puck-button-secondary-color-bg-active: var(--accent);
+  --puck-button-secondary-color-bg-disabled: var(--muted);
+  --puck-button-secondary-color-text: var(--secondary-foreground);
+  --puck-button-secondary-color-text-disabled: var(--muted-foreground);
+  --puck-button-secondary-color-border: var(--border);
+
+  /* -- IconButton (theming/icon-button) -- */
+  --puck-iconbutton-radius: var(--radius-sm);
+  --puck-iconbutton-color-bg-hover: var(--accent);
+  --puck-iconbutton-color-bg-active: var(--accent);
+  --puck-iconbutton-color-icon-hover: var(--primary);
+  --puck-iconbutton-color-icon-active: var(--primary);
+  --puck-iconbutton-color-icon-disabled: var(--muted-foreground);
+
+  /* -- ActionBar (theming/action-bar) — the floating label that appears over a selected
+     component on the canvas; kept as an inverse (dark-on-light / light-on-dark) chip like
+     Puck's own default, just recolored to this app's foreground/background pair. -- */
+  --puck-actionbar-color-bg: var(--foreground);
+  --puck-actionbar-color-text: var(--background);
+  --puck-actionbar-color-separator: var(--border);
+  --puck-actionbar-color-action-hover: var(--primary);
+  --puck-actionbar-color-action-active: var(--primary);
+  --puck-actionbar-radius: var(--radius-sm);
+
+  /* -- Header (theming/header) -- */
+  --puck-header-color-bg: var(--card);
+  --puck-header-color-text: var(--foreground);
+
+  /* -- Sidebar (theming/sidebar) — left uses the app's own `--sidebar` surface so the plugin
+     bar + left panel read as one continuous strip with the dashboard's own nav sidebar. -- */
+  --puck-sidebar-left-color-bg: var(--sidebar);
+  --puck-sidebar-right-color-bg: var(--card);
+
+  /* -- Plugin bar (theming/plugin-bar) — the vertical icon strip (Khối / Cấu trúc / Trường). -- */
+  --puck-pluginbar-color-bg: var(--sidebar);
+  --puck-pluginbar-color-bg-hover: var(--accent);
+  --puck-pluginbar-color-text: var(--muted-foreground);
+  --puck-pluginbar-color-text-hover: var(--primary);
+  --puck-pluginbar-color-text-selected: var(--primary);
+
+  /* -- Drawer (theming/drawer) — the "Khối" block-picker list. -- */
+  --puck-drawer-category-color-text: var(--muted-foreground);
+  --puck-drawer-category-color-bg-hover: var(--accent);
+  --puck-drawer-category-color-text-hover: var(--primary);
+  --puck-drawer-category-color-bg-active: var(--accent);
+  --puck-drawer-item-color-bg: var(--card);
+  --puck-drawer-item-color-text: var(--foreground);
+  --puck-drawer-item-color-border: var(--border);
+  --puck-drawer-item-color-bg-hover: var(--accent);
+  --puck-drawer-item-color-text-hover: var(--accent-foreground);
+  --puck-drawer-item-radius: var(--radius-md);
+
+  /* -- Outline (theming/outline) — the "Cấu trúc" layer tree. `font-family` overridden to
+     `inherit` (Puck defaults this to a monospace stack) since layer names here are real
+     Vietnamese section labels, not code identifiers — monospace read as a mismatch. -- */
+  --puck-outline-font-family: inherit;
+  --puck-outline-color-text: var(--muted-foreground);
+  --puck-outline-color-text-hover: var(--primary);
+  --puck-outline-color-text-helper: var(--muted-foreground);
+  --puck-outline-color-icon: var(--muted-foreground);
+  --puck-outline-color-bg-hover: var(--accent);
+  --puck-outline-color-border-hover: var(--brand-border);
+  --puck-outline-color-bg-selected: var(--accent);
+  --puck-outline-color-border-selected: var(--brand-border);
+  --puck-outline-color-drop-indicator: var(--primary);
+  --puck-outline-radius: var(--radius-sm);
+
+  /* -- Fields (theming/fields) — the right-hand Inspector panel. -- */
+  --puck-field-color-surface: var(--card);
+  --puck-field-color-bg: var(--background);
+  --puck-field-color-bg-hover: var(--accent);
+  --puck-field-color-bg-active: var(--accent);
+  --puck-field-color-text: var(--foreground);
+  --puck-field-color-text-active: var(--primary);
+  --puck-field-color-border: var(--border);
+  --puck-field-color-border-hover: var(--ring);
+  --puck-field-color-border-focus: var(--ring);
+  --puck-field-color-border-dragging: var(--brand-border);
+  --puck-field-color-bg-disabled: var(--muted);
+  --puck-field-color-text-disabled: var(--muted-foreground);
+  --puck-field-radius: var(--radius-sm);
+  --puck-field-label-color-text: var(--muted-foreground);
+  --puck-field-label-color-icon: var(--muted-foreground);
+  --puck-field-array-add-color-icon: var(--primary);
+  --puck-field-richtext-menu-color-bg: var(--popover);
+  --puck-field-richtext-menu-color-separator: var(--border);
+  --puck-field-external-detach-color-bg: var(--muted);
+  --puck-field-external-detach-color-text: var(--foreground);
+
+  /* -- Canvas (theming/canvas) — the frame gutter + area behind the page preview. -- */
+  --puck-canvas-color-text: var(--foreground);
+  --puck-canvas-color-bg: var(--muted);
+  --puck-canvas-preview-color-bg: var(--background);
+
+  /* -- Slot (theming/slot) — drop-zone and drag-overlay highlighting inside the canvas. -- */
+  --puck-slot-color-bg: var(--brand-glow);
+  --puck-slot-color-border: var(--brand-border);
+  --puck-slot-component-color-overlay: var(--brand-glow);
+  --puck-slot-component-color-overlay-border: var(--brand-border);
+  --puck-slot-component-color-border-selected: var(--brand-border);
+  --puck-slot-component-color-placeholder: var(--primary);
+  --puck-slot-component-color-border-dragging: var(--brand-glow);
+}
+
+.dark {
+  /* Only the mix-direction-sensitive tokens need restating — every plain `var(--xxx)` mapping
+     above already resolves correctly here because the underlying app tokens flip under `.dark`
+     (see the rationale comment at the top of the `:root` block above). */
+  --puck-color-interactive-hover: color-mix(
+    in oklch,
+    var(--primary) 85%,
+    white
+  );
+  --puck-color-interactive-active: color-mix(
+    in oklch,
+    var(--primary) 70%,
+    white
+  );
+  --puck-color-overlay-backdrop: color-mix(
+    in oklch,
+    var(--background) 65%,
+    transparent
+  );
+  --puck-button-primary-color-bg-hover: color-mix(
+    in oklch,
+    var(--primary) 90%,
+    white
+  );
+  --puck-button-primary-color-bg-active: color-mix(
+    in oklch,
+    var(--primary) 80%,
+    white
+  );
+}
+
+/*
+ * A handful of Puck internals aren't reachable through its documented `--puck-*` token API at
+ * all — icon dimensions are hardcoded React props (`size={24}` on the lucide icons Puck itself
+ * renders, e.g. the header's panel-toggle buttons and the left plugin-bar nav icons — both
+ * confirmed by inspecting the actual rendered `<svg width height>` attributes, no CSS var
+ * controls them — the header's undo/redo (`_MenuBar_` icons, rendered at a hardcoded 21px) are
+ * the same story), and the right-sidebar Inspector's per-field wrapper (`_PuckFields-field`, one
+ * level above the `_InputWrapper`/`_Input-label` elements the `--puck-field-*` tokens above
+ * already retheme) has its own padding/margin hardcoded straight to the raw `--puck-space-2/3/4`
+ * scale rather than routed through any per-component var — none of that is documented as
+ * overridable, unlike everything in the `:root`/`.dark` blocks above. These are plain (unlayered)
+ * component rules, not `@layer puck-tokens` ones, so the "unlayered always wins" trick the token
+ * overrides rely on doesn't apply here — Puck's own rule is more specific (nested two classes)
+ * and loads after this file in the bundle, so it wins any tie. `!important` is the honest,
+ * necessary escape hatch for exactly these few spots, not a shortcut around the token API.
+ * Selectors match on the classname prefix (before its build hash), which is far more stable
+ * across a Puck version bump than the exact hash suffix.
+ */
+[class*="_PuckHeader-toggle_"] svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+[class*="_NavItem-link_"] svg {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+}
+[class*="_MenuBar_"] svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+[class*="_PuckFields-field_"] {
+  padding: 0.625rem 0.625rem 0.375rem !important;
+}
+[class*="_PuckFields-field_"] + [class*="_PuckFields-field_"] {
+  margin-top: 0.25rem !important;
 }
 
 @layer base {

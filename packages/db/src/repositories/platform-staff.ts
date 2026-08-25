@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
 import { platformAuditLogs, platformStaff } from "../schema/platform.js";
@@ -43,5 +43,16 @@ export const platformAuditLogsRepository = {
       .values(entry)
       .returning();
     return rows[0];
+  },
+
+  /** Audit tab of the platform org-detail screen (platform-admin.md §11) — newest first, capped
+   * for the same reason `auditLogsRepository.listRecent` is: no pagination UI for it yet. */
+  listForOrg(db: Db, targetOrgId: string, limit = 100) {
+    return db.raw
+      .select()
+      .from(platformAuditLogs)
+      .where(eq(platformAuditLogs.targetOrgId, targetOrgId))
+      .orderBy(desc(platformAuditLogs.createdAt))
+      .limit(limit);
   }
 };

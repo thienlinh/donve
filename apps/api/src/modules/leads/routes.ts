@@ -38,6 +38,7 @@ import {
   campaignsRepository,
   dataSubjectRequestsRepository,
   emailLogsRepository,
+  eventsRepository,
   leadActivitiesRepository,
   leadsRepository,
   membershipsRepository,
@@ -807,6 +808,21 @@ async function applyStageChange(
     body: null,
     meta: { from: lead.stage, to: stage },
     actorId
+  });
+  // `tracking-and-attribution.md` §Offline conversion loop: "khi lead chuyển trạng thái trong
+  // CRM, ghi ngược 1 event vào events." Pipeline stage names are org-configurable
+  // (`organizations.settings.pipeline`), not a fixed mql/opportunity/customer enum, so this
+  // writes 1 generic `lead_stage_changed` event rather than guessing a specific taxonomy —
+  // Optimization Agent can read `meta.to` directly once it needs stage-specific weighting.
+  await eventsRepository.insert(db, orgId, {
+    campaignId: lead.campaignId,
+    deploymentId: null,
+    type: "lead_stage_changed",
+    sessionHash: null,
+    anonymousId: null,
+    landingPageId: null,
+    pageVersionId: null,
+    meta: { leadId: lead.id, from: lead.stage, to: stage }
   });
   return updated;
 }

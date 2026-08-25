@@ -1,7 +1,9 @@
 import type {
-  ImportLandingPageResponse,
+  ImportCustomPageResponse,
+  LandingPageDetail,
   LandingPageListItem
 } from "@dv/contracts";
+import { Button } from "@dv/ui/components/shadcn/button";
 import {
   Empty,
   EmptyDescription,
@@ -26,16 +28,22 @@ import { useMediaQuery } from "@dv/ui/hooks/use-media-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Bot, FolderInput, Wrench } from "lucide-react";
+import type { ComponentType } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CustomImportDialog } from "@/features/custom-import/components/custom-import-dialog";
 import * as m from "@/paraglide/messages.js";
 
-import { createLandingPage, fetchLandingPages } from "../api";
+import {
+  createLandingPage,
+  createManualLandingPage,
+  fetchLandingPages
+} from "../api";
 import { landingKeys } from "../query-keys";
-import { ImportLandingDialog } from "./import-dialog";
 import { LandingCard } from "./landing-card";
-import { LandingPromptBar } from "./landing-prompt-bar";
 import { OnboardingChecklist } from "./onboarding-checklist";
+import { TemplatePickerDialog } from "./template-picker-dialog";
 
 type StatusFilter = "all" | "published" | "draft";
 type SortOrder = "updated" | "name";
@@ -52,41 +60,44 @@ export function LandingsPage() {
     queryFn: fetchLandingPages
   });
 
-  const createMutation = useMutation({
-    mutationFn: (input: { name: string; prompt: string }) =>
-      createLandingPage({ name: input.name }),
-    onSuccess: (created, input) => {
+  // `component-library/component-library.md` §Ba con đường tạo trang — thủ công, không AI.
+  const createManualMutation = useMutation({
+    mutationFn: () => createManualLandingPage({ name: "Trang mới" }),
+    onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: landingKeys.list() });
       navigate({
-        to: "/landings/$id/studio",
-        params: { id: created.id },
-        search: { prompt: input.prompt }
+        to: "/landings/$id/studio-native",
+        params: { id: created.id }
       });
     },
     onError: () =>
       toast.add({ title: m.landingsCreateErrorToast(), type: "error" })
   });
 
-  async function handlePromptSubmit(prompt: string) {
-    try {
-      await createMutation.mutateAsync({ name: prompt.slice(0, 120), prompt });
-    } catch {
-      // surfaced via createMutation's onError toast
-    }
+  // `ai/agent-pipeline.md` — the business→strategy→architecture wizard, one of the 3 equal
+  // creation paths (`docs/features/landing-pages/technical/ui-ux-design.md` §Chọn chế độ tạo).
+  const createWizardMutation = useMutation({
+    mutationFn: () => createLandingPage({ name: "Trang mới (AI)" }),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: landingKeys.list() });
+      navigate({ to: "/landings/$id/business", params: { id: created.id } });
+    },
+    onError: () =>
+      toast.add({ title: m.landingsCreateErrorToast(), type: "error" })
+  });
+
+  // `page-system/custom-import.md` — lands on the wire-lead-form/audit/publish page, never
+  // the srcmap Studio editor (list invalidation already happened in CustomImportDialog's own
+  // mutation, same as `handleImported`).
+  function handleCustomImported(result: ImportCustomPageResponse) {
+    navigate({
+      to: "/landings/$id/custom-import",
+      params: { id: result.id }
+    });
   }
 
-  // FR-B-30/31: land straight in Studio, same as a fresh generate — `funnelGaps` rides the
-  // URL as a one-shot search param so the studio page can offer the "chuẩn hoá phễu" wizard.
-  // (list invalidation already happened in ImportLandingDialog's own mutation)
-  function handleImported(result: ImportLandingPageResponse) {
-    navigate({
-      to: "/landings/$id/studio",
-      params: { id: result.id },
-      search: {
-        missingLeadForm: result.funnelGaps.missingLeadForm || undefined,
-        missingSeoMeta: result.funnelGaps.missingSeoMeta || undefined
-      }
-    });
+  function handleCreatedFromTemplate(created: LandingPageDetail) {
+    navigate({ to: "/landings/$id/studio-native", params: { id: created.id } });
   }
 
   if (isPending) {
@@ -108,17 +119,24 @@ export function LandingsPage() {
     );
   }
 
-  // Empty state (org mới, chưa có landing nào): prompt bar chiếm giữa màn hình, không có grid.
+  const createActions = {
+    onCustomImported: handleCustomImported,
+    onCreateWizard: () => createWizardMutation.mutate(),
+    creatingWizard: createWizardMutation.isPending,
+    onCreateManual: () => createManualMutation.mutate(),
+    creatingManual: createManualMutation.isPending,
+    onCreatedFromTemplate: handleCreatedFromTemplate
+  };
+
+  // Empty state (org mới, chưa có landing nào): 3 thẻ chọn chế độ tạo chiếm giữa màn hình,
+  // không có grid — `ui-ux-design.md` §Chọn chế độ tạo.
   if (data.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-1 flex-col items-center justify-center gap-6 px-4">
         <h1 className="text-center text-2xl font-semibold">
-          {m.landingsPromptHeading()}
+          {m.landingsCreateHeading()}
         </h1>
-        <div className="w-full max-w-xl">
-          <LandingPromptBar onSubmit={handlePromptSubmit} />
-        </div>
-        <ImportLandingDialog onImported={handleImported} />
+        <LandingsCreateCards {...createActions} />
         <div className="w-full max-w-xl">
           <OnboardingChecklist landingPages={data} />
         </div>
@@ -126,23 +144,139 @@ export function LandingsPage() {
     );
   }
 
+  return <LandingsGallery landingPages={data} createActions={createActions} />;
+}
+
+type CreateActions = {
+  onCustomImported: (result: ImportCustomPageResponse) => void;
+  onCreateWizard: () => void;
+  creatingWizard: boolean;
+  onCreateManual: () => void;
+  creatingManual: boolean;
+  onCreatedFromTemplate: (created: LandingPageDetail) => void;
+};
+
+// Compact header actions for the gallery (org already has landing pages) — the equal-weight
+// 3-card layout below is reserved for the dedicated "choose creation mode" moment (empty state).
+function LandingsCreateActions({
+  onCustomImported,
+  onCreateWizard,
+  creatingWizard,
+  onCreateManual,
+  creatingManual,
+  onCreatedFromTemplate
+}: CreateActions) {
   return (
-    <LandingsGallery
-      landingPages={data}
-      onPromptSubmit={handlePromptSubmit}
-      onImported={handleImported}
-    />
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <CustomImportDialog onImported={onCustomImported} />
+      <Button
+        variant="outline"
+        disabled={creatingWizard}
+        onClick={onCreateWizard}
+      >
+        {creatingWizard ? m.commonLoading() : m.landingsCreateAiButton()}
+      </Button>
+      <Button
+        variant="outline"
+        disabled={creatingManual}
+        onClick={onCreateManual}
+      >
+        {m.landingsCreateManualButton()}
+      </Button>
+      <TemplatePickerDialog onCreated={onCreatedFromTemplate} />
+    </div>
+  );
+}
+
+const CREATE_CARD_CLASS =
+  "h-auto w-full flex-col items-start gap-2 whitespace-normal p-6 text-left";
+
+function CreateCardContent({
+  icon: Icon,
+  title,
+  description,
+  loading
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  loading?: boolean;
+}) {
+  if (loading) {
+    return (
+      <span className="flex w-full items-center justify-center gap-2 py-6">
+        <Spinner /> {m.commonLoading()}
+      </span>
+    );
+  }
+  return (
+    <>
+      <Icon className="size-6 text-primary" />
+      <span className="font-medium">{title}</span>
+      <span className="font-normal text-muted-foreground">{description}</span>
+    </>
+  );
+}
+
+// 3 con đường tạo trang bình đẳng — AI/thủ công/import, cùng kích thước, không badge "Recommended"
+// (`ui-ux-design.md` §Chọn chế độ tạo).
+function LandingsCreateCards({
+  onCustomImported,
+  onCreateWizard,
+  creatingWizard,
+  onCreateManual,
+  creatingManual
+}: Omit<CreateActions, "onCreatedFromTemplate">) {
+  return (
+    <div className="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+      <Button
+        variant="outline"
+        className={CREATE_CARD_CLASS}
+        disabled={creatingWizard}
+        onClick={onCreateWizard}
+      >
+        <CreateCardContent
+          icon={Bot}
+          title={m.landingsCreateAiTitle()}
+          description={m.landingsCreateAiDescription()}
+          loading={creatingWizard}
+        />
+      </Button>
+      <Button
+        variant="outline"
+        className={CREATE_CARD_CLASS}
+        disabled={creatingManual}
+        onClick={onCreateManual}
+      >
+        <CreateCardContent
+          icon={Wrench}
+          title={m.landingsCreateManualTitle()}
+          description={m.landingsCreateManualDescription()}
+          loading={creatingManual}
+        />
+      </Button>
+      <CustomImportDialog
+        onImported={onCustomImported}
+        trigger={
+          <Button variant="outline" className={CREATE_CARD_CLASS}>
+            <CreateCardContent
+              icon={FolderInput}
+              title={m.landingsCreateImportTitle()}
+              description={m.landingsCreateImportDescription()}
+            />
+          </Button>
+        }
+      />
+    </div>
   );
 }
 
 function LandingsGallery({
   landingPages,
-  onPromptSubmit,
-  onImported
+  createActions
 }: {
   landingPages: LandingPageListItem[];
-  onPromptSubmit: (prompt: string) => void | Promise<void>;
-  onImported: (result: ImportLandingPageResponse) => void;
+  createActions: CreateActions;
 }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [campaignFilter, setCampaignFilter] = useState("all");
@@ -185,95 +319,104 @@ function LandingsGallery({
   }, [landingPages, statusFilter, campaignFilter, debouncedSearch, sortOrder]);
 
   const statusToggleValue = useMemo(() => [statusFilter], [statusFilter]);
+  const publishedCount = useMemo(
+    () => landingPages.filter((lp) => lp.isPublished).length,
+    [landingPages]
+  );
 
   return (
-    <div className="flex flex-1 flex-col gap-6 lg:flex-row">
-      <div className="flex flex-col gap-3 p-6 lg:w-80 lg:shrink-0">
-        <h1 className="text-lg font-semibold">{m.landingsPromptHeading()}</h1>
-        <LandingPromptBar onSubmit={onPromptSubmit} />
-        <ImportLandingDialog onImported={onImported} />
-      </div>
+    <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {m.shellLandingsNav()}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {m.landingsSummaryCount({
+              total: landingPages.length,
+              published: publishedCount
+            })}
+          </p>
+        </div>
+        <LandingsCreateActions {...createActions} />
+      </header>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-6">
-        <OnboardingChecklist landingPages={landingPages} />
+      <OnboardingChecklist landingPages={landingPages} />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <ToggleGroup
-            value={statusToggleValue}
-            onValueChange={(values) => {
-              const next = values[0] as StatusFilter | undefined;
-              if (next) setStatusFilter(next);
-            }}
-          >
-            <ToggleGroupItem value="all">
-              {m.landingsFilterAll()}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="published">
-              {m.landingsFilterPublished()}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="draft">
-              {m.landingsFilterDraft()}
-            </ToggleGroupItem>
-          </ToggleGroup>
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
+        <ToggleGroup
+          value={statusToggleValue}
+          onValueChange={(values) => {
+            const next = values[0] as StatusFilter | undefined;
+            if (next) setStatusFilter(next);
+          }}
+        >
+          <ToggleGroupItem value="all">{m.landingsFilterAll()}</ToggleGroupItem>
+          <ToggleGroupItem value="published">
+            {m.landingsFilterPublished()}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="draft">
+            {m.landingsFilterDraft()}
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-          {campaignOptions.length > 0 && (
-            <Select
-              value={campaignFilter}
-              onValueChange={(value) => setCampaignFilter(value ?? "all")}
-            >
-              <SelectTrigger size="sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {m.landingsFilterAllCampaigns()}
-                </SelectItem>
-                {campaignOptions.map((campaign) => (
-                  <SelectItem key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder={m.landingsSearchPlaceholder()}
-            className="w-full max-w-56 sm:ms-auto"
-          />
-
+        {campaignOptions.length > 0 && (
           <Select
-            value={sortOrder}
-            onValueChange={(value) => value && setSortOrder(value)}
+            value={campaignFilter}
+            onValueChange={(value) => setCampaignFilter(value ?? "all")}
           >
             <SelectTrigger size="sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="updated">{m.landingsSortUpdated()}</SelectItem>
-              <SelectItem value="name">{m.landingsSortName()}</SelectItem>
+              <SelectItem value="all">
+                {m.landingsFilterAllCampaigns()}
+              </SelectItem>
+              {campaignOptions.map((campaign) => (
+                <SelectItem key={campaign.id} value={campaign.id}>
+                  {campaign.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {filtered.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>{m.landingsNoResultsTitle()}</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        ) : filtered.length > VIRTUALIZE_THRESHOLD ? (
-          <VirtualizedLandingGrid landingPages={filtered} />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((lp) => (
-              <LandingCard key={lp.id} landingPage={lp} />
-            ))}
-          </div>
         )}
+
+        <Input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder={m.landingsSearchPlaceholder()}
+          className="w-full max-w-56 sm:ms-auto"
+        />
+
+        <Select
+          value={sortOrder}
+          onValueChange={(value) => value && setSortOrder(value)}
+        >
+          <SelectTrigger size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updated">{m.landingsSortUpdated()}</SelectItem>
+            <SelectItem value="name">{m.landingsSortName()}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {filtered.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{m.landingsNoResultsTitle()}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      ) : filtered.length > VIRTUALIZE_THRESHOLD ? (
+        <VirtualizedLandingGrid landingPages={filtered} />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtered.map((lp) => (
+            <LandingCard key={lp.id} landingPage={lp} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -282,15 +425,18 @@ const VIRTUAL_ROW_HEIGHT = 280;
 const VIRTUAL_GRID_COLUMN_CLASSES = {
   1: "grid-cols-1",
   2: "grid-cols-2",
-  3: "grid-cols-3"
+  3: "grid-cols-3",
+  4: "grid-cols-4"
 } as const;
 
-// Mirrors the non-virtualized grid's `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` breakpoints —
-// the virtualizer needs the column count as a number (to slice rows), so it can't rely on CSS
-// breakpoints alone the way the plain grid above does.
-function useVirtualGridColumns(): 1 | 2 | 3 {
+// Mirrors the non-virtualized grid's `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`
+// breakpoints — the virtualizer needs the column count as a number (to slice rows), so it can't
+// rely on CSS breakpoints alone the way the plain grid above does.
+function useVirtualGridColumns(): 1 | 2 | 3 | 4 {
+  const isXl = useMediaQuery("(min-width: 1280px)");
   const isLg = useMediaQuery("(min-width: 1024px)");
   const isSm = useMediaQuery("(min-width: 640px)");
+  if (isXl) return 4;
   if (isLg) return 3;
   if (isSm) return 2;
   return 1;

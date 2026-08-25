@@ -1,11 +1,13 @@
 {
-  "extends": "@dv/config/node-library.json",
+  "extends": "@dv/config/react-library.json",
   "compilerOptions": {
-    "types": ["bun-types"],
+    "noEmit": true,
+    "types": ["bun"]
     // @dv/studio-core/@dv/studio-ai's srcmap engine types (Element/Document) come from
-    // linkedom's DOM implementation, not a browser — same "lib": DOM addition those two
-    // packages' own tsconfigs already make.
-    "lib": ["ESNext", "DOM"]
+    // linkedom's DOM implementation, not a browser; @dv/studio-catalog resolves straight to
+    // its .tsx source (JIT internal package), so this project needs "jsx" set too — hence
+    // extending react-library.json (which already includes "lib": DOM/DOM.Iterable) instead
+    // of node-library.json.
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

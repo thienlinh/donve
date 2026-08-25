@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@dv/config": "workspace:*",
-    "bun-types": "catalog:",
+    "@types/bun": "catalog:",
     "typescript": "catalog:"
   }
 }

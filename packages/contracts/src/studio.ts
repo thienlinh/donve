@@ -7,7 +7,12 @@ import {
   ulidSchema
 } from "./common.js";
 
-export const landingSourceValues = ["ai", "import"] as const;
+export const landingSourceValues = [
+  "ai",
+  "manual",
+  "import",
+  "custom_import"
+] as const;
 export const landingSourceSchema = z.enum(landingSourceValues);
 export type LandingSource = z.infer<typeof landingSourceSchema>;
 
@@ -31,7 +36,12 @@ export const landingPageListItemSchema = landingPageSchema.extend({
   isPublished: z.boolean(),
   /** hostname of the live deployment, if any — lets the UI link to the published site. */
   liveHostname: z.string().nullable(),
-  campaignName: z.string().nullable()
+  campaignName: z.string().nullable(),
+  /** true iff the current version's `spec` is set — the real signal for "this page uses the
+   * native/PageSpec editor," independent of `source` (a native-AI page keeps `source: "ai"`
+   * forever; only `manual`-created pages are unambiguous from `source` alone). Drives which
+   * editor route a gallery card opens into. */
+  isNative: z.boolean()
 });
 export type LandingPageListItem = z.infer<typeof landingPageListItemSchema>;
 
@@ -50,8 +60,12 @@ export const pageVersionSchema = z.object({
   orgId: orgIdSchema,
   landingPageId: ulidSchema,
   seq: z.number().int().positive(),
-  htmlKey: z.string(),
-  srcmapKey: z.string(),
+  /** Null for a native (`spec`-only) version — legacy srcmap flow always sets both. */
+  htmlKey: z.string().nullable(),
+  srcmapKey: z.string().nullable(),
+  /** Native PageSpec source of truth (`docs/features/landing-pages/page-system/page-schema.md`)
+   * — shape owned by @dv/studio-render, not this package. Null for the legacy srcmap flow. */
+  spec: z.unknown().nullable(),
   origin: pageVersionOriginSchema,
   /** ops applied to reach this version — shape owned by @dv/studio-core, not this package. */
   patch: z.unknown().nullable(),
@@ -76,13 +90,6 @@ export const funnelGapsSchema = z.object({
   missingSeoMeta: z.boolean()
 });
 export type FunnelGaps = z.infer<typeof funnelGapsSchema>;
-
-export const importLandingPageResponseSchema = landingPageDetailSchema.extend({
-  funnelGaps: funnelGapsSchema
-});
-export type ImportLandingPageResponse = z.infer<
-  typeof importLandingPageResponseSchema
->;
 
 export const pageAssetSourceValues = [
   "user_upload",
@@ -216,3 +223,101 @@ export const chatMessageSchema = z.object({
   createdAt: z.coerce.date()
 });
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
+
+/**
+ * Per-tenant brand tokens for a published native landing page — deliberately separate from
+ * the dashboard's own theme (`packages/ui`). Canonical definition lives here (not
+ * `@dv/studio-catalog`, which depends on this package, not the other way around) since both
+ * the dashboard (Inspector/canvas) and the API (`pageVersions.spec` validation) need it.
+ */
+export const designTokensSchema = z.object({
+  colorPrimary: z.string(),
+  colorPrimaryForeground: z.string(),
+  colorSurface: z.string(),
+  colorForeground: z.string(),
+  colorMuted: z.string(),
+  colorBorder: z.string(),
+  fontHeading: z.string(),
+  fontBody: z.string(),
+  radius: z.string()
+});
+export type DesignTokens = z.infer<typeof designTokensSchema>;
+
+/** One `PageSpec` element (page-system/page-schema.md) — envelope-only validation; each
+ * element's `props` against its own component Zod schema is a later, tier-1 quality check. */
+export const pageSpecElementSchema = z.object({
+  type: z.string(),
+  props: z.record(z.string(), z.unknown()),
+  children: z.array(z.string()).optional(),
+  visible: z.unknown().optional()
+});
+export type PageSpecElement = z.infer<typeof pageSpecElementSchema>;
+
+export const pageSpecSchema = z.object({
+  root: z.string(),
+  elements: z.record(z.string(), pageSpecElementSchema)
+});
+export type PageSpec = z.infer<typeof pageSpecSchema>;
+
+/** `elementId -> {purpose, reason}` the Page Architect Agent recorded when it chose that
+ * element (`ai/agent-pipeline.md` §Prompt pack §Page Architect) — shown on the Architecture
+ * wizard step's cards. Not part of `PageSpec` itself (json-render's own `Spec` shape), so it
+ * rides alongside it in the document envelope instead. */
+export const architectureNoteSchema = z.object({
+  purpose: z.enum([
+    "understanding",
+    "desire",
+    "proof",
+    "risk_reduction",
+    "action"
+  ]),
+  reason: z.string()
+});
+export type ArchitectureNote = z.infer<typeof architectureNoteSchema>;
+
+/** Editable SEO block of a native page document (`architecture-and-data-model.md` §Publish ·
+ * Domain · SEO) — surfaced by the Studio's SEO tab. `title` overrides the rendered `<title>`/
+ * `og:title` (falls back to the landing page's name), `ogImage.src` points at one of this
+ * page's own `pageAssets` (the publish pipeline resolves it back to bytes), `noindex` emits
+ * `<meta name="robots" content="noindex">` and takes the page out of its sitemap. */
+export const pageSeoSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  ogImage: z.object({ src: z.string(), alt: z.string().optional() }).optional(),
+  noindex: z.boolean().optional()
+});
+export type PageSeo = z.infer<typeof pageSeoSchema>;
+
+/** `pageVersions.spec`'s JSON shape for a native (non-`custom_import`) page — the row's only
+ * source of truth (page-system/page-schema.md). */
+export const nativePageDocumentSchema = z.object({
+  pageSpec: pageSpecSchema,
+  tokens: designTokensSchema,
+  seo: pageSeoSchema.optional(),
+  architectureNotes: z.record(z.string(), architectureNoteSchema).optional()
+});
+export type NativePageDocument = z.infer<typeof nativePageDocumentSchema>;
+
+/** `PATCH /api/landings/:id/spec` body. */
+export const updateLandingPageSpecInputSchema = nativePageDocumentSchema;
+export type UpdateLandingPageSpecInput = z.infer<
+  typeof updateLandingPageSpecInputSchema
+>;
+
+/** Pre-built starting point offered in the "create landing page" flow — shared across every
+ * org (`packages/db/src/schema/templates.ts`), not tenant content. */
+export const templateSchema = z.object({
+  id: ulidSchema,
+  name: z.string().min(1),
+  industry: z.string().min(1),
+  thumbnailKey: z.string().nullable(),
+  pageSpec: pageSpecSchema,
+  tokens: designTokensSchema,
+  seo: pageSeoSchema.optional().nullable(),
+  architectureNotes: z
+    .record(z.string(), architectureNoteSchema)
+    .optional()
+    .nullable(),
+  createdAt: timestampsSchema.shape.createdAt
+});
+export type Template = z.infer<typeof templateSchema>;

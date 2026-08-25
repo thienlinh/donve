@@ -1,18 +1,19 @@
 import {
   deploymentSchema,
-  importLandingPageResponseSchema,
   landingPageDetailSchema,
   landingPageListItemSchema,
   landingPageSchema,
   pageAssetSchema,
   pageVersionSchema,
+  templateSchema,
   type Deployment,
-  type ImportLandingPageResponse,
   type LandingPage,
   type LandingPageDetail,
   type LandingPageListItem,
+  type NativePageDocument,
   type PageAsset,
-  type PageVersion
+  type PageVersion,
+  type Template
 } from "@dv/contracts";
 import { z } from "zod";
 
@@ -50,31 +51,55 @@ export async function createLandingPage(input: {
   return landingPageSchema.parse(await res.json());
 }
 
-export type ImportLandingPageInput = { name?: string } & (
-  | { mode: "html"; html: string }
-  | { mode: "url"; url: string }
-  | { mode: "file"; file: File }
-);
+/** `component-library/component-library.md` §Ba con đường tạo trang — thủ công, không AI.
+ * `templateId` clones a shared template's content instead of starting from an empty canvas. */
+export async function createManualLandingPage(input: {
+  name: string;
+  campaignId?: string | null;
+  templateId?: string | null;
+}): Promise<LandingPageDetail> {
+  const res = await landingsFetch("/manual", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+  return landingPageDetailSchema.parse(await res.json());
+}
 
-/** FR-B-30 — paste HTML/upload file/paste a public link, multipart either way (see
- * apps/api's own comment on why: the file-upload case has a binary payload, the other two
- * don't, and one request shape covers all three instead of branching on content-type). */
-export async function importLandingPage(
-  input: ImportLandingPageInput
-): Promise<ImportLandingPageResponse> {
-  const body = new FormData();
-  body.set("mode", input.mode);
-  if (input.name) body.set("name", input.name);
-  if (input.mode === "html") body.set("html", input.html);
-  else if (input.mode === "url") body.set("url", input.url);
-  else body.set("file", input.file, input.file.name);
+const templateListResponseSchema = z.object({
+  templates: z.array(templateSchema)
+});
 
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/landings/import`,
-    { method: "POST", credentials: "include", body }
-  );
-  if (!res.ok) throw new Error(`landings api /import failed: ${res.status}`);
-  return importLandingPageResponseSchema.parse(await res.json());
+/** `GET /api/landings/templates` — shared across every org, not tenant content. */
+export async function fetchTemplates(): Promise<Template[]> {
+  const res = await landingsFetch("/templates");
+  return templateListResponseSchema.parse(await res.json()).templates;
+}
+
+/** Promotes this page into the shared `templates` gallery — the source of new templates is a
+ * page already brought to quality through Studio, not a separate generator. `document` is the
+ * Studio's own in-memory doc (may include edits not yet landed via `updateLandingPageSpec`) so
+ * "save as template" captures what's actually on screen, not a possibly-stale server version. */
+export async function saveLandingPageAsTemplate(
+  id: string,
+  input: { name: string; industry: string; document?: NativePageDocument }
+): Promise<Template> {
+  const res = await landingsFetch(`/${id}/save-as-template`, {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+  return templateSchema.parse(await res.json());
+}
+
+/** Lands a new `pageVersions` row with the edited `PageSpec` (autosave-style, `patch: null`). */
+export async function updateLandingPageSpec(
+  id: string,
+  doc: NativePageDocument
+): Promise<PageVersion> {
+  const res = await landingsFetch(`/${id}/spec`, {
+    method: "PATCH",
+    body: JSON.stringify(doc)
+  });
+  return pageVersionSchema.parse(await res.json());
 }
 
 /** FR-B-21 — lands the first `pageVersions` row for a page created via the prompt bar. */
@@ -300,6 +325,13 @@ export async function publishLandingPage(
     ),
     live: (json as { live: boolean }).live
   };
+}
+
+/** Pre-publish preview — renders what publishing would ship to a private token URL, without
+ * creating a deployment or changing anything live (`ui-ux-design.md` §Studio). */
+export async function createLandingPagePreview(id: string): Promise<string> {
+  const res = await landingsFetch(`/${id}/preview`, { method: "POST" });
+  return ((await res.json()) as { url: string }).url;
 }
 
 /**

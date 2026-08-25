@@ -15,7 +15,7 @@ Before you report done:
 
 - Re-read your own diff once as if it were someone else's PR — check for duplication you just introduced, a function that grew multiple responsibilities, and any inconsistency with sibling files in the same domain.
 - If your change removed the last caller of something (a mechanism, a helper, a prop, a whole file), delete that dead code in the same change — don't leave it unreferenced.
-- Run `bun run lint`, `bun run typecheck`, and `bun run fmt:check` (root turbo/oxlint/oxfmt scripts — never per-package equivalents, there are none) and fix anything they flag. Never report a task done with a known-red lint/typecheck.
+- Run `bun run lint`, `bun run typecheck`, and `bun run fmt` (root turbo/oxlint/oxfmt scripts — never per-package equivalents, there are none) and fix anything they flag. Never report a task done with a known-red lint/typecheck.
 - If the task touches a UI, note explicitly in your final report whether you actually exercised it in a browser (`apps/dashboard`, Vite + React 19) or only verified it compiles — do not imply visual/functional testing you didn't do.
 
 Report back concretely: what you changed (files, not prose summaries), why each non-obvious decision was made, and anything you deliberately left out of scope. If you hit a decision that needs the user's input (breaking an existing contract, an ambiguous requirement), stop and report it rather than guessing.

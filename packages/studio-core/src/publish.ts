@@ -39,6 +39,11 @@ export interface PublishPipelineInput {
   hostname: string;
   title: string;
   canonicalPath?: string;
+  /** Prefix every rewritten asset URL gets, without a trailing slash (default: none, i.e.
+   * root-relative `/assets/...` as a real deployment is served). Only the private preview
+   * endpoint sets it — there the artifacts live under a token path on the API origin, not at
+   * the root of their own hostname (`apps/api/src/lib/publish.ts` `previewLandingPage`). */
+  assetBasePath?: string;
   /** Landing page's `.thumbnail.jpg` (FR-G-05 og:image), already fetched by the caller. */
   ogImage?: { bytes: Uint8Array; mime: string };
   structuredData?: PublishStructuredData[];
@@ -56,6 +61,10 @@ export interface PublishPipelineInput {
     apiUrl?: string;
     /** Cloudflare Turnstile site key (FR-D-03, public by design). */
     turnstileSiteKey?: string;
+    /** `tracking-and-attribution.md` §Identity — the beacon/lead-submit payload's `page_id`
+     * / `page_version_id`. Optional for the same mid-migration reason as `apiUrl`. */
+    landingPageId?: string;
+    pageVersionId?: string;
   };
 }
 
@@ -100,13 +109,14 @@ export async function buildPublishArtifacts(
 ): Promise<PublishPipelineOutput> {
   const sanitized = sanitizeLandingHtml(input.html);
 
+  const assetBase = input.assetBasePath ?? "";
   const outputAssets: PublishPipelineOutputAsset[] = [];
   const urlRewrites = new Map<string, string>();
   for (const asset of input.assets) {
     const hash = hashBytes(asset.bytes);
     const key = `assets/${hash}.${extFor(asset.mime, asset.originalUrl)}`;
     outputAssets.push({ key, bytes: asset.bytes, mime: asset.mime });
-    urlRewrites.set(asset.originalUrl, `/${key}`);
+    urlRewrites.set(asset.originalUrl, `${assetBase}/${key}`);
   }
 
   const { document } = parseHTML(sanitized);
@@ -273,7 +283,7 @@ export async function buildPublishArtifacts(
     });
     const script = document.createElement("script");
     script.setAttribute("defer", "");
-    script.setAttribute("src", `/${key}`);
+    script.setAttribute("src", `${assetBase}/${key}`);
     body.appendChild(script);
   }
 

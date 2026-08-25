@@ -26,6 +26,12 @@ dist-ssr
 # Playwright MCP session output (console logs, screenshots) — not build output
 .playwright-mcp/
 
+# packages/studio-render's e2e — generated preview fixtures + run output, not the committed
+# golden-screenshot baselines (those live in e2e/__screenshots__, intentionally not ignored)
+packages/studio-render/e2e/previews/
+packages/studio-render/test-results/
+packages/studio-render/playwright-report/
+
 # Editor directories and files
 .idea
 .DS_Store

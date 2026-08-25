@@ -31,7 +31,7 @@ vi.mock("../src/lib/db.js", () => ({
   createDbFromEnv: vi.fn(() => ({}))
 }));
 
-const { resolveGenericApiKey } =
+const { resolveGeneratedApiKey } =
   await import("../src/modules/leads/webhooks.js");
 
 function baseEnv() {
@@ -41,11 +41,11 @@ function baseEnv() {
   } as any;
 }
 
-describe("resolveGenericApiKey — no shared-secret fallback", () => {
+describe('resolveGeneratedApiKey("generic") — no shared-secret fallback', () => {
   beforeEach(() => state.credentials.clear());
 
   it("an org with no generated key resolves to null (never a fallback secret)", async () => {
-    const key = await resolveGenericApiKey(baseEnv(), "org-a");
+    const key = await resolveGeneratedApiKey(baseEnv(), "org-a", "generic");
     expect(key).toBeNull();
   });
 
@@ -53,14 +53,18 @@ describe("resolveGenericApiKey — no shared-secret fallback", () => {
     state.credentials.set("org-a:generic", {
       encryptedSecret: "enc:my-generated-key"
     });
-    const key = await resolveGenericApiKey(baseEnv(), "org-a");
+    const key = await resolveGeneratedApiKey(baseEnv(), "org-a", "generic");
     expect(key).toBe("my-generated-key");
   });
 
   it("org-b's key is never returned when resolving org-a (per-org isolation)", async () => {
     state.credentials.set("org-a:generic", { encryptedSecret: "enc:key-a" });
     state.credentials.set("org-b:generic", { encryptedSecret: "enc:key-b" });
-    expect(await resolveGenericApiKey(baseEnv(), "org-a")).toBe("key-a");
-    expect(await resolveGenericApiKey(baseEnv(), "org-b")).toBe("key-b");
+    expect(await resolveGeneratedApiKey(baseEnv(), "org-a", "generic")).toBe(
+      "key-a"
+    );
+    expect(await resolveGeneratedApiKey(baseEnv(), "org-b", "generic")).toBe(
+      "key-b"
+    );
   });
 });

@@ -22,14 +22,7 @@ import {
   CardHeader,
   CardTitle
 } from "@dv/ui/components/shadcn/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle
-} from "@dv/ui/components/shadcn/empty";
 import { Input } from "@dv/ui/components/shadcn/input";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import {
   Table,
   TableBody,
@@ -40,8 +33,10 @@ import {
 } from "@dv/ui/components/shadcn/table";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Scale } from "lucide-react";
 import { useState } from "react";
 
+import { QueryState } from "@/components/query-state";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -85,34 +80,16 @@ function UnmatchedTransactionsList() {
     queryFn: fetchUnmatchedTransactions
   });
 
-  if (isPending) {
+  if (isPending || error || !data || data.length === 0) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{m.reconciliationLoadErrorTitle()}</EmptyTitle>
-          <EmptyDescription>{error.message}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
-  }
-
-  if (!data) return null;
-
-  if (data.length === 0) {
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{m.reconciliationEmptyTitle()}</EmptyTitle>
-        </EmptyHeader>
-      </Empty>
+      <QueryState
+        isPending={isPending}
+        error={error}
+        isEmpty={!isPending && !error && (!data || data.length === 0)}
+        errorTitle={m.reconciliationLoadErrorTitle()}
+        emptyTitle={m.reconciliationEmptyTitle()}
+        emptyIcon={<Scale />}
+      />
     );
   }
 
