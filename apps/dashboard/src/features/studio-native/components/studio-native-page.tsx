@@ -16,9 +16,15 @@ import {
   AlertDialogTitle
 } from "@dv/ui/components/shadcn/alert-dialog";
 import { Button } from "@dv/ui/components/shadcn/button";
+import { Input } from "@dv/ui/components/shadcn/input";
 import { useSidebar } from "@dv/ui/components/shadcn/sidebar";
 import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@dv/ui/components/shadcn/tooltip";
 import type { Spec } from "@json-render/core";
 import type { Data, Plugin, PuckAction } from "@puckeditor/core";
 
@@ -26,15 +32,24 @@ import "@puckeditor/core/puck.css";
 import { createUsePuck, Puck } from "@puckeditor/core";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   Gauge,
   LayoutTemplate,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Pencil,
+  Redo2,
   Save,
   Search,
   TrendingUp,
+  Undo2,
   Upload
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { compressToWebp } from "@/lib/image-compress";
@@ -45,6 +60,7 @@ import {
   assetPosterUrl,
   fetchLandingPage,
   fetchTemplates,
+  renameLandingPage,
   updateLandingPageSpec,
   uploadAsset
 } from "../../studio/api";
@@ -135,6 +151,179 @@ function buildConfigFor(landingPageId: string) {
 // `HeaderActions` when the 2 fields it actually reads change.
 const useTypedPuck = createUsePuck();
 
+const iconButtonClass =
+  "flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50";
+
+/**
+ * Replaces Puck's default header (`overrides.header`) — Puck bundles the back/title/undo-redo/
+ * sidebar-toggles into one opaque `children` node with no way to reposition them individually, so
+ * this rebuilds it from scratch. A single, in-flow row: `_PuckLayout-header` (the grid cell this
+ * renders into) sets `overflow: auto` whenever the left sidebar is visible, which silently clips
+ * anything positioned outside the row's own box — an earlier version floated the sidebar toggles
+ * below the row via `absolute top-full` to sit nearer the canvas, and that clipping hid them
+ * entirely. Kept simple instead: back → left-sidebar toggle → editable title → actions (now
+ * including undo/redo, moved here so the title has room) → right-sidebar toggle, all one row.
+ * `leftSideBarVisible`/`rightSideBarVisible` are the same public `ui` slice `usePuck()` exposes
+ * elsewhere in this file (`handleSelectElement`'s `setUi` dispatch).
+ *
+ * The right sidebar (fields panel) additionally auto-follows selection: hidden while nothing is
+ * selected on the canvas, opens as soon as an element is — a fields panel with nothing to show is
+ * just empty chrome. The manual toggle still works in between selection changes.
+ */
+function StudioHeader({
+  landingPage,
+  actions
+}: {
+  landingPage: { id: string; name: string };
+  actions: ReactNode;
+}) {
+  const queryClient = useQueryClient();
+  const dispatch = useTypedPuck((s) => s.dispatch);
+  const leftSideBarVisible = useTypedPuck(
+    (s) => s.appState.ui.leftSideBarVisible
+  );
+  const rightSideBarVisible = useTypedPuck(
+    (s) => s.appState.ui.rightSideBarVisible
+  );
+  const itemSelector = useTypedPuck((s) => s.appState.ui.itemSelector);
+
+  useEffect(() => {
+    dispatch({
+      type: "setUi",
+      ui: { rightSideBarVisible: itemSelector !== null }
+    });
+  }, [itemSelector, dispatch]);
+
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState(landingPage.name);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isRenaming) renameInputRef.current?.focus();
+  }, [isRenaming]);
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) => renameLandingPage(landingPage.id, name),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: landingKeys.detail(landingPage.id)
+      }),
+    onError: () =>
+      toast.add({ title: m.studioRenameErrorToast(), type: "error" })
+  });
+
+  function commitRename() {
+    setIsRenaming(false);
+    const trimmed = nameDraft.trim();
+    if (trimmed && trimmed !== landingPage.name) {
+      renameMutation.mutate(trimmed);
+    } else {
+      setNameDraft(landingPage.name);
+    }
+  }
+
+  return (
+    <header className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-2">
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Link
+              to="/landings"
+              aria-label={m.commonBack()}
+              className={iconButtonClass}
+            >
+              <ArrowLeft className="size-4" />
+            </Link>
+          }
+        />
+        <TooltipContent>{m.commonBack()}</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              aria-label="Khối"
+              onClick={() =>
+                dispatch({
+                  type: "setUi",
+                  ui: { leftSideBarVisible: !leftSideBarVisible }
+                })
+              }
+              className={iconButtonClass}
+            >
+              {leftSideBarVisible ? (
+                <PanelLeftClose className="size-4" />
+              ) : (
+                <PanelLeftOpen className="size-4" />
+              )}
+            </button>
+          }
+        />
+        <TooltipContent>Khối</TooltipContent>
+      </Tooltip>
+
+      {isRenaming ? (
+        <Input
+          ref={renameInputRef}
+          value={nameDraft}
+          onChange={(e) => setNameDraft(e.target.value)}
+          onBlur={commitRename}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitRename();
+            if (e.key === "Escape") {
+              setNameDraft(landingPage.name);
+              setIsRenaming(false);
+            }
+          }}
+          className="h-7 max-w-xs min-w-32 flex-1 shrink"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setNameDraft(landingPage.name);
+            setIsRenaming(true);
+          }}
+          aria-label={m.commonEdit()}
+          className="group flex max-w-xs min-w-32 flex-1 shrink items-center justify-between gap-1.5 rounded-md border border-transparent px-2 py-1 text-left text-sm font-semibold hover:border-input hover:bg-background"
+        >
+          <span className="truncate">{landingPage.name}</span>
+          <Pencil className="size-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
+        </button>
+      )}
+
+      <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>
+
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              aria-label="Trang"
+              onClick={() =>
+                dispatch({
+                  type: "setUi",
+                  ui: { rightSideBarVisible: !rightSideBarVisible }
+                })
+              }
+              className={iconButtonClass}
+            >
+              {rightSideBarVisible ? (
+                <PanelRightClose className="size-4" />
+              ) : (
+                <PanelRightOpen className="size-4" />
+              )}
+            </button>
+          }
+        />
+        <TooltipContent>Trang</TooltipContent>
+      </Tooltip>
+    </header>
+  );
+}
+
 /**
  * Replaces Puck's default header actions (`overrides.headerActions` — `renderHeaderActions` is
  * deprecated). Hoisted to module scope so it's a stable component type across renders (an
@@ -166,11 +355,47 @@ function HeaderActions({
 }) {
   const dispatch = useTypedPuck((s) => s.dispatch);
   const data = useTypedPuck((s) => s.appState.data);
+  const canUndo = useTypedPuck((s) => s.history.hasPast);
+  const canRedo = useTypedPuck((s) => s.history.hasFuture);
+  const historyBack = useTypedPuck((s) => s.history.back);
+  const historyForward = useTypedPuck((s) => s.history.forward);
   puckDispatchRef.current = dispatch;
   puckDataRef.current = data;
 
   return (
     <div className="flex items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              disabled={!canUndo}
+              aria-label={m.commonUndo()}
+              onClick={historyBack}
+              className={iconButtonClass}
+            >
+              <Undo2 className="size-4" />
+            </button>
+          }
+        />
+        <TooltipContent>{m.commonUndo()}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              disabled={!canRedo}
+              aria-label={m.commonRedo()}
+              onClick={historyForward}
+              className={iconButtonClass}
+            >
+              <Redo2 className="size-4" />
+            </button>
+          }
+        />
+        <TooltipContent>{m.commonRedo()}</TooltipContent>
+      </Tooltip>
       <Button
         variant="outline"
         size="sm"
@@ -443,7 +668,6 @@ export function StudioNativePage() {
         config={puckConfig}
         data={initialPuckData}
         onChange={handlePuckChange}
-        headerTitle={landingPage.name}
         // Puck's own root layout is hard-coded to `height: 100dvh` in its CSS (only overridable
         // via this prop, applied as an inline style) — without it, Puck ignores that this app
         // already has its own top bar above the canvas and overflows past the viewport bottom.
@@ -455,6 +679,12 @@ export function StudioNativePage() {
         viewports={puckViewportsVi}
         plugins={puckPlugins}
         overrides={{
+          header: ({ actions }) => (
+            <StudioHeader
+              landingPage={{ id, name: landingPage.name }}
+              actions={actions}
+            />
+          ),
           headerActions: () => (
             <HeaderActions
               id={id}

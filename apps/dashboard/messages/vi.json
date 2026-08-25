@@ -312,6 +312,8 @@
   "commonNext": "Sau",
   "commonLoadMore": "Tải thêm",
   "commonSave": "Lưu",
+  "commonUndo": "Hoàn tác",
+  "commonRedo": "Làm lại",
   "commonCreate": "Tạo",
   "commonCopy": "Sao chép",
   "commonPaginationLabel": "Trang {page}/{total}",

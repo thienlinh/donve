@@ -156,7 +156,9 @@
 /** @typedef {{}} Commonnext1Inputs */
 /** @typedef {{ page: NonNullable<unknown>, total: NonNullable<unknown> }} Commonpaginationlabel2Inputs */
 /** @typedef {{}} Commonprevious1Inputs */
+/** @typedef {{}} Commonredo1Inputs */
 /** @typedef {{}} Commonsave1Inputs */
+/** @typedef {{}} Commonundo1Inputs */
 /** @typedef {{}} Domainsaddbutton2Inputs */
 /** @typedef {{}} Domainsadddialogdescription3Inputs */
 /** @typedef {{}} Domainsadddialogtitle3Inputs */
@@ -1763,9 +1765,19 @@ export const commonprevious1 =
     return /** @type {LocalizedString} */ `Previous`;
   };
 
+export const commonredo1 =
+  /** @type {(inputs: Commonredo1Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Redo`;
+  };
+
 export const commonsave1 =
   /** @type {(inputs: Commonsave1Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Save`;
+  };
+
+export const commonundo1 =
+  /** @type {(inputs: Commonundo1Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Undo`;
   };
 
 export const domainsaddbutton2 =

@@ -155,7 +155,9 @@
 /** @typedef {{}} Commonnext1Inputs */
 /** @typedef {{ page: NonNullable<unknown>, total: NonNullable<unknown> }} Commonpaginationlabel2Inputs */
 /** @typedef {{}} Commonprevious1Inputs */
+/** @typedef {{}} Commonredo1Inputs */
 /** @typedef {{}} Commonsave1Inputs */
+/** @typedef {{}} Commonundo1Inputs */
 /** @typedef {{}} Domainsaddbutton2Inputs */
 /** @typedef {{}} Domainsadddialogdescription3Inputs */
 /** @typedef {{}} Domainsadddialogtitle3Inputs */
@@ -1139,7 +1141,9 @@ export type Commonpaginationlabel2Inputs = {
   total: NonNullable<unknown>;
 };
 export type Commonprevious1Inputs = {};
+export type Commonredo1Inputs = {};
 export type Commonsave1Inputs = {};
+export type Commonundo1Inputs = {};
 export type Domainsaddbutton2Inputs = {};
 export type Domainsadddialogdescription3Inputs = {};
 export type Domainsadddialogtitle3Inputs = {};
@@ -2477,8 +2481,14 @@ export declare const commonpaginationlabel2: (
 export declare const commonprevious1: (
   inputs: Commonprevious1Inputs
 ) => LocalizedString;
+export declare const commonredo1: (
+  inputs: Commonredo1Inputs
+) => LocalizedString;
 export declare const commonsave1: (
   inputs: Commonsave1Inputs
+) => LocalizedString;
+export declare const commonundo1: (
+  inputs: Commonundo1Inputs
 ) => LocalizedString;
 export declare const domainsaddbutton2: (
   inputs: Domainsaddbutton2Inputs

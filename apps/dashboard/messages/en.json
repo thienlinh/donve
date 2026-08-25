@@ -312,6 +312,8 @@
   "commonNext": "Next",
   "commonLoadMore": "Load more",
   "commonSave": "Save",
+  "commonUndo": "Undo",
+  "commonRedo": "Redo",
   "commonCreate": "Create",
   "commonCopy": "Copy",
   "commonPaginationLabel": "Page {page} of {total}",

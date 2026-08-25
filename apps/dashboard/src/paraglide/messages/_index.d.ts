@@ -164,7 +164,9 @@ export type Commonpaginationlabel2Inputs = {
   total: NonNullable<unknown>;
 };
 export type Commonprevious1Inputs = {};
+export type Commonredo1Inputs = {};
 export type Commonsave1Inputs = {};
+export type Commonundo1Inputs = {};
 export type Domainsaddbutton2Inputs = {};
 export type Domainsadddialogdescription3Inputs = {};
 export type Domainsadddialogtitle3Inputs = {};
@@ -4629,6 +4631,29 @@ export { commonprevious1 as "commonPrevious" };
 /**
  * | output |
  * | --- |
+ * | "Redo" |
+ *
+ * @param {Commonredo1Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const commonredo1: ((
+  inputs?: Commonredo1Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Commonredo1Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { commonredo1 as "commonRedo" };
+/**
+ * | output |
+ * | --- |
  * | "Save" |
  *
  * @param {Commonsave1Inputs} inputs
@@ -4649,6 +4674,29 @@ declare const commonsave1: ((
     {}
   >;
 export { commonsave1 as "commonSave" };
+/**
+ * | output |
+ * | --- |
+ * | "Undo" |
+ *
+ * @param {Commonundo1Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const commonundo1: ((
+  inputs?: Commonundo1Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Commonundo1Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { commonundo1 as "commonUndo" };
 /**
  * | output |
  * | --- |

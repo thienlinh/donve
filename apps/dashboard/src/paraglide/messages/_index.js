@@ -158,7 +158,9 @@ import * as __en from "./en.js";
 /** @typedef {{}} Commonnext1Inputs */
 /** @typedef {{ page: NonNullable<unknown>, total: NonNullable<unknown> }} Commonpaginationlabel2Inputs */
 /** @typedef {{}} Commonprevious1Inputs */
+/** @typedef {{}} Commonredo1Inputs */
 /** @typedef {{}} Commonsave1Inputs */
+/** @typedef {{}} Commonundo1Inputs */
 /** @typedef {{}} Domainsaddbutton2Inputs */
 /** @typedef {{}} Domainsadddialogdescription3Inputs */
 /** @typedef {{}} Domainsadddialogtitle3Inputs */
@@ -3795,6 +3797,24 @@ export { commonprevious1 as "commonPrevious" };
 /**
  * | output |
  * | --- |
+ * | "Redo" |
+ *
+ * @param {Commonredo1Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const commonredo1 =
+  /** @type {((inputs?: Commonredo1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Commonredo1Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.commonredo1(inputs);
+      return __vi.commonredo1(inputs);
+    }
+  );
+export { commonredo1 as "commonRedo" };
+/**
+ * | output |
+ * | --- |
  * | "Save" |
  *
  * @param {Commonsave1Inputs} inputs
@@ -3810,6 +3830,24 @@ const commonsave1 =
     }
   );
 export { commonsave1 as "commonSave" };
+/**
+ * | output |
+ * | --- |
+ * | "Undo" |
+ *
+ * @param {Commonundo1Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const commonundo1 =
+  /** @type {((inputs?: Commonundo1Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Commonundo1Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.commonundo1(inputs);
+      return __vi.commonundo1(inputs);
+    }
+  );
+export { commonundo1 as "commonUndo" };
 /**
  * | output |
  * | --- |
