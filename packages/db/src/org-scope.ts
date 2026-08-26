@@ -61,3 +61,39 @@ export async function withOrgScope<T>(
   // oxlint-disable-next-line no-unsafe-type-assertion -- same erased-shape reason as above.
   return results[1] as T;
 }
+
+/**
+ * Multi-statement counterpart to `withOrgScope` — for flows that need more than one query
+ * under the same org scope (e.g. a delete+insert "replace" pair), which plain `withOrgScope`
+ * can't express since the neon-http path only ever batches exactly one query alongside
+ * `set_config`. `build` returns every statement to run; all of them see the same org scope.
+ */
+export async function withOrgScopeMulti(
+  db: Db,
+  orgId: string,
+  build: (qb: QueryBuilder) => unknown[]
+): Promise<void> {
+  if (db.kind === "postgres-js") {
+    await db.raw.transaction(async (tx) => {
+      await tx.execute(
+        sql`select set_config('app.current_org', ${orgId}, true)`
+      );
+      for (const statement of build(tx)) {
+        // Statements must run in the caller's order (e.g. delete before insert in a "replace"
+        // pair); Promise.all would race them instead.
+        // oxlint-disable-next-line no-await-in-loop, react-doctor/async-await-in-loop
+        await statement;
+      }
+    });
+    return;
+  }
+
+  const setOrgScope = db.raw.execute(
+    sql`select set_config('app.current_org', ${orgId}, true)`
+  );
+  const statements = build(db.raw);
+  // oxlint-disable-next-line no-unsafe-type-assertion -- same erased-shape reason as withOrgScope.
+  await db.raw.batch([setOrgScope, ...statements] as Parameters<
+    typeof db.raw.batch
+  >[0]);
+}

@@ -46,7 +46,7 @@ let orgA: typeof organizations.$inferSelect;
 let orgB: typeof organizations.$inferSelect;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const adminUrl = container.getConnectionUri();
 
   // CREATE ROLE requires CREATEROLE/superuser, so both roles are created here via the
@@ -105,7 +105,7 @@ afterAll(async () => {
 describe("withOrgScope + RLS org isolation, exercised through the repository layer", () => {
   it("keeps org A's leads invisible to org B, and visible to org A", async () => {
     const lead = await leadsRepository.insert(appDb, orgA.id, {
-      campaignId: "camp_a",
+      campaignId: crypto.randomUUID(),
       fullName: "Nguyen Van A",
       phone: "+84900000001"
     });
@@ -121,8 +121,8 @@ describe("withOrgScope + RLS org isolation, exercised through the repository lay
   it("keeps org A's orders invisible to org B", async () => {
     await ordersRepository.insert(appDb, orgA.id, {
       code: "DVTEST1",
-      leadId: "lead_a",
-      campaignId: "camp_a",
+      leadId: crypto.randomUUID(),
+      campaignId: crypto.randomUUID(),
       amount: "100000"
     });
 

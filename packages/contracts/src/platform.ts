@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { timestampsSchema, ulidSchema } from "./common.js";
+import { timestampsSchema, idSchema } from "./common.js";
 import { refundReasonSchema } from "./crm.js";
 import { orgPlanSchema, organizationSchema } from "./tenancy.js";
 
@@ -17,7 +17,7 @@ export type PlatformStaffRole = z.infer<typeof platformStaffRoleSchema>;
 
 /** Response shape of `GET /platform/whoami` (apps/api/src/modules/platform/routes.ts). */
 export const platformWhoAmISchema = z.object({
-  staffId: ulidSchema,
+  staffId: idSchema,
   role: platformStaffRoleSchema
 });
 export type PlatformWhoAmI = z.infer<typeof platformWhoAmISchema>;
@@ -31,10 +31,10 @@ export type PlatformOrgListItem = z.infer<typeof platformOrgListItemSchema>;
 
 /** `platform_audit_logs` row — the Audit tab of the org-detail screen (platform-admin.md §11). */
 export const platformAuditLogSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   staffUserId: z.string(),
   action: z.string(),
-  targetOrgId: ulidSchema.nullable(),
+  targetOrgId: idSchema.nullable(),
   targetType: z.string().nullable(),
   targetId: z.string().nullable(),
   meta: z.string().nullable(),
@@ -43,7 +43,7 @@ export const platformAuditLogSchema = z.object({
 export type PlatformAuditLog = z.infer<typeof platformAuditLogSchema>;
 
 export const featureFlagSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   key: z.string().min(1),
   description: z.string(),
   ...timestampsSchema.shape
@@ -51,8 +51,8 @@ export const featureFlagSchema = z.object({
 export type FeatureFlag = z.infer<typeof featureFlagSchema>;
 
 export const orgFeatureOverrideSchema = z.object({
-  id: ulidSchema,
-  orgId: ulidSchema,
+  id: idSchema,
+  orgId: idSchema,
   featureKey: z.string().min(1),
   /** Stored as text `"true"`/`"false"` per platform-admin.md §12's table shape. */
   enabled: z.enum(["true", "false"]),
@@ -91,7 +91,7 @@ export type PlatformReasonInput = z.infer<typeof platformReasonSchema>;
  * Non-custodial platform (FR-D-11): this creates the tracking record the tenant's own refund
  * flow uses, it does not move money. */
 export const platformRefundAssistSchema = z.object({
-  orderId: ulidSchema,
+  orderId: idSchema,
   refundReason: refundReasonSchema,
   reason: z.string().trim().min(3)
 });

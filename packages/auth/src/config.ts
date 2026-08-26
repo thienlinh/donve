@@ -4,7 +4,6 @@ import type { email } from "@dv/drivers";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
-import { ulid } from "ulid";
 
 import {
   accessControl,
@@ -51,9 +50,11 @@ export function createAuth(config: AuthConfig) {
     baseURL: config.baseURL,
     secret: config.secret,
     trustedOrigins: config.trustedOrigins,
+    // `id` columns default to Postgres 18's native uuidv7() (packages/db/src/schema/columns.ts) —
+    // generateId: false skips client-side id generation so the DB default fills it on insert.
     advanced: {
       database: {
-        generateId: () => ulid()
+        generateId: false
       }
     },
     emailAndPassword: {

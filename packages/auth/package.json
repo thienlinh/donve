@@ -16,8 +16,7 @@
     "@dv/contracts": "workspace:*",
     "@dv/db": "workspace:*",
     "@dv/drivers": "workspace:*",
-    "better-auth": "catalog:server",
-    "ulid": "catalog:db"
+    "better-auth": "catalog:server"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",

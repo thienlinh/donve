@@ -438,6 +438,7 @@ const templates = [
 
 async function main() {
   for (const template of templates) {
+    // oxlint-disable-next-line no-await-in-loop -- must stay sequential: check-then-insert by name, logs must stay in order
     const existing = await db.raw
       .select({ id: schema.templates.id })
       .from(schema.templates)
@@ -447,6 +448,7 @@ async function main() {
       console.log(`skip (already exists): ${template.name}`);
       continue;
     }
+    // oxlint-disable-next-line no-await-in-loop -- depends on the existence check above; must run after it, not in parallel
     await templatesRepository.insert(db, {
       name: template.name,
       industry: template.industry,

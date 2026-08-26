@@ -5,14 +5,14 @@ import {
   orgIdSchema,
   softDeleteSchema,
   timestampsSchema,
-  ulidSchema,
+  idSchema,
   utmSchema
 } from "./common.js";
 
 export const leadSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  campaignId: ulidSchema,
+  campaignId: idSchema,
   fullName: z.string().min(1),
   /** normalized to +84 format. */
   phone: z.string(),
@@ -22,7 +22,7 @@ export const leadSchema = z.object({
   utm: utmSchema.default({}),
   /** value validated against organizations.settings.pipeline at the app layer. */
   stage: z.string().default("new"),
-  assigneeId: ulidSchema.nullable(),
+  assigneeId: idSchema.nullable(),
   ...timestampsSchema.shape,
   ...softDeleteSchema.shape,
   /** NFR-10/NFR-11 — set once phone/email/customFields have been scrubbed. */
@@ -64,22 +64,22 @@ export const leadActivityTypeSchema = z.enum(leadActivityTypeValues);
 export type LeadActivityType = z.infer<typeof leadActivityTypeSchema>;
 
 export const leadActivitySchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  leadId: ulidSchema,
+  leadId: idSchema,
   type: leadActivityTypeSchema,
   body: z.string().nullable(),
   meta: jsonRecordSchema.default({}),
-  actorId: ulidSchema.nullable(),
+  actorId: idSchema.nullable(),
   createdAt: z.coerce.date()
 });
 export type LeadActivity = z.infer<typeof leadActivitySchema>;
 
 /** consent trail required under Nghị định 13/2023/NĐ-CP on personal data protection. */
 export const consentSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  leadId: ulidSchema,
+  leadId: idSchema,
   consentType: z.string().default("data_collection"),
   policyVersion: z.string(),
   ip: z.string().nullable(),
@@ -106,9 +106,9 @@ export type DataSubjectRequestStatus = z.infer<
 /** NFR-10 (Nghị định 13/2023/NĐ-CP) — a lead's delete/export request, tracked against the
  * org's own 72h response SLA (NFR-12: the org is the data controller, not the platform). */
 export const dataSubjectRequestSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  leadId: ulidSchema,
+  leadId: idSchema,
   requestType: dataSubjectRequestTypeSchema,
   receivedAt: z.coerce.date(),
   /** `receivedAt` + 72h, computed and stored at write time. */
@@ -150,13 +150,13 @@ export const orderStatusSchema = z.enum(orderStatusValues);
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
 
 export const orderSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   /** transfer-content code, e.g. "DV4F7K" — 6 base32 chars + 1 checksum char. */
   code: z.string(),
-  leadId: ulidSchema,
-  campaignId: ulidSchema,
-  productId: ulidSchema.nullable(),
+  leadId: idSchema,
+  campaignId: idSchema,
+  productId: idSchema.nullable(),
   amount: z.coerce.number().int().nonnegative(),
   status: orderStatusSchema.default("pending"),
   paidAt: z.coerce.date().nullable(),
@@ -171,9 +171,9 @@ export const paymentMatchTypeSchema = z.enum(paymentMatchTypeValues);
 export type PaymentMatchType = z.infer<typeof paymentMatchTypeSchema>;
 
 export const paymentSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  orderId: ulidSchema.nullable(),
+  orderId: idSchema.nullable(),
   provider: z.string().default("sepay"),
   providerTxId: z.string(),
   amount: z.coerce.number().int().nonnegative(),
@@ -194,7 +194,7 @@ export type PaymentConnectionStatus = z.infer<
 
 /** non-custodial: each org connects its own payment provider account (BYOK-style). */
 export const paymentConnectionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   provider: z.string().default("sepay"),
   encryptedApiKey: z.string(),
@@ -265,16 +265,16 @@ export type UnmatchedTransactionStatus = z.infer<
 >;
 
 export const unmatchedTransactionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   providerTxId: z.string(),
   rawPayload: jsonRecordSchema,
   reason: unmatchedTransactionReasonSchema,
   /** populated when reason=ambiguous; candidates are ranked at the app layer. */
-  candidateOrderIds: z.array(ulidSchema).default([]),
+  candidateOrderIds: z.array(idSchema).default([]),
   status: unmatchedTransactionStatusSchema.default("pending"),
-  resolvedOrderId: ulidSchema.nullable(),
-  resolvedBy: ulidSchema.nullable(),
+  resolvedOrderId: idSchema.nullable(),
+  resolvedBy: idSchema.nullable(),
   resolvedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date()
 });
@@ -282,7 +282,7 @@ export type UnmatchedTransaction = z.infer<typeof unmatchedTransactionSchema>;
 
 /** One `candidateOrderIds` entry hydrated with order/lead info for the FR-D-09 manual picker. */
 export const unmatchedTransactionCandidateSchema = z.object({
-  orderId: ulidSchema,
+  orderId: idSchema,
   code: z.string(),
   amount: z.coerce.number().int().nonnegative(),
   leadFullName: z.string(),
@@ -308,7 +308,7 @@ export type UnmatchedTransactionWithCandidates = z.infer<
  * or a sales rep giving up on `no_candidate`) — resolves the row without recording a payment. */
 export const resolveUnmatchedTransactionSchema = z
   .object({
-    orderId: ulidSchema.optional(),
+    orderId: idSchema.optional(),
     dismissed: z.literal(true).optional()
   })
   .refine((body) => body.orderId !== undefined || body.dismissed === true, {
@@ -358,16 +358,16 @@ export type RemitterInfo = z.infer<typeof remitterInfoSchema>;
 
 /** manual refund flow — platform never holds funds, ops must transfer the refund themselves. */
 export const refundRequestSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  orderId: ulidSchema,
-  paymentId: ulidSchema.nullable(),
+  orderId: idSchema,
+  paymentId: idSchema.nullable(),
   reason: refundReasonSchema,
   amount: z.coerce.number().int().nonnegative(),
   remitterInfo: remitterInfoSchema,
   status: refundStatusSchema.default("pending"),
   evidenceKey: z.string().nullable(),
-  createdBy: ulidSchema.nullable(),
+  createdBy: idSchema.nullable(),
   createdAt: z.coerce.date(),
   completedAt: z.coerce.date().nullable()
 });
@@ -421,7 +421,7 @@ export type RefundRequestWithOrderList = z.infer<
  */
 export const publicLeadSubmitSchema = z.object({
   orgId: orgIdSchema,
-  campaignId: ulidSchema,
+  campaignId: idSchema,
   fullName: z.string().min(1),
   phone: z.string().min(1),
   email: z.email().nullable().optional(),
@@ -435,8 +435,8 @@ export const publicLeadSubmitSchema = z.object({
   /** `tracking-and-attribution.md` §Identity — from `window.__DV__`/`localStorage`, only present
    * on submits from a native (`PageSpec`) page's runtime; legacy pages never send these. */
   anonymousId: z.string().nullish(),
-  landingPageId: ulidSchema.nullish(),
-  pageVersionId: ulidSchema.nullish()
+  landingPageId: idSchema.nullish(),
+  pageVersionId: idSchema.nullish()
 });
 export type PublicLeadSubmitInput = z.infer<typeof publicLeadSubmitSchema>;
 
@@ -449,7 +449,7 @@ export const publicOrderResultSchema = z.object({
 export type PublicOrderResult = z.infer<typeof publicOrderResultSchema>;
 
 export const publicLeadResultSchema = z.object({
-  leadId: ulidSchema,
+  leadId: idSchema,
   status: z.enum(["created", "merged"]),
   order: publicOrderResultSchema.nullable()
 });
@@ -457,11 +457,11 @@ export type PublicLeadResult = z.infer<typeof publicLeadResultSchema>;
 
 /** GET /api/leads query params (FR-E-01). All filters optional; `page` is 1-indexed. */
 export const leadListQuerySchema = z.object({
-  campaignId: ulidSchema.optional(),
-  productId: ulidSchema.optional(),
+  campaignId: idSchema.optional(),
+  productId: idSchema.optional(),
   stage: z.string().optional(),
   utmSource: z.string().optional(),
-  assigneeId: z.union([ulidSchema, z.literal("unassigned")]).optional(),
+  assigneeId: z.union([idSchema, z.literal("unassigned")]).optional(),
   /** filters against `orders.status` — `true` means any paid/fulfilled order exists. */
   paid: z.coerce.boolean().optional(),
   /** `true` means 2+ orders exist for this lead — a returning customer. */
@@ -496,7 +496,7 @@ export type LeadImportRow = z.infer<typeof leadImportRowSchema>;
 /** ponytail: capped at 500 rows/request, same cap as the retention job's per-run batch —
  * a bigger CSV wants a background job, not this endpoint. */
 export const leadImportRequestSchema = z.object({
-  campaignId: ulidSchema,
+  campaignId: idSchema,
   rows: z.array(leadImportRowSchema).min(1).max(500)
 });
 export type LeadImportRequest = z.infer<typeof leadImportRequestSchema>;
@@ -513,7 +513,7 @@ export const updateLeadStageSchema = z.object({ stage: z.string().min(1) });
 export type UpdateLeadStageInput = z.infer<typeof updateLeadStageSchema>;
 
 /** PATCH /api/leads/:id/assignee (FR-E-04, manual assignment). */
-export const assignLeadSchema = z.object({ assigneeId: ulidSchema.nullable() });
+export const assignLeadSchema = z.object({ assigneeId: idSchema.nullable() });
 export type AssignLeadInput = z.infer<typeof assignLeadSchema>;
 
 /** POST /api/leads/:id/activities — manual timeline entries only (system entries are app-generated). */
@@ -528,7 +528,7 @@ export const leadDetailSchema = z.object({
   lead: leadSchema,
   activities: z.array(leadActivitySchema),
   orders: z.array(orderSchema),
-  campaign: z.object({ id: ulidSchema, name: z.string() }).nullable()
+  campaign: z.object({ id: idSchema, name: z.string() }).nullable()
 });
 export type LeadDetail = z.infer<typeof leadDetailSchema>;
 
@@ -542,8 +542,8 @@ export type UpdateSalesConfigInput = z.infer<typeof updateSalesConfigSchema>;
 export const salesConfigListSchema = z.object({
   members: z.array(
     z.object({
-      membershipId: ulidSchema,
-      userId: ulidSchema,
+      membershipId: idSchema,
+      userId: idSchema,
       seeAllLeads: z.boolean()
     })
   )
@@ -580,14 +580,14 @@ export type PublicOrderStatus = z.infer<typeof publicOrderStatusSchema>;
 
 /** PATCH/DELETE /api/leads/bulk — table/kanban multi-select actions. */
 export const bulkUpdateLeadsSchema = z.object({
-  leadIds: z.array(ulidSchema).min(1),
+  leadIds: z.array(idSchema).min(1),
   stage: z.string().min(1).optional(),
-  assigneeId: ulidSchema.nullable().optional()
+  assigneeId: idSchema.nullable().optional()
 });
 export type BulkUpdateLeadsInput = z.infer<typeof bulkUpdateLeadsSchema>;
 
 export const bulkDeleteLeadsSchema = z.object({
-  leadIds: z.array(ulidSchema).min(1)
+  leadIds: z.array(idSchema).min(1)
 });
 export type BulkDeleteLeadsInput = z.infer<typeof bulkDeleteLeadsSchema>;
 
@@ -603,14 +603,14 @@ export type AssignmentRuleStrategy = z.infer<
 >;
 
 export const assignmentRuleSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   priority: z.number().int().nonnegative(),
-  matchCampaignId: ulidSchema.nullable(),
+  matchCampaignId: idSchema.nullable(),
   matchPersona: z.string().nullable(),
   strategy: assignmentRuleStrategySchema,
-  assigneePoolIds: z.array(ulidSchema),
-  fixedAssigneeId: ulidSchema.nullable(),
+  assigneePoolIds: z.array(idSchema),
+  fixedAssigneeId: idSchema.nullable(),
   slaHours: z.number().positive().nullable(),
   onSlaBreach: z.string().nullable()
 });
@@ -626,9 +626,9 @@ export type UpsertAssignmentRuleInput = z.infer<
 
 /** GET /api/leads/saved-views — a filter-bar snapshot, optionally shared org-wide. */
 export const savedViewSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  ownerId: ulidSchema,
+  ownerId: idSchema,
   name: z.string().min(1),
   filterJson: jsonRecordSchema,
   shared: z.boolean()
@@ -682,7 +682,7 @@ export type UpsertWebhookCredentialInput = z.infer<
  * `webhookCredentialSchema`, TikTok never involves the org pasting or seeing any credential at
  * all, the whole point of the shared-app OAuth model. */
 export const tiktokConnectionSchema = z.object({
-  campaignId: ulidSchema,
+  campaignId: idSchema,
   advertiserId: z.string(),
   connectedAt: z.coerce.date()
 });

@@ -1,12 +1,11 @@
 import { and, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
-import { ulid } from "ulid";
 
 import type { Db } from "../client/types.js";
 import { withOrgScope } from "../org-scope.js";
 import { campaigns } from "../schema/catalog.js";
 import { createOrgScopedRepository } from "./scoped-repository.js";
 
-/** `campaigns.publicId` — a human-readable slug (unlike the ULID `id`), for future public URLs. */
+/** `campaigns.publicId` — a human-readable slug (unlike the uuid `id`), for future public URLs. */
 export function generateCampaignPublicId(name: string): string {
   const slug =
     name
@@ -17,7 +16,7 @@ export function generateCampaignPublicId(name: string): string {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 40) || "campaign";
-  return `${slug}-${ulid().slice(-6).toLowerCase()}`;
+  return `${slug}-${crypto.randomUUID().slice(-6)}`;
 }
 
 const base = createOrgScopedRepository(campaigns);

@@ -2,6 +2,7 @@ import { and, count, eq, gte, lt } from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
 import { withOrgScope } from "../org-scope.js";
+import { withPlatformScope } from "../platform-scope.js";
 import { events } from "../schema/analytics.js";
 import { deployments } from "../schema/publishing.js";
 
@@ -120,21 +121,22 @@ export const eventsRepository = {
   /**
    * NFR-14 traffic-spike monitoring — per-hostname event counts (all beacon types) in
    * `[since, until)`, joined through `deployments` since `events.deploymentId` is the only
-   * link back to a hostname. Cross-org by design, same reasoning as
-   * `deploymentsRepository.listLiveAcrossOrgs` (no RLS to bypass, and a spike check has to
-   * span every tenant, not one org at a time).
+   * link back to a hostname. Cross-org by design (a spike check has to span every tenant, not
+   * one org at a time) — goes through `withPlatformScope` since both `events` and `deployments`
+   * carry `platformReadPolicy()`.
    */
   async countByHostnameInRange(
     db: Db,
     since: Date,
     until: Date
   ): Promise<{ hostname: string; count: number }[]> {
-    const rows = await db.raw
-      .select({ hostname: deployments.hostname, count: count() })
-      .from(events)
-      .innerJoin(deployments, eq(events.deploymentId, deployments.id))
-      .where(and(gte(events.createdAt, since), lt(events.createdAt, until)))
-      .groupBy(deployments.hostname);
-    return rows;
+    return withPlatformScope<{ hostname: string; count: number }[]>(db, (qb) =>
+      qb
+        .select({ hostname: deployments.hostname, count: count() })
+        .from(events)
+        .innerJoin(deployments, eq(events.deploymentId, deployments.id))
+        .where(and(gte(events.createdAt, since), lt(events.createdAt, until)))
+        .groupBy(deployments.hostname)
+    );
   }
 };

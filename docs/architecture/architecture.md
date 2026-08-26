@@ -1,192 +1,89 @@
-# 03 — Kiến trúc kỹ thuật
+# Architecture
 
-## 1. Nguyên tắc kiến trúc
+Stack, dependency versions, and monorepo layout details: **`.claude/rules/tech-stack.md`** (source of truth, checked into repo). This doc covers system shape and _why_, not versions.
 
-1. **Landing serving tách khỏi mọi thứ khác** — đường nóng nhất, phải bất tử và nhanh nhất, chạy thuần edge + storage, không đụng DB trên request path.
-2. **Portable by design** — mọi lớp phụ thuộc hạ tầng (runtime HTTP, jobs, storage, cache, realtime) đứng sau interface; đổi Cloudflare ↔ VPS là đổi driver, không đổi business code.
-3. **Studio là package tái sử dụng** — core logic (srcmap, patch, modes, undo) không biết gì về CRM.
-4. **AI trả patch, không trả file** — mọi thay đổi là operation có cấu trúc trên srcmap → diffable, undoable, merge được với manual edit.
-5. **Multi-tenant từ dòng code đầu tiên** — `org_id` là thuộc tính bắt buộc của mọi entity nghiệp vụ.
+## 1. Principles
 
-## 2. Sơ đồ tổng thể
+1. **Landing serving is isolated from everything else** — the hottest path, must be fast and resilient: pure edge + storage, never touches Postgres on the request path.
+2. **Portable by design** — infra-dependent layers (jobs, storage, cache, realtime, payments) sit behind an interface in `packages/drivers`; swapping Cloudflare ↔ VPS is a driver swap, not a business-code rewrite. Exception, deliberately not portable: landing serving is pinned to Cloudflare (KV/R2/Cache API) permanently — see §5.
+3. **Studio core is reusable** — `packages/studio-core` (srcmap engine, patch ops, undo/redo) has no CRM knowledge.
+4. **AI returns patches, not files** — every AI edit is a structured operation applied to the srcmap → diffable, undoable, mergeable with manual edits.
+5. **Multi-tenant from the first line** — `org_id` (uuid) is mandatory on every business entity.
+
+## 2. System shape
 
 ```
-                         ┌────────────────────────────────────────────┐
-                         │                 Cloudflare                 │
-  Khách truy cập ───────▶│  edge-router Worker                        │
-  *.donve.vn          │   ├─ KV: hostname → deployment_id          │
-  (landing)              │   ├─ R2: deployments/<id>/index.html,assets│
-                         │   ├─ Cache API (edge cache, immutable)     │
-                         │   └─ /e/* : event beacon (view/submit) ─┐  │
-                         └─────────────────────────────────────────┼──┘
-                                                                   │
-  Tenant/Sales ──▶ dashboard (SPA, Vite+React, CF Pages)           │
-                        │ HTTPS/JSON + SSE                         │
-                        ▼                                          ▼
-                  ┌──────────────────────────────────────────────────┐
-                  │ api (Hono)  — CF Workers (P.0) / Bun trên VPS    │
-                  │  ├─ modules: auth, orgs, studio, campaigns,      │
-                  │  │   products, leads, orders, payments, publish, │
-                  │  │   ai, prompts, skills, analytics, webhooks    │
-                  │  ├─ AI Gateway (BYOK/platform, streaming proxy)  │
-                  │  └─ drivers: jobs | storage | cache | realtime   │
-                  └───────┬───────────┬───────────┬─────────────────┘
-                          │           │           │
-                    Neon Postgres  Upstash     R2 (assets, versions,
-                    (Drizzle)      Redis+QStash deployments)
+Visitor ──▶ Cloudflare edge-router Worker (*.donve.vn)
+              KV: hostname → deployment_id | R2: deployments/<id>/{html,assets}
+              Cache API (edge cache) | /e/* event beacon
+                                          │
+Tenant ──▶ dashboard (Vite SPA, CF Pages) │ HTTPS/JSON + SSE
+                                          ▼
+                 api (Hono) — CF Workers or Bun/VPS
+                   modules: auth, orgs, studio, campaigns, products,
+                            leads, orders, payments, publish, ai, platform
+                   drivers: jobs | storage | cache | realtime | payments
+                          │            │            │
+                   Neon Postgres   Upstash Redis+QStash   R2
+                   (Drizzle, RLS)
                           ▲
-                SePay (driver mặc định, per-org, mở rộng VNPAY/MoMo/... — mỗi provider 1 endpoint riêng) ─┘ (webhook /webhooks/sepay)
-                OpenRouter (mặc định v1) / Anthropic / OpenAI (AI Gateway gọi ra)
-                Resend (email giao dịch: verify, invite, digest)
+              SePay (payments, per-org) · OpenRouter/Anthropic/OpenAI (AI Gateway) · Resend (email)
 ```
 
-## 3. Monorepo layout (Turborepo + TypeScript 7 native / tsgo, Oxlint + Oxfmt)
+## 3. Monorepo layout
 
-```
-.
-├── apps/
-│   ├── dashboard/          # Vite 8 + React 19 + TanStack Router + TanStack Query v5
-│   │                       # Tailwind v4 + shadcn/ui + AI Elements (chat UI)
-│   ├── api/                # Hono — entrypoints: workers.ts (CF) | bun.ts (VPS)
-│   ├── edge-router/        # CF Worker serve landing (KV+R2+Cache), event beacon
-│   └── landing-runtime/    # Vanilla TS ~6KB: form, popup, QR, poll — build IIFE
-├── packages/
-│   ├── studio-core/        # từ @dv/core: srcmap engine, patch ops, undo/redo
-│   ├── studio-ui/          # từ @dv/studio: Canvas, LayerTree, Inspector, modes
-│   ├── studio-ai/          # từ @dv/ai: patch protocol, prompt compiler
-│   ├── db/                 # drizzle schema + repositories (org-scoped)
-│   ├── auth/               # better-auth config + organization plugin + RBAC
-│   ├── contracts/          # zod schemas + API types dùng chung FE/BE (single source)
-│   ├── drivers/            # interfaces + impl: jobs(qstash|bullmq), storage(r2|s3),
-│   │                       # cache(upstash|ioredis), realtime(sse-hub),
-│   │                       # payments(sepay|vnpay|momo|...), video(r2-raw|bunny-stream),
-│   │                       # email(resend) — single provider, no CF/VPS variance
-│   ├── ai-gateway/         # provider abstraction (anthropic|openai|openrouter), key vault
-│   ├── ui/                 # design system L1 (shadcn wrap, tokens)
-│   └── config/             # tsconfig, oxlint, oxfmt, tailwind preset
-└── tooling/                # scripts deploy, seed, lighthouse-ci
-```
+Full details and package-manager rules in `.claude/rules/tech-stack.md`. Summary:
 
-Ghi chú theo kinh nghiệm bạn đã có: dùng chiến lược **JIT internal packages** cho DX (đã đánh giá JIT vs compiled); riêng `landing-runtime` build compiled (IIFE minified) vì được inject vào HTML publish. `contracts` export zod schema — FE infer types, BE validate, không drift. Áp dụng mô hình 4 lớp L0→L3 của bạn cho dashboard: `ui` (L1) → feature modules (L2: `features/studio`, `features/crm`...) → pages mỏng (L3).
+- `apps/dashboard` — Vite SPA (TanStack Router/Query), talks to `api` over HTTPS/SSE.
+- `apps/api` — Hono, two entrypoints (`workers.ts` CF / `bun.ts` VPS), same business code.
+- `apps/edge-router` — CF Worker serving published landings (KV+R2+Cache), never touches Postgres.
+- `apps/landing-runtime` — the one compiled package (IIFE via tsdown), injected into published HTML.
+- `packages/studio-core/ui/ai` — legacy Studio (srcmap, canvas, patch protocol), still live in prod.
+- `packages/studio-catalog/render` — new json-render/PageSpec Studio rewrite, in progress alongside the legacy one; no cutover yet.
+- `packages/db` — Drizzle schema + org-scoped repositories + RLS policies.
+- `packages/auth` — better-auth + organization plugin + RBAC.
+- `packages/contracts` — zod schemas shared FE/BE (single source of API types).
+- `packages/drivers` — jobs/storage/cache/realtime/payments interfaces + implementations.
+- `packages/ai-gateway` — provider abstraction (Anthropic/OpenAI/OpenRouter) + BYOK key vault.
+- `packages/ui` / `packages/config` — design system L1, tsconfig/lint/format presets.
 
-**Phạm vi "portable" (nguyên tắc #2 ở §1):** không phải mọi thứ trong hệ thống nằm sau interface trừu tượng hoá. Landing serving được chốt "vĩnh viễn ở CF" theo quyết định kiến trúc, nên các thành phần sau là Cloudflare-specific có chủ đích, không có driver thay thế: KV hostname routing, R2 (cho landing serving), Cache API, Cloudflare Turnstile, Cloudflare for SaaS custom hostnames. Câu "portable by design" chỉ áp dụng cho API/jobs/storage-cho-upload/cache-app-data (`packages/drivers`) — không áp dụng cho tầng edge phục vụ landing.
+## 4. IDs
 
-## 4. Lựa chọn framework dashboard: Vite SPA (không phải Next.js)
+Primary keys are native Postgres 18 `uuid` columns, default `uuidv7()` (`packages/db/src/schema/columns.ts`), not ULID text. RLS policies cast the session GUC to match: `org_id = NULLIF(current_setting('app.current_org', true), '')::uuid`.
 
-| Tiêu chí | Vite 8 SPA + TanStack Router | Next.js 16 |
-| --- | --- | --- |
-| SEO cần cho dashboard? | Không (sau login) | Không cần thiết |
-| Host free, đơn giản | CF Pages static — trivial | Cần Workers/OpenNext hoặc node server |
-| Studio (canvas nặng client) | Hoàn toàn client — khớp | RSC không giúp gì, thêm phức tạp |
-| Migrate VPS | Copy static | Phải chạy node server |
+## 5. Multi-tenancy & RLS
 
-→ **Dashboard: Vite SPA.** SEO nằm ở landing (HTML tĩnh) — nơi nó thực sự quan trọng. Next.js chỉ cân nhắc lại nếu sau này làm trang marketing/public docs của nền tảng (mà cái đó... dùng chính nền tảng để làm — dogfood).
+- **Model:** shared database, shared schema. Every business table has `org_id uuid` + a `(org_id, ...)` composite index.
+- **Defense in depth:**
+  1. Repository layer (`packages/db`) — every query function requires an `orgId` from session; no unscoped queries exist.
+  2. Postgres RLS on sensitive tables, policy `orgIsolationPolicy()` (`packages/db/src/schema/rls.ts`) — `org_id = current_setting('app.current_org')::uuid`, fails closed (NULL) when unset.
+  3. Cross-tenant test suite: org A session hitting org B's IDs must get 404/403 everywhere.
+- **Neon serverless driver gotcha:** `SET LOCAL app.current_org` only takes effect if it runs in the _same_ transaction/batch as the real query — Neon's HTTP driver doesn't hold a session across separate round-trips. Fix: every `packages/db` call goes through `withOrgScope(orgId, fn)` (`packages/db/src/org-scope.ts`), which sends `set_config` and the query in one `.batch()`/transaction. No repository may issue a raw query outside this helper.
+- **RBAC:** better-auth `organization` plugin + custom permissions — roles `owner > admin > editor > sales`, gating billing/members/studio/CRM/payments per table in `packages/auth/src/permissions.ts`.
+- Public endpoints (`/public/*`, `/webhooks/*`) carry no session — scoped by explicit secret (campaign public id, per-org webhook key) + rate limiting.
 
-Chat UI: **AI SDK v6 (`useChat`) + AI Elements** (component shadcn-style: Conversation, Message, PromptInput, Reasoning) — khớp hệ Tailwind v4 + shadcn sẵn có, nhanh hơn assistant-ui cho case này vì bạn cần custom sâu (chip "Commented on element", đính ảnh annotate).
+## 6. Platform admin (cross-tenant)
 
-## 5. Data flow chi tiết các đường quan trọng
+- **`platform_staff` table** (`packages/db/src/schema/platform.ts`) — platform-level roles (`support`, `billing_ops`, `platform_admin`), deliberately _not_ a column on `memberships`: staff aren't scoped to one org. Granted via CLI (`bun run grant-platform-staff <email>`), not self-service.
+- **Cross-tenant read via RLS, never write:** a second _permissive_ policy, `platformReadPolicy()`, ORs onto the same tables as `orgIsolationPolicy()` but is `for: "select"` only — `current_setting('app.is_platform_admin') = 'true'` unlocks reading every org's rows, while INSERT/UPDATE/DELETE still only ever pass through the org-scoped policy. There is no "write as platform admin" bypass — writing on behalf of a tenant still goes through `withOrgScope(targetOrgId, ...)` like any normal tenant write, from a specific business endpoint (disable org, refund-assist), always audited to `platform_audit_logs`.
+- **`withPlatformScope`** (`packages/db/src/platform-scope.ts`) mirrors `withOrgScope` — same same-transaction requirement, sets `app.is_platform_admin` instead of `app.current_org`. Read-only use.
+- Routes live at `/platform/*` in the existing `apps/api`/`apps/dashboard` (hidden route, no nav entry) — no separate `apps/admin` app; only split out if a real isolation need shows up later.
 
-### 5.1 Generate/chỉnh sửa landing bằng AI
+## 7. Key request flows
 
-```
-dashboard → POST /ai/chat (stream)
-  api: load org AI connection → compile system prompt
-       (base + skills bật + design tokens + srcmap context + comments queue)
-     → provider stream → SSE về client
-     → nếu tool "apply_patch": validate ops với studio-core (server-side)
-       → áp lên bản HTML hiện tại → tạo page_version mới → trả patch cho client
-  client: studio-core áp cùng patch vào DOM iframe (optimistic, không reload)
-        → đẩy vào undo stack
-```
+**AI edit** — `dashboard → POST /ai/chat` (stream) → api loads org's AI connection, compiles system prompt (base + skills + srcmap context), streams from provider → on tool call `apply_patch`: api validates ops via `studio-core` server-side, applies to current HTML, creates a `page_version`, returns the patch over SSE → client applies the same patch to the DOM (optimistic) and pushes to the undo stack.
 
-AI luôn xuất thay đổi qua **tool call `apply_patch`** (schema trong ai-integration-byok.md §4) — đảm bảo FR-B-22.
+**Publish** — Postgres (source of truth for state) and KV (source of truth for serving) are separate stores kept in sync via an **outbox pattern**: `POST /publish` creates a `deployments` row (`status=building`) → build job sanitizes/minifies/hashes assets, uploads to R2 (immutable), writes a `publish_outbox` row → a worker applies the KV hostname pointer → on success, both `deployments.status=live` and `publish_outbox.status=applied` flip together. A partial unique index on `deployments(hostname) WHERE status='live'` prevents two "live" rows for the same hostname under concurrent publishes. Rollback reuses the same outbox path (new row pointing `targetDeployId` at the old deployment) rather than a direct KV write, so reconciliation/audit stay consistent. Root-document HTML is never cached at the edge (`Cache-Control: no-store`) so rollback takes effect immediately without a purge step; content-hashed assets cache forever.
 
-### 5.2 Publish
+**Lead → payment** — `POST /public/leads` (Turnstile-verified, phone-deduped) creates lead+order, returns a QR/pay link. Payments are **non-custodial**: each org connects its own SePay (default) or VNPAY/MoMo/etc. account via `packages/drivers/payments`; money never passes through a platform-owned account. Webhooks are per-org (`Authorization: Apikey <secret>` looked up via `paymentConnections`), idempotent on provider transaction id.
 
-Postgres (nguồn sự thật về trạng thái) và KV (nguồn sự thật lúc phục vụ request) là hai hệ lưu trữ tách biệt — publish/rollback dùng **outbox pattern** để giữ chúng đồng bộ, tránh lệch trạng thái khi job crash giữa chừng:
+## 8. Security highlights
 
-```
-POST /publish { landingId, subdomain }
- → tạo `deployments` record, status=building
- → job "build_deploy": lấy version mới nhất
-   → pipeline: sanitize → minify html/css → hash assets → rewrite URLs
-     → inject: runtime script (defer), meta/OG/JSON-LD, canonical, beacon
-   → upload R2 deployments/<deployId>/* (immutable)
-   → tạo bản ghi `publish_outbox` (mới, xem database-schema.md):
-     { deploymentId, hostname, targetDeployId, status=pending }
-   → worker áp KV put hostname → {deployId, orgId, campaignId}
-     → KV xác nhận thành công ⇒ cùng bước: set `deployments.status=live`
-       VÀ `publish_outbox.status=applied`
-   → warm cache + chụp .thumbnail.jpg (browser rendering / job VPS)
- → SSE báo dashboard
-```
+- AI/imported HTML is sanitized server-side (allowlist tags/attrs, strip `<script>` except the injected runtime); edit-mode preview iframe is sandboxed without `allow-scripts`.
+- BYOK provider keys: AES-256-GCM, decrypted only inside `packages/ai-gateway`, never echoed back in any API response.
+- Payment webhooks: per-org secret, not a shared platform secret.
+- Public endpoints: Turnstile + rate limiting (`@upstash/ratelimit`) + pending-order TTL.
 
-- Partial unique index `deployments(hostname) WHERE status='live'` chặn 2 bản ghi "live" cùng hostname khi publish đồng thời (chi tiết ở database-schema.md).
-- Job reconciliation định kỳ (vd mỗi 5 phút) so sánh trạng thái KV thật với `deployments.status='live'` trong Postgres theo từng hostname, tự sửa lệch, log cảnh báo nếu lệch lặp lại nhiều lần.
-- **Rollback đi qua cùng cơ chế outbox** (tạo outbox row mới trỏ `targetDeployId` về `deploymentId` cũ) — không phải thao tác KV put trực tiếp bỏ qua outbox, để reconciliation và audit trail luôn nhất quán với publish thường.
+## 9. Deliberate single point of failure: Cloudflare
 
-**Cache invalidation khi rollback:** asset tĩnh (đặt tên theo content-hash) cache vĩnh viễn ở Cache API/browser — không bao giờ cần invalidate. Nhưng HTML gốc (root document) tại hostname **không** được cache dài ở Cache API — Worker set `Cache-Control` ngắn/`no-store` cho response HTML gốc, để mỗi request đều tra KV pointer mới nhất → fetch đúng bản R2 hiện tại. Vì Worker vốn đã phải tra KV theo hostname mỗi request để route đúng deployment, việc không cache root HTML ở tầng Cache API là tự nhiên và giúp rollback có hiệu lực tức thời mà không cần bước purge cache riêng.
-
-### 5.3 Submit form → thanh toán (xem sequence đầy đủ functional-requirements.md §D)
-
-- `POST /public/leads` (Turnstile verify, dedupe phone, tạo lead + order, trả `{orderCode, qrUrl, amount, zaloLink}`).
-- **Mô hình dòng tiền non-custodial:** mỗi org tự kết nối tài khoản thanh toán của chính họ — SePay là driver mặc định v1, nhưng interface hỗ trợ thêm VNPAY/MoMo/Casso/PayOS như nhau (functional-requirements.md FR-D-10) — giống mô hình BYOK cho AI key; thông tin kết nối mã hoá lưu ở bảng `paymentConnections`, chỉ giải mã trong payments driver. Webhook/callback là theo từng org (`Authorization: Apikey <secret>` riêng mỗi org với SePay, tra theo `paymentConnections`) — **không có** tài khoản trung gian của nền tảng; toàn bộ tiền đi thẳng vào tài khoản tenant. Xem lý do pháp lý (tránh bị coi là trung gian thanh toán cần giấy phép NHNN) ở business-analysis.md §4.4.
-- Webhook SePay (driver mặc định — xem FR-D-05 cho logic provider khác): idempotency key = provider transaction id (unique index); match mã đơn trong nội dung CK theo thuật toán checksum 2 bước (functional-requirements.md FR-D-05); ambiguous/double-match → bảng `unmatched_transactions`.
-- Realtime: landing poll status (đơn giản, chịu tải, cache 2s ở edge); dashboard nhận SSE qua realtime hub (Upstash pub/sub → SSE; trên VPS: Redis pub/sub).
-
-## 6. Multi-tenant & phân quyền
-
-- **Mô hình:** shared database, shared schema, cột `org_id` (ULID) mọi bảng nghiệp vụ + composite index `(org_id, ...)`.
-- **Tầng bảo vệ:**
-  1. Repository pattern trong `packages/db`: mọi hàm bắt buộc nhận `orgId` từ session — không có hàm query "trần".
-  2. Postgres RLS bật trên bảng nhạy cảm (`leads, orders, payments, ai_connections, chat_messages, unmatched_transactions, refund_requests, payment_connections, consents` — danh sách đầy đủ + lý do từng bảng ở database-schema.md ghi chú #4) với `app.current_org` — phòng thủ chiều sâu, chống bug tầng app.
-  3. Test: suite cross-tenant (user org A gọi mọi endpoint với id của org B → 404/403 toàn bộ).
-- **RBAC** (Better Auth organization plugin + custom permissions):
-
-| Quyền                     | owner | admin | editor | sales                |
-| ------------------------- | ----- | ----- | ------ | -------------------- |
-| Billing, xoá org, AI keys | ✅    | –     | –      | –                    |
-| Quản lý members           | ✅    | ✅    | –      | –                    |
-| Studio, publish           | ✅    | ✅    | ✅     | –                    |
-| Campaign/Product CRUD     | ✅    | ✅    | ✅     | xem                  |
-| CRM leads/orders          | ✅    | ✅    | xem    | ✅ (theo assignment) |
-| Xác nhận thanh toán       | ✅    | ✅    | –      | ✅                   |
-| Prompt/Skills tenant      | ✅    | ✅    | ✅     | –                    |
-
-- Public endpoints (`/public/*`, `/webhooks/*`) không có session — scope bằng khoá tường minh (campaign public id, webhook secret) + rate limit.
-
-### 6.1 Đảm bảo RLS thực sự có hiệu lực (Neon serverless driver)
-
-- **Vấn đề:** `SET LOCAL app.current_org` chỉ có hiệu lực nếu nằm chung transaction/session với query thật. Driver serverless HTTP của Neon không tự giữ session giữa các round-trip riêng lẻ — gọi `SET LOCAL` rồi query thật qua hai round-trip khác nhau có thể khiến RLS không được áp dụng mà không có lỗi rõ ràng nào.
-- **Quyết định:** mọi hàm ở `packages/db` bắt buộc đi qua helper `withOrgScope(orgId, fn)` — gửi `SET LOCAL app.current_org = $1` và query thật trong **cùng một** transaction/batch (dùng API `transaction()` của Neon serverless driver trên CF Workers; dùng transaction thật của `postgres.js`/pooled connection khi chạy Bun/VPS). Không repository nào được phép gọi query trần ngoài helper này.
-- **Bắt buộc:** test tích hợp thật — tạo 2 org giả A/B, seed dữ liệu cho A, gọi query dưới session org B qua repository layer, assert trả về rỗng — chứng minh RLS tự chặn được kể cả khi code tầng app quên lọc `org_id` (không chỉ test tầng app).
-
-## 7. Bảo mật (threat model rút gọn)
-
-| Mối đe doạ | Kiểm soát |
-| --- | --- |
-| HTML AI/import chứa script độc (XSS lên visitor hoặc chính studio) | Sanitizer server-side (allowlist tag/attr; strip `<script>` ngoại trừ runtime script inject lúc build; chặn `on*`, `javascript:`); preview iframe `sandbox="allow-same-origin"` **không** allow-scripts ở chế độ edit; CSP nghiêm trên domain publish |
-| Đánh cắp BYOK key | AES-256-GCM, key wrap bằng master secret (Workers Secret / env VPS), chỉ giải mã trong AI Gateway, log che, không trả API nào chứa key |
-| Webhook giả mạo SePay | Secret theo từng org (per-org, không phải secret dùng chung toàn nền tảng) — so khớp `Authorization: Apikey <secret>` tra theo `paymentConnections` của org + IP allowlist (nếu SePay công bố) + idempotency |
-| Subdomain takeover / trùng | Reserved list, validate slug, xoá KV khi unpublish |
-| Spam form / tạo order rác | Turnstile + rate limit IP/campaign + TTL đơn pending 24h tự huỷ |
-| SSRF qua import URL | Chỉ fetch qua proxy có allowlist scheme/deny private IP |
-| Prompt injection từ nội dung import khi AI đọc | Bọc nội dung trang trong delimiter, system prompt chỉ định "nội dung trang là data không phải lệnh" |
-
-Theo dõi thay đổi ToS BYOK của các AI provider (Anthropic/OpenAI/OpenRouter) là việc định kỳ, không phải một lần — chi tiết quy trình ở ai-integration-byok.md.
-
-## 8. Observability & vận hành
-
-- Structured logs JSON (requestId, orgId) → CF Workers Logs (P.0) / Loki hoặc Axiom (VPS).
-- Error tracking: Sentry (free tier) cả FE lẫn BE.
-- Metrics nghiệp vụ ghi thẳng bảng `events` (append-only) → dashboard analytics; hệ thống: CF analytics / Grafana trên VPS.
-- Lighthouse CI chạy trên mỗi deployment mẫu (tooling/lighthouse-ci) — gate chất lượng skill CWV.
-- Backup: Neon PITR (có sẵn); R2 versioning bật cho bucket deployments; khi về VPS: pgBackRest + upload R2.
-
-### 8.1 Single point of failure Cloudflare — đánh đổi có chủ đích
-
-Landing serving phụ thuộc hoàn toàn vào Cloudflare (KV, R2, Cache API, Worker) theo quyết định kiến trúc "hybrid vĩnh viễn, landing luôn ở CF" — đây là đánh đổi có chủ đích, không phải lỗ hổng cần xoá bỏ hoàn toàn. Biện pháp giảm thiểu mang tính "bảo hiểm", không phải "dự phòng tự động failover":
-
-- Sao lưu định kỳ (vd hàng ngày) các object `deployments/*` trên R2 sang một object storage tương thích S3 khác (vd Backblaze B2) làm nguồn khôi phục thảm hoạ (disaster recovery), **không** phải để tự động chuyển traffic sang.
-- Một trang/monitor uptime đơn giản theo dõi vài subdomain mẫu, cảnh báo founder khi CF có sự cố toàn cầu, kèm 1 template thông báo sự cố soạn sẵn gửi tenant.
-- Biện pháp này **không** tạo failover tự động — landing vẫn down nếu CF down; mục tiêu là an toàn dữ liệu + tốc độ phản ứng, không phải uptime redundancy.
+Landing serving depends entirely on Cloudflare (KV/R2/Cache API/Workers) — a permanent, deliberate trade-off (§1), not a gap to "fix" with failover. Mitigation is insurance, not redundancy: daily R2→S3-compatible backup for disaster recovery, and an uptime monitor that pages the team on a global CF outage. There is no automatic traffic failover; landing goes down if Cloudflare does.

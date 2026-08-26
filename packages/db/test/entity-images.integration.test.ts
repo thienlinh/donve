@@ -5,7 +5,6 @@ import {
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { ulid } from "ulid";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
 import { createPostgresDb } from "../src/client/postgres-js.js";
@@ -16,7 +15,7 @@ let container: StartedPostgreSqlContainer;
 let db: ReturnType<typeof createPostgresDb>;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
   const migratorClient = postgres(connectionUri, { max: 1 });
   await migrate(drizzle(migratorClient, { schema }), {
@@ -31,8 +30,8 @@ afterAll(async () => {
 });
 
 it("keeps exactly one image per (owner, kind) — a re-upload overwrites instead of duplicating", async () => {
-  const orgId = ulid();
-  const campaignId = ulid();
+  const orgId = crypto.randomUUID();
+  const campaignId = crypto.randomUUID();
   const logo = {
     ownerType: "organization",
     ownerId: orgId,

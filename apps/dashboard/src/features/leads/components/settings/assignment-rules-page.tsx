@@ -43,13 +43,15 @@ import {
 } from "@dv/ui/components/shadcn/native-select";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical, ListChecks, Lock, Trash2 } from "lucide-react";
+import { GripVertical, ListChecks, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import { SettingsForbidden } from "@/components/settings-forbidden";
+import { useActiveOrganization } from "@/features/auth/auth-client";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
+import { useCanManageOrg } from "@/hooks/use-can-manage-org";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -76,13 +78,7 @@ const strategyLabel: Record<AssignmentRuleStrategy, () => string> = {
 /** Settings-gated (owner/admin only, same role check `settings-page.tsx`/`members-page.tsx`
  * use) drag-to-reorder list of auto-assignment rules, evaluated in `priority` order. */
 export function AssignmentRulesPage() {
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
-  const myMembership = activeOrganization?.members.find(
-    (member) => member.userId === session?.user.id
-  );
-  const canManage =
-    myMembership?.role === "owner" || myMembership?.role === "admin";
+  const canManage = useCanManageOrg();
 
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
@@ -124,14 +120,7 @@ export function AssignmentRulesPage() {
   if (!canManage) {
     return (
       <LeadsPageLayout>
-        <QueryState
-          isPending={false}
-          error={null}
-          isEmpty
-          errorTitle=""
-          emptyTitle={m.settingsForbiddenTitle()}
-          emptyIcon={<Lock />}
-        />
+        <SettingsForbidden />
       </LeadsPageLayout>
     );
   }

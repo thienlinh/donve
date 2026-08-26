@@ -54,18 +54,19 @@ import { email } from "@dv/drivers";
 import { Hono, type Context } from "hono";
 import { streamSSE } from "hono/streaming";
 
-import { createRealtimeFromEnv } from "../../lib/cache.js";
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { log } from "../../lib/logger.js";
-import { normalizeVnPhone } from "../../lib/phone.js";
+import { createRealtimeFromEnv } from "@/lib/cache.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { log } from "@/lib/logger.js";
+import { normalizeVnPhone } from "@/lib/phone.js";
 import {
   leadStreamChannel,
   orderStreamChannel,
   publishNewLeads,
   publishOrderUpdate
-} from "../../lib/realtime.js";
-import type { AppEnv } from "../../types.js";
+} from "@/lib/realtime.js";
+import type { AppEnv } from "@/types.js";
+
 import { findOrCreateLead } from "../public/routes.js";
 import { routeLead } from "./routing.js";
 import { disconnectTiktok } from "./tiktok.js";

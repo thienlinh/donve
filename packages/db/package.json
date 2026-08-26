@@ -18,8 +18,7 @@
   "dependencies": {
     "@neondatabase/serverless": "catalog:db",
     "drizzle-orm": "catalog:db",
-    "postgres": "catalog:db",
-    "ulid": "catalog:db"
+    "postgres": "catalog:db"
   },
   "devDependencies": {
     "@dv/config": "workspace:*",

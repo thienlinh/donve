@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 
 export const eventTypeValues = [
   // Legacy beacon types (existing campaign-analytics dashboard buckets on these — kept, not
@@ -66,18 +66,18 @@ export type EventMeta = z.infer<typeof eventMetaSchema>;
 
 /** append-only, written from the edge beacon — no updatedAt. */
 export const eventSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  campaignId: ulidSchema.nullable(),
-  deploymentId: ulidSchema.nullable(),
+  campaignId: idSchema.nullable(),
+  deploymentId: idSchema.nullable(),
   type: z.union([eventTypeSchema, z.string()]),
   /** hash(ip+ua+day) — no PII. */
   sessionHash: z.string().nullable(),
   /** `tracking-and-attribution.md` §Identity — first-party id, set client-side by
    * `apps/landing-runtime` (`localStorage`), null on events with no client (offline conversion). */
   anonymousId: z.string().nullable(),
-  landingPageId: ulidSchema.nullable(),
-  pageVersionId: ulidSchema.nullable(),
+  landingPageId: idSchema.nullable(),
+  pageVersionId: idSchema.nullable(),
   meta: eventMetaSchema,
   createdAt: z.coerce.date()
 });
@@ -86,10 +86,10 @@ export type Event = z.infer<typeof eventSchema>;
 /** `tracking-and-attribution.md` §Event registry — one row per `(elementId, eventName)` a
  * chosen component actually declares, snapshotted at Page Architect / Auto Fixer time. */
 export const eventDefinitionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
-  pageVersionId: ulidSchema,
+  landingPageId: idSchema,
+  pageVersionId: idSchema,
   eventName: z.string(),
   elementId: z.string().nullable(),
   componentId: z.string(),

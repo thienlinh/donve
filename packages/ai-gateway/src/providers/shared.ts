@@ -1,7 +1,13 @@
 import { streamText } from "ai";
 
+import {
+  creditsForUsage,
+  UnknownModelPricingError,
+  type ModelPricing
+} from "../usage/pricing.js";
 import type {
   ChatRequest,
+  Credits,
   LanguageModelLike,
   ModelOption,
   StreamPart,
@@ -82,6 +88,19 @@ export function formatTokenCount(count: number): string {
   }
   if (count >= 1_000) return `${Math.round(count / 1_000)}K`;
   return String(count);
+}
+
+/** Shared `countCost` body for providers with a flat per-model pricing table (all but OpenRouter,
+ * which has an extra free-tier branch). Throws if `model` has no entry — billing must never
+ * silently under-count. */
+export function countCostFromPricing(
+  pricing: Record<string, ModelPricing>,
+  usage: TokenUsage,
+  model: string
+): Credits {
+  const modelPricing = pricing[model];
+  if (!modelPricing) throw new UnknownModelPricingError(model);
+  return creditsForUsage(usage, modelPricing);
 }
 
 /** Validates a key by fetching the provider's models endpoint directly — no plaintext logging. */

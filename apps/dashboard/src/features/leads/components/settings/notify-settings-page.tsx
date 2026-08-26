@@ -16,16 +16,15 @@ import {
 } from "@dv/ui/components/shadcn/native-select";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Lock } from "lucide-react";
 import { useState } from "react";
 
-import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import { SettingsForbidden } from "@/components/settings-forbidden";
 import {
   fetchOrgSettings,
   updateOrgSettings
 } from "@/features/org-settings/api";
 import { orgSettingsKeys } from "@/features/org-settings/query-keys";
+import { useCanManageOrg } from "@/hooks/use-can-manage-org";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -41,13 +40,7 @@ import { LeadsPageLayout } from "../leads-page-layout";
  * platform-wide one. Which channel is active lives on `organizations.settings.notifyChannel`,
  * not on a credential row — a row existing only means "configured", not "selected". */
 export function NotifySettingsPage() {
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
-  const myMembership = activeOrganization?.members.find(
-    (member) => member.userId === session?.user.id
-  );
-  const canManage =
-    myMembership?.role === "owner" || myMembership?.role === "admin";
+  const canManage = useCanManageOrg();
 
   const { data: settings } = useQuery({
     queryKey: orgSettingsKeys.all(),
@@ -63,14 +56,7 @@ export function NotifySettingsPage() {
   if (!canManage) {
     return (
       <LeadsPageLayout>
-        <QueryState
-          isPending={false}
-          error={null}
-          isEmpty
-          errorTitle=""
-          emptyTitle={m.settingsForbiddenTitle()}
-          emptyIcon={<Lock />}
-        />
+        <SettingsForbidden />
       </LeadsPageLayout>
     );
   }

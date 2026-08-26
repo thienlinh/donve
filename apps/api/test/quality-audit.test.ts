@@ -1,4 +1,5 @@
 import type { NativePageDocument } from "@dv/contracts";
+import type { ComponentMeta } from "@dv/studio-catalog";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -74,7 +75,7 @@ describe("checkTrackingCompleteness", () => {
       },
       tokens
     };
-    const metaById = new Map([
+    const metaById: Map<string, ComponentMeta> = new Map([
       [
         "hero",
         {

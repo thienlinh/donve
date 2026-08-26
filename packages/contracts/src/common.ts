@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-/** PK format used by every table: ULID, sortable by time (see database-schema.md). */
-export const ulidSchema = z
-  .string()
-  .regex(/^[0-9A-HJKMNP-TV-Z]{26}$/i, "Invalid ULID");
+/** PK format used by every table: Postgres 18 native uuidv7(), sortable by time. */
+export const idSchema = z.uuid();
 
 /** Every business entity carries `orgId` for multi-tenant scoping. */
-export const orgIdSchema = ulidSchema;
+export const orgIdSchema = idSchema;
 
 export const timestampsSchema = z.object({
   createdAt: z.coerce.date(),

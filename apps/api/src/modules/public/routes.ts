@@ -20,18 +20,19 @@ import {
 import { payments } from "@dv/drivers";
 import { Hono } from "hono";
 
-import { clientIp } from "../../lib/client-ip.js";
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { normalizeVnPhone } from "../../lib/phone.js";
-import { PREVIEW_KEY_PREFIX } from "../../lib/publish.js";
-import { publishNewLeads, publishOrderUpdate } from "../../lib/realtime.js";
-import { createStorageFromEnv } from "../../lib/storage.js";
-import { DEFAULT_TRANSFER_PREFIX } from "../../lib/transfer-prefix.js";
-import { verifyTurnstileToken } from "../../lib/turnstile.js";
-import { buildVietQrUrl } from "../../lib/vietqr.js";
-import { rateLimitByKey } from "../../middleware/rate-limit.js";
-import type { AppEnv } from "../../types.js";
+import { clientIp } from "@/lib/client-ip.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { normalizeVnPhone } from "@/lib/phone.js";
+import { PREVIEW_KEY_PREFIX } from "@/lib/publish.js";
+import { publishNewLeads, publishOrderUpdate } from "@/lib/realtime.js";
+import { createStorageFromEnv } from "@/lib/storage.js";
+import { DEFAULT_TRANSFER_PREFIX } from "@/lib/transfer-prefix.js";
+import { verifyTurnstileToken } from "@/lib/turnstile.js";
+import { buildVietQrUrl } from "@/lib/vietqr.js";
+import { rateLimitByKey } from "@/middleware/rate-limit.js";
+import type { AppEnv } from "@/types.js";
+
 import { routeLead } from "../leads/routing.js";
 
 export const publicRoutes = new Hono<AppEnv>();

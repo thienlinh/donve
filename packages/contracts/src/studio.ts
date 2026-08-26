@@ -4,7 +4,7 @@ import {
   orgIdSchema,
   softDeleteSchema,
   timestampsSchema,
-  ulidSchema
+  idSchema
 } from "./common.js";
 
 export const landingSourceValues = [
@@ -17,13 +17,13 @@ export const landingSourceSchema = z.enum(landingSourceValues);
 export type LandingSource = z.infer<typeof landingSourceSchema>;
 
 export const landingPageSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  campaignId: ulidSchema.nullable(),
+  campaignId: idSchema.nullable(),
   name: z.string().min(1),
-  currentVersionId: ulidSchema.nullable(),
+  currentVersionId: idSchema.nullable(),
   thumbnailKey: z.string().nullable(),
-  chatSessionId: ulidSchema.nullable(),
+  chatSessionId: idSchema.nullable(),
   source: landingSourceSchema.default("ai"),
   ...timestampsSchema.shape,
   ...softDeleteSchema.shape
@@ -56,9 +56,9 @@ export const pageVersionOriginSchema = z.enum(pageVersionOriginValues);
 export type PageVersionOrigin = z.infer<typeof pageVersionOriginSchema>;
 
 export const pageVersionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   seq: z.number().int().positive(),
   /** Null for a native (`spec`-only) version — legacy srcmap flow always sets both. */
   htmlKey: z.string().nullable(),
@@ -69,9 +69,9 @@ export const pageVersionSchema = z.object({
   origin: pageVersionOriginSchema,
   /** ops applied to reach this version — shape owned by @dv/studio-core, not this package. */
   patch: z.unknown().nullable(),
-  chatMessageId: ulidSchema.nullable(),
+  chatMessageId: idSchema.nullable(),
   label: z.string().nullable(),
-  createdBy: ulidSchema.nullable(),
+  createdBy: idSchema.nullable(),
   createdAt: z.coerce.date(),
   /** set once the retention job prunes htmlKey/srcmapKey from R2 (row kept for audit history). */
   prunedAt: z.coerce.date().nullable()
@@ -111,9 +111,9 @@ export const pageAssetLicenseSchema = z
 export type PageAssetLicense = z.infer<typeof pageAssetLicenseSchema>;
 
 export const pageAssetSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   fileName: z.string(),
   r2Key: z.string(),
   mime: z.string(),
@@ -165,22 +165,22 @@ export const studioCommentStatusSchema = z.enum(studioCommentStatusValues);
 export type StudioCommentStatus = z.infer<typeof studioCommentStatusSchema>;
 
 export const studioCommentSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   srcmapId: z.string(),
   body: z.string().min(1),
   screenshotKey: z.string().nullable(),
   status: studioCommentStatusSchema.default("queued"),
-  createdBy: ulidSchema.nullable(),
+  createdBy: idSchema.nullable(),
   createdAt: z.coerce.date()
 });
 export type StudioComment = z.infer<typeof studioCommentSchema>;
 
 export const chatSessionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   title: z.string().nullable(),
   ...timestampsSchema.shape
 });
@@ -195,12 +195,12 @@ const chatContentPartSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("image"), url: z.string() }),
   z.object({
     type: z.literal("comment-context"),
-    commentId: ulidSchema,
+    commentId: idSchema,
     srcmapId: z.string()
   }),
   z.object({
     type: z.literal("patch-summary"),
-    pageVersionId: ulidSchema,
+    pageVersionId: idSchema,
     summary: z.string()
   })
 ]);
@@ -214,9 +214,9 @@ export const chatMessageTokenUsageSchema = z
   .nullable();
 
 export const chatMessageSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  sessionId: ulidSchema,
+  sessionId: idSchema,
   role: chatRoleSchema,
   content: z.array(chatContentPartSchema),
   tokenUsage: chatMessageTokenUsageSchema,
@@ -307,7 +307,7 @@ export type UpdateLandingPageSpecInput = z.infer<
 /** Pre-built starting point offered in the "create landing page" flow — shared across every
  * org (`packages/db/src/schema/templates.ts`), not tenant content. */
 export const templateSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   name: z.string().min(1),
   industry: z.string().min(1),
   thumbnailKey: z.string().nullable(),

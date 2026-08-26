@@ -28,11 +28,11 @@ import { payments } from "@dv/drivers";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { publishOrderUpdate } from "../../lib/realtime.js";
-import { createStorageFromEnv } from "../../lib/storage.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { publishOrderUpdate } from "@/lib/realtime.js";
+import { createStorageFromEnv } from "@/lib/storage.js";
+import type { AppEnv } from "@/types.js";
 
 export const paymentsRoutes = new Hono<AppEnv>();
 

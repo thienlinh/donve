@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 
 export const emailTemplateValues = [
   "verify_email",
@@ -23,7 +23,7 @@ export const emailStatusSchema = z.enum(emailStatusValues);
 export type EmailStatus = z.infer<typeof emailStatusSchema>;
 
 export const emailLogSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   /** null for emails sent before an org exists (signup verification). */
   orgId: orgIdSchema.nullable(),
   to: z.email(),

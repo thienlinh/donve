@@ -1,6 +1,6 @@
 # Donve — Content-Ops CRM Platform
 
-CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation cho non-tech creator VN. Bộ tài liệu thiết kế đầy đủ ở [`docs/overview/README.md`](docs/overview/README.md) — đọc trước nếu cần hiểu kiến trúc/quyết định sản phẩm. File này chỉ để **chạy dự án trên máy bạn và tự verify việc đã làm**.
+CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation cho non-tech creator VN. Kiến trúc/quyết định sản phẩm: [`docs/architecture/architecture.md`](docs/architecture/architecture.md) + [`docs/product/business.md`](docs/product/business.md) — đọc trước nếu cần hiểu bức tranh lớn. File này chỉ để **chạy dự án trên máy bạn và tự verify việc đã làm**.
 
 ## Yêu cầu môi trường
 
@@ -18,7 +18,7 @@ bun install
 Stack local dùng docker-compose (Postgres + Redis container trên máy bạn) — không phụ thuộc Neon/Upstash khi code hàng ngày, không tốn phí, không cần VPS:
 
 ```bash
-docker compose up -d        # postgres:17 (đã wired) + redis:7 (chuẩn bị cho Phase 7, xem ghi chú dưới)
+docker compose up -d        # postgres:18 (đã wired) + valkey (chuẩn bị cho sau này, xem ghi chú dưới)
 cp apps/api/.env.example apps/api/.env.local
 cp apps/dashboard/.env.example apps/dashboard/.env.local
 # DATABASE_URL=postgres://donve:donve@localhost:5432/donve  (đúng user/pass/db mặc định trong docker-compose.yml)
@@ -33,7 +33,7 @@ bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + 
 
 > `packages/db` có 2 driver: `neon-http` (dùng khi deploy CF Workers, đọc `DATABASE_URL` dạng Neon) và `postgres-js` (dùng cho Bun/VPS/local, đọc `DATABASE_URL` Postgres thường) — driver được chọn qua env, không đổi code khi đổi môi trường. Container Postgres ở trên đã đủ để chạy toàn bộ flow auth/org (`/api/auth/*`, không rate-limit) hoàn toàn offline, không cần Neon/Upstash.
 >
-> Container Redis hiện **chưa được driver nào dùng** — `packages/drivers` mới có impl Upstash (REST, cần `UPSTASH_REDIS_URL`/`UPSTASH_REDIS_TOKEN` thật) cho cache/realtime và QStash cho jobs; driver ioredis/BullMQ local là việc của Phase 7 (`prompt-playbook.md`). Container này chỉ để sẵn hình dạng stack cho Phase 7, không tắt gì hôm nay — 2 route duy nhất cần Upstash thật là `/public/*` và `/webhooks/*` (rate limit), chưa tồn tại ở Phase 0 nên không cản trở việc verify DoD dưới đây.
+> Container Valkey hiện **chưa được driver nào dùng** — `packages/drivers` mới có impl Upstash (REST, cần `UPSTASH_REDIS_URL`/`UPSTASH_REDIS_TOKEN` thật) cho cache/realtime và QStash cho jobs; driver `ioredis` local (wire-compatible với Valkey) là việc tương lai khi cần tự host. Container này chỉ để sẵn hình dạng stack, không tắt gì hôm nay — 2 route duy nhất cần Upstash thật là `/public/*` và `/webhooks/*` (rate limit), chưa cản trở việc verify DoD dưới đây.
 
 ## Debug lỗi thường gặp khi chạy local
 
@@ -60,14 +60,12 @@ bun run lint && bun run fmt && bun run typecheck && bun run build && bun run tes
 
 ## Tự verify Phase 0 (nền móng) đã đúng chưa
 
-Theo DoD ở `docs/runbooks/prompt-playbook.md` — chạy xong các bước "Chạy local dev" ở trên rồi thử tay:
+Chạy xong các bước "Chạy local dev" ở trên rồi thử tay:
 
 1. Mở `http://localhost:5173`, đăng ký tài khoản mới → nhận link verify email (in ra console vì không có `RESEND_API_KEY` thật) → verify.
 2. Tạo 1 organization, mời 1 thành viên khác (dùng email thứ 2) → thành viên login, thấy org trong danh sách.
 3. Đổi role thành viên đó (owner/admin/editor/sales) → xác nhận hành động bị chặn/cho phép đúng theo bảng quyền `packages/auth/src/permissions.ts`.
-4. `bun run test` xanh toàn bộ — riêng `apps/api/test/cross-tenant.integration.test.ts` là bộ test quan trọng nhất của Phase 0 (15 case chống IDOR/cross-tenant leak qua id org/member khác), phải xanh trước khi tick bất kỳ prompt nào là "done".
-
-Prompt nào trong playbook chưa tick `[x]` nghĩa là chưa làm hoặc mới làm một phần — đọc ghi chú in đậm ngay dưới prompt đó (nếu có) trước khi tự ý chạy lại từ đầu.
+4. `bun run test` xanh toàn bộ — riêng `apps/api/test/cross-tenant.integration.test.ts` là bộ test quan trọng nhất (chống IDOR/cross-tenant leak qua id org/member khác), phải xanh trước khi coi việc "done".
 
 ## Cấu trúc thư mục
 

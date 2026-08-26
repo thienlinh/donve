@@ -12,11 +12,12 @@ import {
 } from "@dv/ui/components/shadcn/native-select";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Lock } from "lucide-react";
 
 import { EntityImageField } from "@/components/entity-image-field";
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import { SettingsForbidden } from "@/components/settings-forbidden";
+import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useCanManageOrg } from "@/hooks/use-can-manage-org";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchOrgSettings, updateOrgSettings } from "../api";
@@ -25,13 +26,8 @@ import { AuditLogCard } from "./audit-log-card";
 import { BrandKitCard } from "./brand-kit-card";
 
 export function SettingsPage() {
-  const { data: session } = useSession();
   const { data: activeOrganization } = useActiveOrganization();
-  const myMembership = activeOrganization?.members.find(
-    (member) => member.userId === session?.user.id
-  );
-  const canManage =
-    myMembership?.role === "owner" || myMembership?.role === "admin";
+  const canManage = useCanManageOrg();
 
   const {
     data: settings,
@@ -51,16 +47,7 @@ export function SettingsPage() {
           <CardDescription>{m.settingsDescription()}</CardDescription>
         </CardHeader>
         <CardContent>
-          {!canManage && (
-            <QueryState
-              isPending={false}
-              error={null}
-              isEmpty
-              errorTitle=""
-              emptyTitle={m.settingsForbiddenTitle()}
-              emptyIcon={<Lock />}
-            />
-          )}
+          {!canManage && <SettingsForbidden />}
 
           {canManage && (
             <QueryState

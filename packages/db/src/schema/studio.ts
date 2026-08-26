@@ -6,7 +6,8 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
@@ -16,12 +17,12 @@ export const landingPages = pgTable(
   "landing_pages",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    campaignId: text("campaign_id"),
+    orgId: uuid("org_id").notNull(),
+    campaignId: uuid("campaign_id"),
     name: text("name").notNull(),
-    currentVersionId: text("current_version_id"),
+    currentVersionId: uuid("current_version_id"),
     thumbnailKey: text("thumbnail_key"),
-    chatSessionId: text("chat_session_id"),
+    chatSessionId: uuid("chat_session_id"),
     // "manual" = native PageSpec/json-render page created by hand in Studio, no AI involved
     // (docs/features/landing-pages/page-system/custom-import.md's `native_manual`) — "ai" covers
     // both the legacy srcmap AI flow and the new native-AI PageSpec flow, distinguished instead
@@ -37,15 +38,19 @@ export const landingPages = pgTable(
     ...timestamps,
     deletedAt: deletedAt()
   },
-  (t) => [index("ix_lp_org").on(t.orgId, t.campaignId)]
-);
+  (t) => [
+    index("ix_lp_org").on(t.orgId, t.campaignId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
 
 export const pageVersions = pgTable(
   "page_versions",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    landingPageId: text("landing_page_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    landingPageId: uuid("landing_page_id").notNull(),
     seq: integer("seq").notNull(),
     // Null for a native (PageSpec) version — `spec` is its source of truth instead; the
     // legacy srcmap flow (source="ai/import") still always sets both.
@@ -59,20 +64,24 @@ export const pageVersions = pgTable(
       enum: ["ai_patch", "ai_full", "manual", "import", "restore"]
     }).notNull(),
     patch: jsonb("patch"),
-    chatMessageId: text("chat_message_id"),
+    chatMessageId: uuid("chat_message_id"),
     label: text("label"),
-    createdBy: text("created_by"),
+    createdBy: uuid("created_by"),
     createdAt: timestamps.createdAt,
     // set when the retention job prunes htmlKey/srcmapKey from R2 (infra-deployment-cost.md §2) — row stays for history/audit
     prunedAt: timestamp("pruned_at")
   },
-  (t) => [uniqueIndex("uq_pv").on(t.landingPageId, t.seq)]
-);
+  (t) => [
+    uniqueIndex("uq_pv").on(t.landingPageId, t.seq),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
 
 export const pageAssets = pgTable("page_assets", {
   id: id(),
-  orgId: text("org_id").notNull(),
-  landingPageId: text("landing_page_id").notNull(),
+  orgId: uuid("org_id").notNull(),
+  landingPageId: uuid("landing_page_id").notNull(),
   fileName: text("file_name").notNull(),
   r2Key: text("r2_key").notNull(),
   mime: text("mime").notNull(),
@@ -107,11 +116,11 @@ export const entityImages = pgTable(
   {
     id: id(),
     // RLS org-scope — always set, even when the owner is a campaign.
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     ownerType: text("owner_type", {
       enum: ["organization", "campaign"]
     }).notNull(),
-    ownerId: text("owner_id").notNull(),
+    ownerId: uuid("owner_id").notNull(),
     // "favicon" etc. can be added here later without changing the table shape.
     kind: text("kind", { enum: ["logo", "og_image"] }).notNull(),
     r2Key: text("r2_key").notNull(),
@@ -126,22 +135,23 @@ export const entityImages = pgTable(
 
 export const studioComments = pgTable("studio_comments", {
   id: id(),
-  orgId: text("org_id").notNull(),
-  landingPageId: text("landing_page_id").notNull(),
+  orgId: uuid("org_id").notNull(),
+  landingPageId: uuid("landing_page_id").notNull(),
+  // DOM element id from the srcmap engine (packages/studio-core), not a DB row id — stays text.
   srcmapId: text("srcmap_id").notNull(),
   body: text("body").notNull(),
   screenshotKey: text("screenshot_key"),
   status: text("status", { enum: ["queued", "sent", "resolved"] })
     .notNull()
     .default("queued"),
-  createdBy: text("created_by"),
+  createdBy: uuid("created_by"),
   createdAt: timestamps.createdAt
 });
 
 export const chatSessions = pgTable("chat_sessions", {
   id: id(),
-  orgId: text("org_id").notNull(),
-  landingPageId: text("landing_page_id").notNull(),
+  orgId: uuid("org_id").notNull(),
+  landingPageId: uuid("landing_page_id").notNull(),
   title: text("title"),
   createdAt: timestamps.createdAt
 });
@@ -150,8 +160,8 @@ export const chatMessages = pgTable(
   "chat_messages",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    sessionId: text("session_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    sessionId: uuid("session_id").notNull(),
     role: text("role", { enum: ["user", "assistant", "tool"] }).notNull(),
     content: jsonb("content").notNull(),
     tokenUsage: jsonb("token_usage"),

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 
 /** `product/vision.md` §Optimization Loop: proposed by the Optimization Agent, a human always
  * decides what happens next — nothing here auto-publishes. */
@@ -17,9 +17,9 @@ export type OptimizationHypothesisStatus = z.infer<
 >;
 
 export const optimizationHypothesisSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   hypothesis: z.string(),
   rationale: z.string(),
   evidenceRefs: z.array(z.string()).default([]),

@@ -5,7 +5,8 @@ import {
   jsonb,
   pgTable,
   text,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
@@ -19,7 +20,7 @@ export const aiConnections = pgTable(
   "ai_connections",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     provider: text("provider", {
       enum: ["anthropic", "openai", "openrouter", "groq", "nvidia", "platform"]
     }).notNull(),
@@ -40,8 +41,8 @@ export const aiUsage = pgTable(
   "ai_usage",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    connectionId: text("connection_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    connectionId: uuid("connection_id").notNull(),
     model: text("model").notNull(),
     inputTokens: integer("input_tokens").notNull(),
     outputTokens: integer("output_tokens").notNull(),
@@ -49,14 +50,17 @@ export const aiUsage = pgTable(
     context: jsonb("context").default({}),
     createdAt: timestamps.createdAt
   },
-  (t) => [index("ix_usage_org_time").on(t.orgId, t.createdAt)]
-);
+  (t) => [
+    index("ix_usage_org_time").on(t.orgId, t.createdAt),
+    orgIsolationPolicy()
+  ]
+).enableRLS();
 
 export const skills = pgTable(
   "skills",
   {
     id: id(),
-    orgId: text("org_id"), // null = platform skill (read-only tenant)
+    orgId: uuid("org_id"), // null = platform skill (read-only tenant)
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     content: text("content").notNull(),
@@ -75,7 +79,7 @@ export const promptTemplates = pgTable(
   "prompt_templates",
   {
     id: id(),
-    orgId: text("org_id"), // null = platform-wide template (read-only tenant)
+    orgId: uuid("org_id"), // null = platform-wide template (read-only tenant)
     slug: text("slug").notNull(),
     sections: jsonb("sections").notNull().default([]),
     variables: jsonb("variables").default([]),
@@ -93,8 +97,8 @@ export const promptTestRuns = pgTable(
   "prompt_test_runs",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    promptTemplateId: text("prompt_template_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    promptTemplateId: uuid("prompt_template_id").notNull(),
     model: text("model").notNull(),
     compiledPrompt: text("compiled_prompt").notNull(),
     outputHtml: text("output_html").notNull(),
@@ -118,8 +122,8 @@ export const promptTestRuns = pgTable(
 export const landingSkills = pgTable(
   "landing_skills",
   {
-    landingPageId: text("landing_page_id").notNull(),
-    skillId: text("skill_id").notNull(),
+    landingPageId: uuid("landing_page_id").notNull(),
+    skillId: uuid("skill_id").notNull(),
     enabled: boolean("enabled").notNull()
   },
   (t) => [uniqueIndex("uq_landing_skill").on(t.landingPageId, t.skillId)]

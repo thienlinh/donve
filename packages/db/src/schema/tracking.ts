@@ -1,6 +1,7 @@
-import { index, jsonb, pgTable, text } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 /**
  * `tracking/tracking-and-attribution.md` §Event registry — "Sinh tự động ngay khi Page
@@ -13,9 +14,9 @@ export const eventDefinitions = pgTable(
   "event_definitions",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    landingPageId: text("landing_page_id").notNull(),
-    pageVersionId: text("page_version_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    landingPageId: uuid("landing_page_id").notNull(),
+    pageVersionId: uuid("page_version_id").notNull(),
     eventName: text("event_name").notNull(),
     /** `PageSpec.elements` key this event is emitted from — null for a page-wide event. */
     elementId: text("element_id"),
@@ -26,6 +27,8 @@ export const eventDefinitions = pgTable(
     createdAt: timestamps.createdAt
   },
   (t) => [
-    index("ix_event_definitions_landing_page").on(t.orgId, t.landingPageId)
+    index("ix_event_definitions_landing_page").on(t.orgId, t.landingPageId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
-);
+).enableRLS();

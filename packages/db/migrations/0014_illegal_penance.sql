@@ -1,1 +1,0 @@
-ALTER TABLE "leads" ADD COLUMN "anonymized_at" timestamp;

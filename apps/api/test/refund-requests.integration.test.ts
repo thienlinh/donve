@@ -44,7 +44,7 @@ interface Organization {
 }
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
 
   const migratorClient = postgres(connectionUri, { max: 1 });
@@ -63,7 +63,14 @@ beforeAll(async () => {
     BETTER_AUTH_URL: "http://localhost:3000",
     DASHBOARD_URL: "http://localhost:5173",
     RESEND_API_KEY: "test-key",
-    RUNTIME: "bun"
+    RUNTIME: "bun",
+    AI_KEY_MASTER_SECRET: "test-ai-key-master-secret-32-chars!!",
+    PAYMENTS_KEY_MASTER_SECRET: "test-payments-key-master-secret-32ch",
+    WEBHOOK_KEY_MASTER_SECRET: "test-webhook-key-master-secret-32ch!",
+    TURNSTILE_SECRET_KEY: "test-turnstile-secret-key",
+    TURNSTILE_SITE_KEY: "test-turnstile-site-key",
+    PLATFORM_OPENROUTER_API_KEY: "test-openrouter-api-key",
+    PUBLISH_BASE_DOMAIN: "test.example.com"
   };
 
   // refund completion publishes to the dashboard SSE hub via the real `@upstash/redis` REST

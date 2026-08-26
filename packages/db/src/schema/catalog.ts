@@ -7,16 +7,18 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 export const products = pgTable(
   "products",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     type: text("type", {
       enum: ["course", "product", "service", "other"]
     }).notNull(),
@@ -29,14 +31,18 @@ export const products = pgTable(
     ...timestamps,
     deletedAt: deletedAt()
   },
-  (t) => [index("ix_products_org").on(t.orgId, t.type)]
-);
+  (t) => [
+    index("ix_products_org").on(t.orgId, t.type),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
 
 export const campaigns = pgTable(
   "campaigns",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     publicId: text("public_id").notNull(),
     name: text("name").notNull(),
     status: text("status", { enum: ["draft", "active", "paused", "ended"] })
@@ -61,16 +67,18 @@ export const campaigns = pgTable(
   (t) => [
     uniqueIndex("uq_campaign_public_id")
       .on(t.publicId)
-      .where(sql`deleted_at IS NULL`)
+      .where(sql`deleted_at IS NULL`),
+    orgIsolationPolicy(),
+    platformReadPolicy()
   ]
-);
+).enableRLS();
 
 export const campaignProducts = pgTable(
   "campaign_products",
   {
-    campaignId: text("campaign_id").notNull(),
-    productId: text("product_id").notNull(),
-    orgId: text("org_id").notNull()
+    campaignId: uuid("campaign_id").notNull(),
+    productId: uuid("product_id").notNull(),
+    orgId: uuid("org_id").notNull()
   },
   (t) => [uniqueIndex("uq_cp").on(t.campaignId, t.productId)]
 );

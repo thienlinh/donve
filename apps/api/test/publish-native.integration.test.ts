@@ -22,7 +22,6 @@ import {
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { ulid } from "ulid";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
 import { createDbFromEnv } from "../src/lib/db.js";
@@ -55,7 +54,7 @@ const tokens: DesignTokens = {
 };
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
 
   const migratorClient = postgres(connectionUri, { max: 1 });
@@ -90,7 +89,7 @@ afterAll(async () => {
 
 it("publishes a hand-written native PageSpec through the shared R2/outbox/KV pipeline", async () => {
   const db = createDbFromEnv(bindings);
-  const orgId = ulid();
+  const orgId = crypto.randomUUID();
 
   const landingPage = await landingPagesRepository.insert(db, orgId, {
     name: "Native test page",
@@ -193,7 +192,7 @@ it("publishes a hand-written native PageSpec through the shared R2/outbox/KV pip
  */
 it("publishes a PageSpec that was round-tripped through the Puck adapter, with no Puck artifacts in the output", async () => {
   const db = createDbFromEnv(bindings);
-  const orgId = ulid();
+  const orgId = crypto.randomUUID();
 
   const landingPage = await landingPagesRepository.insert(db, orgId, {
     name: "Puck round-trip test page",
@@ -305,7 +304,7 @@ it("publishes a PageSpec that was round-tripped through the Puck adapter, with n
  */
 it("applies seo.title and seo.noindex to the published artifacts", async () => {
   const db = createDbFromEnv(bindings);
-  const orgId = ulid();
+  const orgId = crypto.randomUUID();
 
   const landingPage = await landingPagesRepository.insert(db, orgId, {
     name: "Page name that must not win",

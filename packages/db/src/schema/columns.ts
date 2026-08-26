@@ -1,10 +1,10 @@
-import { text, timestamp } from "drizzle-orm/pg-core";
-import { ulid } from "ulid";
+import { sql } from "drizzle-orm";
+import { timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const id = () =>
-  text("id")
+  uuid("id")
     .primaryKey()
-    .$defaultFn(() => ulid());
+    .default(sql`uuidv7()`);
 
 export const timestamps = {
   createdAt: timestamp("created_at").notNull().defaultNow(),

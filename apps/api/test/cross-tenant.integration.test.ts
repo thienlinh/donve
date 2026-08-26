@@ -59,7 +59,7 @@ interface Invitation {
 }
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
 
   const migratorClient = postgres(connectionUri, { max: 1 });
@@ -489,7 +489,7 @@ describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", 
   it("edge case: a well-formed but nonexistent organizationId fails closed instead of 200", async () => {
     const res = await authed(
       cookieA,
-      "/api/auth/organization/get-full-organization?organizationId=org_does_not_exist"
+      `/api/auth/organization/get-full-organization?organizationId=${crypto.randomUUID()}`
     );
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

@@ -1,11 +1,11 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 
+import type { ModelPricing } from "../usage/pricing.js";
 import {
-  creditsForUsage,
-  UnknownModelPricingError,
-  type ModelPricing
-} from "../usage/pricing.js";
-import { streamViaAiSdk, validateKeyViaModelsEndpoint } from "./shared.js";
+  countCostFromPricing,
+  streamViaAiSdk,
+  validateKeyViaModelsEndpoint
+} from "./shared.js";
 import type {
   AIProvider,
   ChatRequest,
@@ -47,9 +47,7 @@ export function createAnthropicProvider(): AIProvider {
     },
 
     countCost(usage: TokenUsage, model: string) {
-      const pricing = PRICING[model];
-      if (!pricing) throw new UnknownModelPricingError(model);
-      return creditsForUsage(usage, pricing);
+      return countCostFromPricing(PRICING, usage, model);
     }
   };
 }

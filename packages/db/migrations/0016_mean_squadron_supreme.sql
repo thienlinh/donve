@@ -1,1 +1,0 @@
-ALTER TABLE "page_assets" ADD COLUMN "poster_key" text;

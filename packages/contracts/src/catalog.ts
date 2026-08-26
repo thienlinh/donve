@@ -5,7 +5,7 @@ import {
   orgIdSchema,
   softDeleteSchema,
   timestampsSchema,
-  ulidSchema,
+  idSchema,
   utmSchema
 } from "./common.js";
 
@@ -19,7 +19,7 @@ export const productTypeSchema = z.enum(productTypeValues);
 export type ProductType = z.infer<typeof productTypeSchema>;
 
 export const productSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   type: productTypeSchema,
   name: z.string().min(1),
@@ -153,7 +153,7 @@ export type CampaignAssignmentMode = z.infer<
 >;
 
 export const campaignSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   publicId: z.string(),
   name: z.string().min(1),
@@ -165,22 +165,22 @@ export const campaignSchema = z.object({
   paymentConfig: campaignPaymentConfigSchema,
   utmDefaults: utmSchema.default({}),
   assignmentMode: campaignAssignmentModeSchema.default("manual"),
-  roundRobinCursor: ulidSchema.nullable(),
+  roundRobinCursor: idSchema.nullable(),
   ...timestampsSchema.shape,
   ...softDeleteSchema.shape
 });
 export type Campaign = z.infer<typeof campaignSchema>;
 
 export const campaignProductSchema = z.object({
-  campaignId: ulidSchema,
-  productId: ulidSchema,
+  campaignId: idSchema,
+  productId: idSchema,
   orgId: orgIdSchema
 });
 export type CampaignProduct = z.infer<typeof campaignProductSchema>;
 
 /** GET/POST/PATCH /api/campaigns response — `campaigns` row plus its attached product ids (FR-C-03). */
 export const campaignWithProductsSchema = campaignSchema.extend({
-  productIds: z.array(ulidSchema).default([])
+  productIds: z.array(idSchema).default([])
 });
 export type CampaignWithProducts = z.infer<typeof campaignWithProductsSchema>;
 
@@ -196,7 +196,7 @@ export type CampaignListQuery = z.infer<typeof campaignListQuerySchema>;
 /** PATCH/DELETE /api/campaigns/bulk — table multi-select bulk actions, same
  * row-cap discipline as `bulkUpdateLeadsSchema`/`bulkDeleteLeadsSchema`. */
 export const bulkUpdateCampaignsSchema = z.object({
-  campaignIds: z.array(ulidSchema).min(1),
+  campaignIds: z.array(idSchema).min(1),
   status: campaignStatusSchema
 });
 export type BulkUpdateCampaignsInput = z.infer<
@@ -204,7 +204,7 @@ export type BulkUpdateCampaignsInput = z.infer<
 >;
 
 export const bulkDeleteCampaignsSchema = z.object({
-  campaignIds: z.array(ulidSchema).min(1)
+  campaignIds: z.array(idSchema).min(1)
 });
 export type BulkDeleteCampaignsInput = z.infer<
   typeof bulkDeleteCampaignsSchema
@@ -229,7 +229,7 @@ export const createCampaignSchema = z.object({
   paymentConfig: campaignPaymentConfigSchema.optional(),
   utmDefaults: utmSchema.optional(),
   assignmentMode: campaignAssignmentModeSchema.default("manual"),
-  productIds: z.array(ulidSchema).default([])
+  productIds: z.array(idSchema).default([])
 });
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 
@@ -243,6 +243,6 @@ export const updateCampaignSchema = z.object({
   paymentConfig: campaignPaymentConfigSchema.optional(),
   utmDefaults: utmSchema.optional(),
   assignmentMode: campaignAssignmentModeSchema.optional(),
-  productIds: z.array(ulidSchema).optional()
+  productIds: z.array(idSchema).optional()
 });
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;

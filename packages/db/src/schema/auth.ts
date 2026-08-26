@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
 
@@ -21,9 +21,9 @@ export const session = pgTable("session", {
   ...timestamps,
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id").notNull(),
+  userId: uuid("user_id").notNull(),
   // Set by the organization plugin to track which org a session is scoped to.
-  activeOrganizationId: text("active_organization_id")
+  activeOrganizationId: uuid("active_organization_id")
 });
 
 export const account = pgTable("account", {
@@ -33,7 +33,7 @@ export const account = pgTable("account", {
   // better-auth 1.7 core field (credential-account de-duplication) — every
   // account row it creates now sets this, including email/password sign-up.
   issuer: text("issuer"),
-  userId: text("user_id").notNull(),
+  userId: uuid("user_id").notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),

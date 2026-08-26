@@ -12,7 +12,7 @@ Process:
 1. **Scope the check to what actually changed.** Use `git diff`/`git log` (or the specific file the invoking context flagged) — don't re-audit the entire `docs/` tree on every invocation unless explicitly asked for a full audit.
 2. **Cross-check against the specific sources of truth this repo relies on**, only the ones relevant to what changed:
    - New/removed `packages/*` or `apps/*` → does the monorepo layout table in `.claude/rules/tech-stack.md` and `docs/architecture/architecture.md` §3 still list exactly the real directories?
-   - A dependency/version change in any `package.json` → does anything in `docs/architecture/tech-stack.md` or `.claude/rules/tech-stack.md` quote a now-stale version or package name?
+   - A dependency/version change in any `package.json` → does anything in `.claude/rules/tech-stack.md` quote a now-stale version or package name?
    - A `tsconfig*.json`/`turbo.json`/`.oxlintrc.json`/`.oxfmtrc.json` change → does the "Linting & formatting" or "JIT internal packages" section of `.claude/rules/tech-stack.md` still describe the real config shape?
    - A schema change under `packages/db` → does `docs/architecture/database-schema.md` still match the real Drizzle schema?
    - Any of the above → do `.claude/agents/architect.md`, `.claude/agents/implementer.md`, or `.claude/agents/stack-guardian.md` reference a package/path that changed?

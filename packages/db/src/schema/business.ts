@@ -1,12 +1,13 @@
 import {
   jsonb,
   pgTable,
-  text,
   timestamp,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
+import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
 
 /**
  * Business Knowledge Graph (`strategy/strategy-brief.md` §Business Knowledge Graph) —
@@ -20,8 +21,8 @@ export const businessProfiles = pgTable(
   "business_profiles",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    landingPageId: text("landing_page_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    landingPageId: uuid("landing_page_id").notNull(),
     product: jsonb("product").notNull().default([]),
     customer: jsonb("customer").notNull().default([]),
     market: jsonb("market").notNull().default([]),
@@ -29,8 +30,12 @@ export const businessProfiles = pgTable(
     sources: jsonb("sources").notNull().default([]),
     ...timestamps
   },
-  (t) => [uniqueIndex("uq_business_profile_landing_page").on(t.landingPageId)]
-);
+  (t) => [
+    uniqueIndex("uq_business_profile_landing_page").on(t.landingPageId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
 
 /**
  * `strategy/strategy-brief.md` §Strategy Brief — each section stored as one JSONB object
@@ -40,8 +45,8 @@ export const strategyBriefs = pgTable(
   "strategy_briefs",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    landingPageId: text("landing_page_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    landingPageId: uuid("landing_page_id").notNull(),
     business: jsonb("business").notNull().default({}),
     customer: jsonb("customer").notNull().default({}),
     market: jsonb("market").notNull().default({}),
@@ -50,8 +55,12 @@ export const strategyBriefs = pgTable(
     message: jsonb("message").notNull().default({}),
     // §Xác nhận: Page Architect (roadmap.md's next step) may only run once both are set.
     confirmedAt: timestamp("confirmed_at"),
-    confirmedBy: text("confirmed_by"),
+    confirmedBy: uuid("confirmed_by"),
     ...timestamps
   },
-  (t) => [uniqueIndex("uq_strategy_brief_landing_page").on(t.landingPageId)]
-);
+  (t) => [
+    uniqueIndex("uq_strategy_brief_landing_page").on(t.landingPageId),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();

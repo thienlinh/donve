@@ -20,7 +20,6 @@
     "@dv/studio-catalog": "workspace:*",
     "@dv/studio-core": "workspace:*",
     "@dv/studio-render": "workspace:*",
-    "@hono/zod-validator": "catalog:server",
     "@json-render/core": "catalog:ui",
     "ai": "catalog:ai",
     "chrome-launcher": "catalog:server",
@@ -38,7 +37,6 @@
     "drizzle-orm": "catalog:db",
     "postgres": "catalog:db",
     "typescript": "catalog:",
-    "ulid": "catalog:db",
     "vitest": "catalog:",
     "wrangler": "catalog:server"
   }

@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { id } from "./columns.js";
 
@@ -11,8 +11,8 @@ import { id } from "./columns.js";
  */
 export const customPageBundles = pgTable("custom_page_bundles", {
   id: id(),
-  orgId: text("org_id").notNull(),
-  landingPageId: text("landing_page_id").notNull(),
+  orgId: uuid("org_id").notNull(),
+  landingPageId: uuid("landing_page_id").notNull(),
   sourceKind: text("source_kind", {
     enum: ["zip", "files", "paste_html", "url_fetch"]
   }).notNull(),

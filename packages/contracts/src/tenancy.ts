@@ -4,7 +4,7 @@ import {
   jsonRecordSchema,
   orgIdSchema,
   timestampsSchema,
-  ulidSchema
+  idSchema
 } from "./common.js";
 
 export const membershipRoleValues = [
@@ -57,7 +57,7 @@ export const orgSettingsSchema = z
 export type OrgSettings = z.infer<typeof orgSettingsSchema>;
 
 export const organizationSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   name: z.string().min(1),
   slug: z.string().min(1),
   plan: orgPlanSchema.default("free"),
@@ -80,16 +80,16 @@ export const salesConfigSchema = z
 export type SalesConfig = z.infer<typeof salesConfigSchema>;
 
 export const membershipSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  userId: ulidSchema,
+  userId: idSchema,
   role: membershipRoleSchema,
   salesConfig: salesConfigSchema.default({})
 });
 export type Membership = z.infer<typeof membershipSchema>;
 
 export const inviteSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   email: z.email(),
   role: membershipRoleSchema,
@@ -100,9 +100,9 @@ export const inviteSchema = z.object({
 export type Invite = z.infer<typeof inviteSchema>;
 
 export const auditLogSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  actorId: ulidSchema.nullable(),
+  actorId: idSchema.nullable(),
   action: z.string(),
   targetType: z.string().nullable(),
   targetId: z.string().nullable(),

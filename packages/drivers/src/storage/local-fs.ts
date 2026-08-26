@@ -36,12 +36,18 @@ export function createLocalFsStorageDriver(baseDir: string): StorageDriver {
       const path = resolvePath(input.key);
       await mkdir(dirname(path), { recursive: true });
 
+      // `node:fs/promises`' `writeFile` accepts a string, TypedArray, or DataView — but not a
+      // bare `ArrayBuffer` (throws "must be of type string or an instance of Buffer,
+      // TypedArray, or DataView"), so an ArrayBuffer body (e.g. `images/apply`'s
+      // `await imageRes.arrayBuffer()`) needs wrapping same as the stream case below.
       const body =
-        typeof input.body === "string" || input.body instanceof ArrayBuffer
+        typeof input.body === "string"
           ? input.body
-          : ArrayBuffer.isView(input.body)
-            ? input.body
-            : new Uint8Array(await streamToArrayBuffer(input.body));
+          : input.body instanceof ArrayBuffer
+            ? new Uint8Array(input.body)
+            : ArrayBuffer.isView(input.body)
+              ? input.body
+              : new Uint8Array(await streamToArrayBuffer(input.body));
 
       await writeFile(path, body as Uint8Array | string);
       if (input.contentType) {

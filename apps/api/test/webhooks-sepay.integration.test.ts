@@ -45,7 +45,7 @@ const TRANSFER_PREFIX = "DV";
 const FAKE_UPSTASH_URL = "https://fake-upstash.test";
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
 
   const migratorClient = postgres(connectionUri, { max: 1 });
@@ -67,7 +67,9 @@ beforeAll(async () => {
     RUNTIME: "bun",
     PAYMENTS_KEY_MASTER_SECRET: MASTER_SECRET,
     AI_KEY_MASTER_SECRET: MASTER_SECRET,
+    WEBHOOK_KEY_MASTER_SECRET: MASTER_SECRET,
     TURNSTILE_SECRET_KEY: "test-turnstile",
+    TURNSTILE_SITE_KEY: "test-turnstile-site",
     PLATFORM_OPENROUTER_API_KEY: "test-openrouter",
     PUBLISH_BASE_DOMAIN: "test.local"
   };

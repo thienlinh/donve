@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 import {
   funnelGapsSchema,
   landingPageDetailSchema,
@@ -29,9 +29,9 @@ export const detectedFormSchema = z.object({
 export type DetectedForm = z.infer<typeof detectedFormSchema>;
 
 export const customPageBundleSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   sourceKind: customImportSourceKindSchema,
   detectedForms: z.array(detectedFormSchema).default([]),
   importedAt: z.coerce.date(),

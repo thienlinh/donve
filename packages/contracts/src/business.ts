@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, timestampsSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, timestampsSchema, idSchema } from "./common.js";
 
 /**
  * `strategy/strategy-brief.md` §Business Knowledge Graph — every extracted finding is tagged
@@ -26,9 +26,9 @@ export const businessProfileSourceSchema = z.object({
 export type BusinessProfileSource = z.infer<typeof businessProfileSourceSchema>;
 
 export const businessProfileSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   product: z.array(knowledgeItemSchema),
   customer: z.array(knowledgeItemSchema),
   market: z.array(knowledgeItemSchema),
@@ -120,9 +120,9 @@ export const strategyMessageSchema = z.object({
 });
 
 export const strategyBriefSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   business: strategyBusinessSchema,
   customer: strategyCustomerSchema,
   market: strategyMarketSchema,
@@ -130,7 +130,7 @@ export const strategyBriefSchema = z.object({
   offer: strategyOfferSchema,
   message: strategyMessageSchema,
   confirmedAt: z.coerce.date().nullable(),
-  confirmedBy: ulidSchema.nullable(),
+  confirmedBy: idSchema.nullable(),
   ...timestampsSchema.shape
 });
 export type StrategyBrief = z.infer<typeof strategyBriefSchema>;

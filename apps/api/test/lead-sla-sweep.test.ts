@@ -147,7 +147,7 @@ describe("runLeadSlaSweep", () => {
       { leadId: "lead1", meta: { kind: "assignment" } },
       ...(state.activitiesByLead.get("lead1") ?? [])
     ]);
-    state.leads[0].hoursSinceActivity = 999;
+    if (state.leads[0]) state.leads[0].hoursSinceActivity = 999;
 
     const third = await runLeadSlaSweep({} as never);
     expect(third.leadsBreached).toBe(1);

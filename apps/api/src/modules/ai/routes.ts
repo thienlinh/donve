@@ -36,11 +36,11 @@ import { z } from "zod";
 import {
   importAiMasterKeyFromEnv,
   runModelCompletion
-} from "../../lib/ai-gateway.js";
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { runLighthouseSandbox } from "../../lib/lighthouse-sandbox.js";
-import type { AppEnv } from "../../types.js";
+} from "@/lib/ai-gateway.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { runLighthouseSandbox } from "@/lib/lighthouse-sandbox.js";
+import type { AppEnv } from "@/types.js";
 
 export const aiRoutes = new Hono<AppEnv>();
 

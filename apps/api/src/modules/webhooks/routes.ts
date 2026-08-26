@@ -11,12 +11,12 @@ import {
 import { payments } from "@dv/drivers";
 import { Hono } from "hono";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { publishOrderUpdate } from "../../lib/realtime.js";
-import { timingSafeEqual } from "../../lib/timing-safe-equal.js";
-import { DEFAULT_TRANSFER_PREFIX } from "../../lib/transfer-prefix.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { publishOrderUpdate } from "@/lib/realtime.js";
+import { timingSafeEqual } from "@/lib/timing-safe-equal.js";
+import { DEFAULT_TRANSFER_PREFIX } from "@/lib/transfer-prefix.js";
+import type { AppEnv } from "@/types.js";
 
 export const webhooksRoutes = new Hono<AppEnv>();
 

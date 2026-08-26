@@ -3,9 +3,9 @@ import { auditLogsRepository, organizationsRepository } from "@dv/db";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import type { AppEnv } from "@/types.js";
 
 export const organizationsRoutes = new Hono<AppEnv>();
 

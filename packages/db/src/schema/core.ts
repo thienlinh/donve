@@ -5,7 +5,8 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
@@ -37,10 +38,10 @@ export const memberships = pgTable(
   "memberships",
   {
     id: id(),
-    orgId: text("org_id")
+    orgId: uuid("org_id")
       .notNull()
       .references(() => organizations.id),
-    userId: text("user_id").notNull(),
+    userId: uuid("user_id").notNull(),
     role: text("role", {
       enum: ["owner", "admin", "editor", "sales"]
     }).notNull(),
@@ -58,7 +59,7 @@ export const memberships = pgTable(
 // address rows by `id` and require `status`/`inviterId` on every row they write.
 export const invites = pgTable("invites", {
   id: id(),
-  orgId: text("org_id").notNull(),
+  orgId: uuid("org_id").notNull(),
   email: text("email").notNull(),
   role: text("role", { enum: ["owner", "admin", "editor", "sales"] }).notNull(),
   status: text("status", {
@@ -66,7 +67,7 @@ export const invites = pgTable("invites", {
   })
     .notNull()
     .default("pending"),
-  inviterId: text("inviter_id"),
+  inviterId: uuid("inviter_id"),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
@@ -75,11 +76,11 @@ export const auditLogs = pgTable(
   "audit_logs",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    actorId: text("actor_id"),
+    orgId: uuid("org_id").notNull(),
+    actorId: uuid("actor_id"),
     action: text("action").notNull(),
     targetType: text("target_type"),
-    targetId: text("target_id"),
+    targetId: uuid("target_id"),
     meta: jsonb("meta").default({}),
     createdAt: timestamps.createdAt
   },

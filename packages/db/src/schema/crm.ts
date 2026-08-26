@@ -8,7 +8,8 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex
+  uniqueIndex,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { deletedAt, id, timestamps } from "./columns.js";
@@ -18,8 +19,8 @@ export const leads = pgTable(
   "leads",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    campaignId: text("campaign_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    campaignId: uuid("campaign_id").notNull(),
     fullName: text("full_name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
@@ -27,7 +28,7 @@ export const leads = pgTable(
     customFields: jsonb("custom_fields").default({}),
     utm: jsonb("utm").default({}),
     stage: text("stage").notNull().default("new"),
-    assigneeId: text("assignee_id"),
+    assigneeId: uuid("assignee_id"),
     // multi-source ingestion — every insert path (public submit form, CSV import, the
     // Facebook/Zalo OA webhooks) sets this explicitly rather than relying on the default.
     source: text("source", {
@@ -80,17 +81,17 @@ export const assignmentRules = pgTable(
   "assignment_rules",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     priority: integer("priority").notNull().default(0),
     /** null matches any campaign. */
-    matchCampaignId: text("match_campaign_id"),
+    matchCampaignId: uuid("match_campaign_id"),
     /** null matches any persona. */
     matchPersona: text("match_persona"),
     strategy: text("strategy", {
       enum: ["round_robin", "least_active_leads", "fixed_assignee"]
     }).notNull(),
     assigneePoolIds: jsonb("assignee_pool_ids").$type<string[]>().default([]),
-    fixedAssigneeId: text("fixed_assignee_id"),
+    fixedAssigneeId: uuid("fixed_assignee_id"),
     /** round-robin cursor — the pool index assigned last, persisted so the rotation survives restarts. */
     lastAssignedIndex: integer("last_assigned_index").notNull().default(0),
     slaHours: integer("sla_hours"),
@@ -114,8 +115,8 @@ export const savedViews = pgTable(
   "saved_views",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    userId: text("user_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    userId: uuid("user_id").notNull(),
     name: text("name").notNull(),
     filterJson: jsonb("filter_json").notNull().default({}),
     shared: boolean("shared").notNull().default(false),
@@ -152,7 +153,7 @@ export const webhookCredentials = pgTable(
   "webhook_credentials",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     provider: text("provider", {
       enum: ["facebook", "zalo_oa", "generic", "google_ads"]
     }).notNull(),
@@ -196,7 +197,7 @@ export const notifyCredentials = pgTable(
   "notify_credentials",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     provider: text("provider", {
       enum: ["zalo_zns", "esms"]
     }).notNull(),
@@ -215,8 +216,8 @@ export const leadActivities = pgTable(
   "lead_activities",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    leadId: text("lead_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
     type: text("type", {
       enum: [
         "note",
@@ -230,19 +231,23 @@ export const leadActivities = pgTable(
     }).notNull(),
     body: text("body"),
     meta: jsonb("meta").default({}),
-    actorId: text("actor_id"),
+    actorId: uuid("actor_id"),
     createdAt: timestamps.createdAt
   },
-  (t) => [index("ix_act_lead").on(t.leadId, t.createdAt)]
-);
+  (t) => [
+    index("ix_act_lead").on(t.leadId, t.createdAt),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
 
 // Nghị định 13/2023/NĐ-CP (personal data protection) — keeps a record of collection consent
 export const consents = pgTable(
   "consents",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    leadId: text("lead_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
     consentType: text("consent_type").notNull().default("data_collection"),
     policyVersion: text("policy_version").notNull(),
     ip: text("ip"),
@@ -259,11 +264,11 @@ export const orders = pgTable(
   "orders",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     code: text("code").notNull(),
-    leadId: text("lead_id").notNull(),
-    campaignId: text("campaign_id").notNull(),
-    productId: text("product_id"),
+    leadId: uuid("lead_id").notNull(),
+    campaignId: uuid("campaign_id").notNull(),
+    productId: uuid("product_id"),
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     status: text("status", {
       enum: [
@@ -294,8 +299,8 @@ export const payments = pgTable(
   "payments",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    orderId: text("order_id"),
+    orgId: uuid("org_id").notNull(),
+    orderId: uuid("order_id"),
     provider: text("provider").notNull().default("sepay"),
     providerTxId: text("provider_tx_id").notNull(),
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
@@ -316,7 +321,7 @@ export const paymentConnections = pgTable(
   "payment_connections",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     provider: text("provider").notNull().default("sepay"),
     // webhook auth secret, AES-256-GCM like ai_connections.encryptedKey
     encryptedApiKey: text("encrypted_api_key").notNull(),
@@ -340,7 +345,7 @@ export const unmatchedTransactions = pgTable(
   {
     id: id(),
     // always resolvable to an org via the per-org webhook secret — NOT nullable
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     providerTxId: text("provider_tx_id").notNull(),
     rawPayload: jsonb("raw_payload").notNull(),
     reason: text("reason", {
@@ -351,8 +356,8 @@ export const unmatchedTransactions = pgTable(
     status: text("status", { enum: ["pending", "resolved"] })
       .notNull()
       .default("pending"),
-    resolvedOrderId: text("resolved_order_id"),
-    resolvedBy: text("resolved_by"),
+    resolvedOrderId: uuid("resolved_order_id"),
+    resolvedBy: uuid("resolved_by"),
     resolvedAt: timestamp("resolved_at"),
     createdAt: timestamps.createdAt
   },
@@ -371,8 +376,8 @@ export const dataSubjectRequests = pgTable(
   "data_subject_requests",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    leadId: text("lead_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
     requestType: text("request_type", { enum: ["delete", "export"] }).notNull(),
     receivedAt: timestamp("received_at").notNull().defaultNow(),
     // computed as receivedAt + 72h at write time, not re-derived on every read.
@@ -397,9 +402,9 @@ export const refundRequests = pgTable(
   "refund_requests",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    orderId: text("order_id").notNull(),
-    paymentId: text("payment_id"),
+    orgId: uuid("org_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    paymentId: uuid("payment_id"),
     reason: text("reason", {
       enum: ["customer_request", "duplicate_payment", "wrong_match", "other"]
     }).notNull(),
@@ -412,7 +417,7 @@ export const refundRequests = pgTable(
       .notNull()
       .default("pending"),
     evidenceKey: text("evidence_key"),
-    createdBy: text("created_by"),
+    createdBy: uuid("created_by"),
     createdAt: timestamps.createdAt,
     completedAt: timestamp("completed_at")
   },
@@ -437,8 +442,8 @@ export const webhookDeliveryFailures = pgTable(
   "webhook_delivery_failures",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    campaignId: text("campaign_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    campaignId: uuid("campaign_id").notNull(),
     source: text("source", {
       enum: ["facebook", "zalo_oa", "generic", "google_ads", "tiktok"]
     }).notNull(),
@@ -481,8 +486,8 @@ export const tiktokConnections = pgTable(
   "tiktok_connections",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
-    campaignId: text("campaign_id").notNull(),
+    orgId: uuid("org_id").notNull(),
+    campaignId: uuid("campaign_id").notNull(),
     advertiserId: text("advertiser_id").notNull(),
     pageId: text("page_id"),
     encryptedAccessToken: text("encrypted_access_token").notNull(),

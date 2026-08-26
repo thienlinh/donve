@@ -32,21 +32,21 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { requireSrcmapVersion } from "../../lib/page-version-guards.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { requireSrcmapVersion } from "@/lib/page-version-guards.js";
 import {
   isAllowedStockImageUrl,
   searchStockImages
-} from "../../lib/stock-images.js";
-import { createStorageFromEnv } from "../../lib/storage.js";
+} from "@/lib/stock-images.js";
+import { createStorageFromEnv } from "@/lib/storage.js";
 import {
   requireChatSessionId,
   requireLandingPage,
   resolveChatModel,
   uiMessageToChatContent
-} from "../../lib/studio-chat.js";
-import type { AppEnv } from "../../types.js";
+} from "@/lib/studio-chat.js";
+import type { AppEnv } from "@/types.js";
 
 // ai-integration-byok.md §6: apply_patch gets at most 2 validation retries in the same
 // turn before the model is told to fall back to apply_full_html.

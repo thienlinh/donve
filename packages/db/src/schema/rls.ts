@@ -6,11 +6,14 @@ import { pgPolicy } from "drizzle-orm/pg-core";
  * `current_setting(..., true)` returns NULL when unset, so the comparison — and thus
  * the policy — fails closed instead of leaking rows when app.current_org was never set.
  */
+// NULLIF guards the cast: an unset/never-initialized GUC can read back as '' rather than NULL
+// on some connections, and ''::uuid throws instead of comparing false — NULLIF makes that case
+// NULL first, so the comparison (and thus the fail-closed behavior) is unaffected either way.
 export const orgIsolationPolicy = () =>
   pgPolicy("org_isolation", {
     for: "all",
-    using: sql`org_id = current_setting('app.current_org', true)`,
-    withCheck: sql`org_id = current_setting('app.current_org', true)`
+    using: sql`org_id = NULLIF(current_setting('app.current_org', true), '')::uuid`,
+    withCheck: sql`org_id = NULLIF(current_setting('app.current_org', true), '')::uuid`
   });
 
 /**
@@ -38,5 +41,19 @@ export const platformReadPolicy = () =>
 export const orgOrPlatformReadPolicy = () =>
   pgPolicy("org_or_platform_read", {
     for: "select",
-    using: sql`org_id = current_setting('app.current_org', true) OR org_id IS NULL`
+    using: sql`org_id = NULLIF(current_setting('app.current_org', true), '')::uuid OR org_id IS NULL`
+  });
+
+/**
+ * Full read/write isolation policy for tables where `org_id IS NULL` is a legitimate row a
+ * tenant session must still be able to write (e.g. `email_logs`: pre-org signup/verification
+ * email, sent before any org exists to scope it to). Unlike `orgOrPlatformReadPolicy`, this is
+ * `for: "all"` — a NULL-org row can be inserted/updated/deleted with no `app.current_org` set,
+ * while a real org's rows still require the matching org scope like `orgIsolationPolicy`.
+ */
+export const orgIsolationOrNullPolicy = () =>
+  pgPolicy("org_isolation_or_null", {
+    for: "all",
+    using: sql`org_id = NULLIF(current_setting('app.current_org', true), '')::uuid OR org_id IS NULL`,
+    withCheck: sql`org_id = NULLIF(current_setting('app.current_org', true), '')::uuid OR org_id IS NULL`
   });

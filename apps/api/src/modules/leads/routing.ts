@@ -6,7 +6,7 @@ import {
   type Db
 } from "@dv/db";
 
-import { log } from "../../lib/logger.js";
+import { log } from "@/lib/logger.js";
 
 export type AssignmentRule = typeof schema.assignmentRules.$inferSelect;
 export type Lead = typeof schema.leads.$inferSelect;

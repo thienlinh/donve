@@ -14,7 +14,6 @@ import {
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { ulid } from "ulid";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
 import { createDbFromEnv } from "../src/lib/db.js";
@@ -45,7 +44,7 @@ const tokens: DesignTokens = {
 };
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
 
   const migratorClient = postgres(connectionUri, { max: 1 });
@@ -75,7 +74,7 @@ afterAll(async () => {
 
 it("promotes a native page's current version into `templates`, then clones it losslessly into a new page", async () => {
   const db = createDbFromEnv(bindings);
-  const orgId = ulid();
+  const orgId = crypto.randomUUID();
 
   const sourcePageSpec = {
     root: "page-root",

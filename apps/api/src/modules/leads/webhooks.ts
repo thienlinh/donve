@@ -9,12 +9,13 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { normalizeVnPhone } from "../../lib/phone.js";
-import { publishNewLeads } from "../../lib/realtime.js";
-import { timingSafeEqual } from "../../lib/timing-safe-equal.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { normalizeVnPhone } from "@/lib/phone.js";
+import { publishNewLeads } from "@/lib/realtime.js";
+import { timingSafeEqual } from "@/lib/timing-safe-equal.js";
+import type { AppEnv } from "@/types.js";
+
 import { CONSENT_POLICY_VERSION, findOrCreateLead } from "../public/routes.js";
 import { routeLead } from "./routing.js";
 

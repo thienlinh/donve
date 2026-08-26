@@ -3,11 +3,11 @@ import type { Db } from "@dv/db";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { ALLOWED_IMAGE_MIME, MAX_IMAGE_BYTES } from "../../lib/image-upload.js";
-import { createStorageFromEnv } from "../../lib/storage.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { ALLOWED_IMAGE_MIME, MAX_IMAGE_BYTES } from "@/lib/image-upload.js";
+import { createStorageFromEnv } from "@/lib/storage.js";
+import type { AppEnv } from "@/types.js";
 
 /**
  * Org logo + campaign OG image (`architecture-and-data-model.md` §Media/Asset) — one shared
@@ -65,7 +65,10 @@ entityImagesRoutes.get("/:ownerType/:ownerId/:kind", async (c) => {
   if (!object) throw new ApiError(404, "entity_image_not_found");
 
   return new Response(object.body, {
-    headers: { "content-type": object.contentType ?? row.mime }
+    headers: {
+      "content-type": object.contentType ?? row.mime,
+      "x-content-type-options": "nosniff"
+    }
   });
 });
 

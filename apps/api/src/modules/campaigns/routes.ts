@@ -19,9 +19,9 @@ import {
 } from "@dv/db";
 import { Hono, type Context } from "hono";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import type { AppEnv } from "@/types.js";
 
 export const campaignsRoutes = new Hono<AppEnv>();
 

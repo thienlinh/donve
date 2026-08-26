@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 
 export const deploymentStatusValues = [
   "building",
@@ -23,10 +23,10 @@ export const deploymentMetaSchema = z
 export type DeploymentMeta = z.infer<typeof deploymentMetaSchema>;
 
 export const deploymentSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
-  pageVersionId: ulidSchema,
+  landingPageId: idSchema,
+  pageVersionId: idSchema,
   hostname: z.string(),
   status: deploymentStatusSchema,
   r2Prefix: z.string(),
@@ -61,9 +61,9 @@ export type CustomDomainVerification = z.infer<
 >;
 
 export const customDomainSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
+  landingPageId: idSchema,
   hostname: z.string(),
   status: customDomainStatusSchema,
   /** Cloudflare for SaaS custom hostname id. */
@@ -86,7 +86,7 @@ export const createCustomDomainInputSchema = z.object({
       /^(?=.{3,253}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/,
       "Enter a valid domain, e.g. shop.yourbrand.com"
     ),
-  landingPageId: ulidSchema
+  landingPageId: idSchema
 });
 export type CreateCustomDomainInput = z.infer<
   typeof createCustomDomainInputSchema
@@ -148,12 +148,12 @@ export type PublishLandingPageInput = z.infer<
 >;
 
 export const publishOutboxSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  deploymentId: ulidSchema,
+  deploymentId: idSchema,
   hostname: z.string(),
   /** deployment this hostname should point to once applied (publish or rollback). */
-  targetDeployId: ulidSchema,
+  targetDeployId: idSchema,
   status: publishOutboxStatusSchema.default("pending"),
   createdAt: z.coerce.date(),
   appliedAt: z.coerce.date().nullable()

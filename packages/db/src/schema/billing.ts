@@ -1,4 +1,4 @@
-import { pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
 import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
@@ -39,7 +39,7 @@ export const orgFeatureOverrides = pgTable(
   "org_feature_overrides",
   {
     id: id(),
-    orgId: text("org_id").notNull(),
+    orgId: uuid("org_id").notNull(),
     featureKey: text("feature_key").notNull(),
     enabled: text("enabled", { enum: ["true", "false"] }).notNull(),
     reason: text("reason").notNull(),

@@ -24,11 +24,11 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { runLegacyImportMigration } from "../../lib/legacy-import-migration.js";
-import { requirePlatformStaff } from "../../middleware/require-platform-staff.js";
-import type { AppEnv } from "../../types.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { runLegacyImportMigration } from "@/lib/legacy-import-migration.js";
+import { requirePlatformStaff } from "@/middleware/require-platform-staff.js";
+import type { AppEnv } from "@/types.js";
 
 /**
  * `/platform/*` routes (docs/architecture/platform-admin.md §7/§11). Every handler that reads

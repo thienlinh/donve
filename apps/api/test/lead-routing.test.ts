@@ -104,7 +104,7 @@ describe("routeLead", () => {
     expect(state.leadUpdates).toEqual([
       { id: "lead1", values: { assigneeId: "u2" } }
     ]);
-    expect(state.rules[0].lastAssignedIndex).toBe(2);
+    expect(state.rules[0]?.lastAssignedIndex).toBe(2);
     expect(state.activities).toHaveLength(1);
   });
 

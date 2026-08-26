@@ -1,5 +1,4 @@
 import { sql } from "drizzle-orm";
-import { ulid } from "ulid";
 
 import type { Db } from "./client/types.js";
 
@@ -31,6 +30,12 @@ const DEBIT_COLUMNS = {
  * INSERT on whether the UPDATE actually matched a row, so a request that would go negative
  * neither bills nor gets recorded. One statement is atomic on both drivers this platform
  * runs on (org-scope.ts) without needing a real `.transaction()` — no driver branching.
+ *
+ * `ai_usage` carries `orgIsolationPolicy()`, so this statement must also set
+ * `app.current_org` before the INSERT runs — the `scope` CTE does that via a `FROM scope`
+ * cross join on `debit`'s UPDATE (guarantees `scope` is evaluated before `debit`, which the
+ * INSERT already depends on via `exists (select 1 from debit)`), since a plain unreferenced
+ * `set_config(...)` CTE isn't guaranteed to execute at all.
  */
 async function debitAndRecordUsage(
   db: Db,
@@ -39,14 +44,18 @@ async function debitAndRecordUsage(
   input: RecordAiUsageInput
 ): Promise<AiDebitResult> {
   const query = sql`
-    with debit as (
+    with scope as (
+      select set_config('app.current_org', ${input.orgId}, true)
+    ),
+    debit as (
       update organizations
       set ${sql.raw(column)} = ${sql.raw(column)} - ${amount}
+      from scope
       where id = ${input.orgId} and ${sql.raw(column)} >= ${amount}
       returning ${sql.raw(column)} as remaining
     )
-    insert into ai_usage (id, org_id, connection_id, model, input_tokens, output_tokens, credit_cost, context)
-    select ${ulid()}, ${input.orgId}, ${input.connectionId}, ${input.model}, ${input.inputTokens}, ${input.outputTokens}, ${input.creditCost}, ${JSON.stringify(input.context ?? {})}::jsonb
+    insert into ai_usage (org_id, connection_id, model, input_tokens, output_tokens, credit_cost, context)
+    select ${input.orgId}, ${input.connectionId}, ${input.model}, ${input.inputTokens}, ${input.outputTokens}, ${input.creditCost}, ${JSON.stringify(input.context ?? {})}::jsonb
     where exists (select 1 from debit)
     returning (select remaining from debit) as remaining
   `;

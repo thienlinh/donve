@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, idSchema } from "./common.js";
 
 /** `quality/quality-spec.md` §Tầng 3 — the 8 category weights, summing to 100. */
 export const auditCategoryValues = [
@@ -47,9 +47,9 @@ const SEVERITY_DEDUCTION: Record<AuditSeverity, number> = {
 };
 
 export const auditFindingSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  auditRunId: ulidSchema,
+  auditRunId: idSchema,
   category: auditCategorySchema,
   severity: auditSeveritySchema,
   message: z.string(),
@@ -61,10 +61,10 @@ export type AuditFinding = z.infer<typeof auditFindingSchema>;
 // Audit runs are append-only (never updated after creation) — `createdAt` only, not the full
 // `timestampsSchema` (which also has `updatedAt`, meaningless here).
 export const auditRunSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
-  pageVersionId: ulidSchema,
+  landingPageId: idSchema,
+  pageVersionId: idSchema,
   overallScore: z.number().int().min(0).max(100),
   categoryScores: z.record(auditCategorySchema, z.number()),
   createdAt: z.coerce.date()

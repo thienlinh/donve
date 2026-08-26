@@ -12,15 +12,15 @@ import {
   getCustomHostname,
   mapCustomHostnameStatus,
   toVerification
-} from "../../lib/cloudflare-saas.js";
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { log } from "../../lib/logger.js";
+} from "@/lib/cloudflare-saas.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { log } from "@/lib/logger.js";
 import {
   clearCustomDomainPointer,
   syncCustomDomainPointer
-} from "../../lib/publish.js";
-import type { AppEnv } from "../../types.js";
+} from "@/lib/publish.js";
+import type { AppEnv } from "@/types.js";
 
 export const domainsRoutes = new Hono<AppEnv>();
 

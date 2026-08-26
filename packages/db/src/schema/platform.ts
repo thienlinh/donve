@@ -1,4 +1,4 @@
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
 
@@ -9,7 +9,7 @@ import { id, timestamps } from "./columns.js";
  */
 export const platformStaff = pgTable("platform_staff", {
   id: id(),
-  userId: text("user_id").notNull().unique(),
+  userId: uuid("user_id").notNull().unique(),
   // Ordered least → most privileged (platform-admin.md §10): `support` reads cross-tenant,
   // `billing_ops` adds the narrow billing writes (refund-assist, subscription),
   // `platform_admin` adds org disable/enable. The ordering itself lives in
@@ -29,12 +29,12 @@ export const platformStaff = pgTable("platform_staff", {
  */
 export const platformAuditLogs = pgTable("platform_audit_logs", {
   id: id(),
-  staffUserId: text("staff_user_id").notNull(),
+  staffUserId: uuid("staff_user_id").notNull(),
   action: text("action").notNull(),
   // null for actions not tied to one org (e.g. "listed all orgs")
-  targetOrgId: text("target_org_id"),
+  targetOrgId: uuid("target_org_id"),
   targetType: text("target_type"),
-  targetId: text("target_id"),
+  targetId: uuid("target_id"),
   meta: text("meta"),
   createdAt: timestamps.createdAt
 });

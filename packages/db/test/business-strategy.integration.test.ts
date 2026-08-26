@@ -6,7 +6,6 @@ import {
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { ulid } from "ulid";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
 import { createPostgresDb } from "../src/client/postgres-js.js";
@@ -18,7 +17,7 @@ let container: StartedPostgreSqlContainer;
 let db: ReturnType<typeof createPostgresDb>;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:17-alpine").start();
+  container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const connectionUri = container.getConnectionUri();
   const migratorClient = postgres(connectionUri, { max: 1 });
   await migrate(drizzle(migratorClient, { schema }), {
@@ -33,8 +32,8 @@ afterAll(async () => {
 });
 
 it("round-trips a businessProfile and a strategyBrief through the real repositories + contracts schemas", async () => {
-  const orgId = ulid();
-  const landingPageId = ulid();
+  const orgId = crypto.randomUUID();
+  const landingPageId = crypto.randomUUID();
 
   const profile = await businessProfilesRepository.insert(db, orgId, {
     landingPageId,
@@ -87,7 +86,7 @@ it("round-trips a businessProfile and a strategyBrief through the real repositor
     brief!.id,
     {
       confirmedAt: new Date(),
-      confirmedBy: ulid()
+      confirmedBy: crypto.randomUUID()
     }
   );
   expect(strategyBriefSchema.parse(confirmed).confirmedAt).not.toBeNull();

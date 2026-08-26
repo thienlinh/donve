@@ -30,17 +30,17 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
-import { createDbFromEnv } from "../../lib/db.js";
-import { ApiError } from "../../lib/errors.js";
-import { syncEventDefinitions } from "../../lib/event-definitions.js";
-import { restoreSensitiveProps } from "../../lib/sensitive-props.js";
+import { createDbFromEnv } from "@/lib/db.js";
+import { ApiError } from "@/lib/errors.js";
+import { syncEventDefinitions } from "@/lib/event-definitions.js";
+import { restoreSensitiveProps } from "@/lib/sensitive-props.js";
 import {
   requireChatSessionId,
   requireLandingPage,
   resolveChatModel,
   uiMessageToChatContent
-} from "../../lib/studio-chat.js";
-import type { AppEnv } from "../../types.js";
+} from "@/lib/studio-chat.js";
+import type { AppEnv } from "@/types.js";
 
 // Same budget as the legacy srcmap chat: the model gets a bounded number of in-turn retries
 // against validation failures — there is no `apply_full_page` fallback for it to escape to.

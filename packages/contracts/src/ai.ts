@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgIdSchema, timestampsSchema, ulidSchema } from "./common.js";
+import { orgIdSchema, timestampsSchema, idSchema } from "./common.js";
 
 export const aiProviderValues = [
   "anthropic",
@@ -23,7 +23,7 @@ export type AiConnectionStatus = z.infer<typeof aiConnectionStatusSchema>;
  * is explicit that no response should ever contain the key, encrypted or not.
  */
 export const aiConnectionSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
   provider: aiProviderSchema,
   /** null when provider=platform. */
@@ -53,9 +53,9 @@ export const aiUsageContextSchema = z
 export type AiUsageContext = z.infer<typeof aiUsageContextSchema>;
 
 export const aiUsageSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  connectionId: ulidSchema,
+  connectionId: idSchema,
   model: z.string(),
   inputTokens: z.number().int().nonnegative(),
   outputTokens: z.number().int().nonnegative(),
@@ -143,11 +143,7 @@ const chatMessageSchema = z.object({
  * BYOK, no plan required, capped by `trialUsesRemaining`).
  */
 export const generateAiRequestSchema = z.object({
-  connectionId: z.union([
-    ulidSchema,
-    z.literal("platform"),
-    z.literal("trial")
-  ]),
+  connectionId: z.union([idSchema, z.literal("platform"), z.literal("trial")]),
   useCase: aiUseCaseSchema,
   messages: z.array(chatMessageSchema).min(1)
 });
@@ -166,7 +162,7 @@ export const generateAiResponseSchema = z.object({
 export type GenerateAiResponse = z.infer<typeof generateAiResponseSchema>;
 
 export const skillSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   /** null = platform skill (read-only for tenants). */
   orgId: orgIdSchema.nullable(),
   slug: z.string(),
@@ -209,7 +205,7 @@ const promptTemplateVariableSchema = z
   .catchall(z.unknown());
 
 export const promptTemplateSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   /** null = platform-wide template. */
   orgId: orgIdSchema.nullable(),
   slug: z.string(),
@@ -263,19 +259,15 @@ export type LighthouseScore = z.infer<typeof lighthouseScoreSchema>;
 
 /** POST /api/ai/prompt-templates/:id/test-run body (FR-F-04) — same routing as /api/ai/generate. */
 export const runPromptTestSchema = z.object({
-  connectionId: z.union([
-    ulidSchema,
-    z.literal("platform"),
-    z.literal("trial")
-  ]),
+  connectionId: z.union([idSchema, z.literal("platform"), z.literal("trial")]),
   values: z.record(z.string(), z.string()).default({})
 });
 export type RunPromptTestInput = z.infer<typeof runPromptTestSchema>;
 
 export const promptTestRunSchema = z.object({
-  id: ulidSchema,
+  id: idSchema,
   orgId: orgIdSchema,
-  promptTemplateId: ulidSchema,
+  promptTemplateId: idSchema,
   model: z.string(),
   compiledPrompt: z.string(),
   outputHtml: z.string(),
@@ -293,8 +285,8 @@ export type PromptTestRun = z.infer<typeof promptTestRunSchema>;
 /** join table: which skills are enabled on a given landing page. */
 export const landingSkillSchema = z.object({
   orgId: orgIdSchema,
-  landingPageId: ulidSchema,
-  skillId: ulidSchema
+  landingPageId: idSchema,
+  skillId: idSchema
 });
 export type LandingSkill = z.infer<typeof landingSkillSchema>;
 
