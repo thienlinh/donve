@@ -31,7 +31,7 @@ export function TestimonialThreeColumnAvatarRender({
 }: BaseComponentProps<TestimonialThreeColumnAvatarProps>) {
   return (
     <section
-      data-lp-component="testimonial-three-column-avatar"
+      data-lp-component="testimonial_three_column_avatar"
       data-lp-variant={props.variant}
       className="px-6 py-16 md:px-12"
     >

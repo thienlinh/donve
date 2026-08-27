@@ -165,22 +165,55 @@ async function authed(cookie: string, path: string, init: RequestInit = {}) {
   return req(path, { ...init, headers });
 }
 
+/**
+ * `/organization/set-active` reissues the session cookie (Better Auth refreshes its
+ * cookieCache — packages/auth/src/config.ts — to reflect the new `activeOrganizationId`);
+ * `/organization/create` only activates in the DB. Callers must merge the set-active
+ * response into their cookie string, or every request for the next 60s replays the
+ * pre-activation cache and 403s with `no_active_organization`.
+ */
+function syncCookie(cookie: string, res: Response): string {
+  const fresh = res.headers.getSetCookie();
+  if (fresh.length === 0) return cookie;
+  const jar = new Map(
+    cookie
+      .split("; ")
+      .filter(Boolean)
+      .map((kv) => {
+        const i = kv.indexOf("=");
+        return [kv.slice(0, i), kv.slice(i + 1)] as const;
+      })
+  );
+  for (const setCookie of fresh) {
+    const kv = setCookie.split(";")[0] ?? "";
+    const i = kv.indexOf("=");
+    jar.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  return [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+}
+
 async function createOrgAndActivate(
   cookie: string,
   name: string,
   slug: string
-): Promise<Organization> {
+): Promise<{ org: Organization; cookie: string }> {
   const createRes = await authed(cookie, "/api/auth/organization/create", {
     method: "POST",
     body: JSON.stringify({ name, slug })
   });
   expect(createRes.status).toBe(200);
   const org = (await createRes.json()) as Organization;
-  await authed(cookie, "/api/auth/organization/set-active", {
-    method: "POST",
-    body: JSON.stringify({ organizationId: org.id })
-  });
-  return org;
+  cookie = syncCookie(cookie, createRes);
+  const activateRes = await authed(
+    cookie,
+    "/api/auth/organization/set-active",
+    {
+      method: "POST",
+      body: JSON.stringify({ organizationId: org.id })
+    }
+  );
+  cookie = syncCookie(cookie, activateRes);
+  return { org, cookie };
 }
 
 /**
@@ -276,8 +309,16 @@ describe("studio comments (CRUD + org-scoping)", () => {
       "pw-studio-b-1",
       "Studio Owner B"
     );
-    orgA = await createOrgAndActivate(cookieA, "Studio Org A", "studio-org-a");
-    await createOrgAndActivate(cookieB, "Studio Org B", "studio-org-b");
+    ({ org: orgA, cookie: cookieA } = await createOrgAndActivate(
+      cookieA,
+      "Studio Org A",
+      "studio-org-a"
+    ));
+    ({ cookie: cookieB } = await createOrgAndActivate(
+      cookieB,
+      "Studio Org B",
+      "studio-org-b"
+    ));
     const seeded = await seedSrcmapLandingPage(orgA.id, "Comments test page");
     pageA = seeded.landingPage;
   });
@@ -451,11 +492,11 @@ describe("studio chat messages", () => {
       "pw-studio-msgs-1",
       "Studio Msgs Owner"
     );
-    org = await createOrgAndActivate(
+    ({ org, cookie } = await createOrgAndActivate(
       cookie,
       "Studio Msgs Org",
       "studio-msgs-org"
-    );
+    ));
     const seeded = await seedSrcmapLandingPage(org.id, "Messages test page");
     page = seeded.landingPage;
   });
@@ -505,11 +546,11 @@ describe("studio images (suggest/apply)", () => {
       "pw-studio-img-1",
       "Studio Img Owner"
     );
-    org = await createOrgAndActivate(
+    ({ org, cookie } = await createOrgAndActivate(
       cookie,
       "Studio Img Org",
       "studio-img-org"
-    );
+    ));
   });
 
   it("suggest responds 200 with no candidates when no stock-image provider is configured", async () => {
@@ -612,11 +653,11 @@ describe("studio chat/stream error paths (no real AI call)", () => {
       "pw-studio-chat-1",
       "Studio Chat Owner"
     );
-    org = await createOrgAndActivate(
+    ({ org, cookie } = await createOrgAndActivate(
       cookie,
       "Studio Chat Org",
       "studio-chat-org"
-    );
+    ));
   });
 
   it("POST /api/studio/chat/stream: 400 landing_page_no_version for a page with no version", async () => {

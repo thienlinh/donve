@@ -152,6 +152,32 @@ async function authed(cookie: string, path: string, init: RequestInit = {}) {
   return req(path, { ...init, headers });
 }
 
+/**
+ * `/organization/set-active` reissues the session cookie (Better Auth refreshes its
+ * cookieCache — packages/auth/src/config.ts — to reflect the new `activeOrganizationId`).
+ * Callers must merge that into their cookie string, or every request for the next 60s
+ * replays the pre-activation cache and 403s with `no_active_organization`.
+ */
+function syncCookie(cookie: string, res: Response): string {
+  const fresh = res.headers.getSetCookie();
+  if (fresh.length === 0) return cookie;
+  const jar = new Map(
+    cookie
+      .split("; ")
+      .filter(Boolean)
+      .map((kv) => {
+        const i = kv.indexOf("=");
+        return [kv.slice(0, i), kv.slice(i + 1)] as const;
+      })
+  );
+  for (const setCookie of fresh) {
+    const kv = setCookie.split(";")[0] ?? "";
+    const i = kv.indexOf("=");
+    jar.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  return [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+}
+
 describe("POST/PATCH /api/payments/orders/:orderId/refund-requests (FR-D-11..13)", () => {
   let cookie: string;
   let org: Organization;
@@ -170,6 +196,17 @@ describe("POST/PATCH /api/payments/orders/:orderId/refund-requests (FR-D-11..13)
     });
     expect(createOrg.status).toBe(200);
     org = (await createOrg.json()) as Organization;
+    // `/organization/create` activates the new org in the DB but doesn't reissue the session
+    // cookie — only `/organization/set-active` does (see syncCookie doc comment above).
+    const setActive = await authed(
+      cookie,
+      "/api/auth/organization/set-active",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId: org.id })
+      }
+    );
+    cookie = syncCookie(cookie, setActive);
   });
 
   async function seedOrder(status: "pending" | "paid" | "fulfilled") {

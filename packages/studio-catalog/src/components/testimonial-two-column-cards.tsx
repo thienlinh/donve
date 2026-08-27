@@ -32,7 +32,7 @@ export function TestimonialTwoColumnCardsRender({
 }: BaseComponentProps<TestimonialTwoColumnCardsProps>) {
   return (
     <section
-      data-lp-component="testimonial-two-column-cards"
+      data-lp-component="testimonial_two_column_cards"
       data-lp-variant={props.variant}
       className="px-6 py-16 md:px-12"
     >

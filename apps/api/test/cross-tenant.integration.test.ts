@@ -158,6 +158,32 @@ async function authed(cookie: string, path: string, init: RequestInit = {}) {
   return req(path, { ...init, headers });
 }
 
+/**
+ * `/organization/set-active` reissues the session cookie (Better Auth refreshes its
+ * cookieCache — packages/auth/src/config.ts — to reflect the new `activeOrganizationId`).
+ * Callers must merge that into their cookie string, or every request for the next 60s
+ * replays the pre-activation cache and 403s with `no_active_organization`.
+ */
+function syncCookie(cookie: string, res: Response): string {
+  const fresh = res.headers.getSetCookie();
+  if (fresh.length === 0) return cookie;
+  const jar = new Map(
+    cookie
+      .split("; ")
+      .filter(Boolean)
+      .map((kv) => {
+        const i = kv.indexOf("=");
+        return [kv.slice(0, i), kv.slice(i + 1)] as const;
+      })
+  );
+  for (const setCookie of fresh) {
+    const kv = setCookie.split(";")[0] ?? "";
+    const i = kv.indexOf("=");
+    jar.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  return [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+}
+
 describe("cross-tenant isolation on /api/auth/* (organization plugin, NFR-04)", () => {
   let cookieA: string;
   let cookieB: string;
@@ -539,14 +565,24 @@ describe("cross-tenant isolation on /api/ai/skills and /api/landings (NFR-04)", 
     });
     orgB = (await createB.json()) as Organization;
 
-    await authed(cookieA, "/api/auth/organization/set-active", {
-      method: "POST",
-      body: JSON.stringify({ organizationId: orgA.id })
-    });
-    await authed(cookieB, "/api/auth/organization/set-active", {
-      method: "POST",
-      body: JSON.stringify({ organizationId: orgB.id })
-    });
+    const activateA = await authed(
+      cookieA,
+      "/api/auth/organization/set-active",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId: orgA.id })
+      }
+    );
+    cookieA = syncCookie(cookieA, activateA);
+    const activateB = await authed(
+      cookieB,
+      "/api/auth/organization/set-active",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId: orgB.id })
+      }
+    );
+    cookieB = syncCookie(cookieB, activateB);
   });
 
   it("blocks updating org B's skill while acting as org A (404, not found for this org)", async () => {
@@ -664,14 +700,24 @@ describe("cross-tenant isolation on /api/campaigns, /api/products, /api/leads (N
     });
     orgB = (await createB.json()) as Organization;
 
-    await authed(cookieA, "/api/auth/organization/set-active", {
-      method: "POST",
-      body: JSON.stringify({ organizationId: orgA.id })
-    });
-    await authed(cookieB, "/api/auth/organization/set-active", {
-      method: "POST",
-      body: JSON.stringify({ organizationId: orgB.id })
-    });
+    const activateA = await authed(
+      cookieA,
+      "/api/auth/organization/set-active",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId: orgA.id })
+      }
+    );
+    cookieA = syncCookie(cookieA, activateA);
+    const activateB = await authed(
+      cookieB,
+      "/api/auth/organization/set-active",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId: orgB.id })
+      }
+    );
+    cookieB = syncCookie(cookieB, activateB);
   });
 
   it("blocks reading org B's product list from org A (list never leaks across orgs)", async () => {

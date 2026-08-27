@@ -23,7 +23,7 @@ export function TestimonialSingleLargeRender({
 }: BaseComponentProps<TestimonialSingleLargeProps>) {
   return (
     <section
-      data-lp-component="testimonial-single-large"
+      data-lp-component="testimonial_single_large"
       data-lp-variant={props.variant}
       className="px-6 py-16 md:px-12"
     >
