@@ -4,6 +4,13 @@ import { Checkbox } from "@dv/ui/components/shadcn/checkbox";
 import { Input } from "@dv/ui/components/shadcn/input";
 import { Label } from "@dv/ui/components/shadcn/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@dv/ui/components/shadcn/select";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -20,8 +27,9 @@ import { assetFileUrl, uploadAsset } from "../../studio/api";
 
 /**
  * SEO tab (`ui-ux-design.md` §Studio "Tab SEO") — the only place `seo.title`/`description`/
- * `ogImage`/`noindex` are editable. Edits land in the in-memory document; the Studio's own
- * Save button persists them with the rest of the page, so this has no mutation of its own.
+ * `ogImage`/`canonicalUrl`/`structuredDataType`/`twitterCard`/`robots` are editable. Edits land
+ * in the in-memory document; the Studio's own Save button persists them with the rest of the
+ * page, so this has no mutation of its own.
  *
  * The OG image uploads into this page's `pageAssets` (`uploadAsset`), NOT through
  * `EntityImageField`/`entityImages` — the latter is keyed by (org|campaign, kind) and is
@@ -123,10 +131,99 @@ export function SeoPanel({
             ) : null}
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="seo-canonical-url">
+              {m.studioSeoCanonicalUrlLabel()}
+            </Label>
+            <Input
+              id="seo-canonical-url"
+              value={seo?.canonicalUrl ?? ""}
+              onChange={(e) =>
+                patch({ canonicalUrl: e.target.value || undefined })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              {m.studioSeoCanonicalUrlHint()}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="seo-structured-data-type">
+              {m.studioSeoStructuredDataTypeLabel()}
+            </Label>
+            <Select
+              value={seo?.structuredDataType ?? "auto"}
+              onValueChange={(value) =>
+                patch({
+                  structuredDataType: value as NonNullable<
+                    PageSeo["structuredDataType"]
+                  >
+                })
+              }
+            >
+              <SelectTrigger id="seo-structured-data-type" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">
+                  {m.studioSeoStructuredDataTypeAuto()}
+                </SelectItem>
+                <SelectItem value="Product">
+                  {m.studioSeoStructuredDataTypeProduct()}
+                </SelectItem>
+                <SelectItem value="Course">
+                  {m.studioSeoStructuredDataTypeCourse()}
+                </SelectItem>
+                <SelectItem value="Organization">
+                  {m.studioSeoStructuredDataTypeOrganization()}
+                </SelectItem>
+                <SelectItem value="LocalBusiness">
+                  {m.studioSeoStructuredDataTypeLocalBusiness()}
+                </SelectItem>
+                <SelectItem value="Article">
+                  {m.studioSeoStructuredDataTypeArticle()}
+                </SelectItem>
+                <SelectItem value="WebPage">
+                  {m.studioSeoStructuredDataTypeWebPage()}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="seo-twitter-card">
+              {m.studioSeoTwitterCardLabel()}
+            </Label>
+            <Select
+              value={seo?.twitterCard ?? "summary_large_image"}
+              onValueChange={(value) =>
+                patch({
+                  twitterCard: value as NonNullable<PageSeo["twitterCard"]>
+                })
+              }
+            >
+              <SelectTrigger id="seo-twitter-card" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="summary">
+                  {m.studioSeoTwitterCardSummary()}
+                </SelectItem>
+                <SelectItem value="summary_large_image">
+                  {m.studioSeoTwitterCardSummaryLargeImage()}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Label className="flex items-start gap-2">
             <Checkbox
-              checked={seo?.noindex === true}
-              onCheckedChange={(checked) => patch({ noindex: checked })}
+              checked={seo?.robots?.noindex === true}
+              onCheckedChange={(checked) =>
+                patch({
+                  robots: { ...seo?.robots, noindex: checked }
+                })
+              }
             />
             <span className="flex flex-col gap-0.5">
               <span>{m.studioSeoNoindexLabel()}</span>
@@ -134,6 +231,18 @@ export function SeoPanel({
                 {m.studioSeoNoindexHint()}
               </span>
             </span>
+          </Label>
+
+          <Label className="flex items-start gap-2">
+            <Checkbox
+              checked={seo?.robots?.nofollow === true}
+              onCheckedChange={(checked) =>
+                patch({
+                  robots: { ...seo?.robots, nofollow: checked }
+                })
+              }
+            />
+            <span>{m.studioSeoNofollowLabel()}</span>
           </Label>
 
           <div className="flex flex-col gap-2">

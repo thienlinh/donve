@@ -14,6 +14,7 @@ export {
   type UploadAssetFn
 } from "./puck-config.js";
 export { registry } from "./registry.js";
+export type { StyleProps } from "./shared-props.js";
 export {
   applySpecOps,
   specPatchOpSchema,
@@ -25,6 +26,9 @@ export {
   DEFAULT_DESIGN_TOKENS,
   designTokensSchema,
   designTokensToCss,
+  GOOGLE_FONTS,
+  googleFontsHref,
   lpVar,
-  type DesignTokens
+  type DesignTokens,
+  type GoogleFont
 } from "./tokens.js";

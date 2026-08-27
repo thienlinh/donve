@@ -2,6 +2,9 @@
 import { getLocale, experimentalStaticLocale } from "../runtime.js";
 import * as __en from "./en.js";
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
+/** @typedef {{}} Acceptinviteerrorbody3Inputs */
+/** @typedef {{}} Acceptinviteerrortitle3Inputs */
+/** @typedef {{}} Acceptinvitetitle2Inputs */
 /** @typedef {{}} Aiapikeylabel3Inputs */
 /** @typedef {{}} Aiconnectbutton2Inputs */
 /** @typedef {{}} Aiconnectdialogdescription3Inputs */
@@ -184,6 +187,8 @@ import * as __en from "./en.js";
 /** @typedef {{}} Domainsstatusfailed2Inputs */
 /** @typedef {{}} Domainsstatuspending2Inputs */
 /** @typedef {{}} Domainstitle1Inputs */
+/** @typedef {{}} Domainsupgraderequireddescription3Inputs */
+/** @typedef {{}} Domainsupgraderequiredtitle3Inputs */
 /** @typedef {{}} Domainsverifybutton2Inputs */
 /** @typedef {{}} Domainsverifyerrortoast3Inputs */
 /** @typedef {{}} Entityimagedrophint3Inputs */
@@ -191,6 +196,8 @@ import * as __en from "./en.js";
 /** @typedef {{}} Entityimageuploadfailed3Inputs */
 /** @typedef {{}} Entityimageuploadlabel3Inputs */
 /** @typedef {{}} Entityimageuploadinglabel3Inputs */
+/** @typedef {{}} Featureupgradegenericdescription3Inputs */
+/** @typedef {{}} Featureupgradegenerictitle3Inputs */
 /** @typedef {{}} Forgotpasswordbody2Inputs */
 /** @typedef {{}} Forgotpasswordemaillabel3Inputs */
 /** @typedef {{}} Forgotpasswordsent2Inputs */
@@ -574,6 +581,19 @@ import * as __en from "./en.js";
 /** @typedef {{}} Platformrefundassistdonetoast4Inputs */
 /** @typedef {{}} Platformrefundassisttitle3Inputs */
 /** @typedef {{}} Platformrefundorderidplaceholder4Inputs */
+/** @typedef {{}} Platformstaffaddaction3Inputs */
+/** @typedef {{}} Platformstaffaddemailplaceholder4Inputs */
+/** @typedef {{}} Platformstaffadderrortoast4Inputs */
+/** @typedef {{}} Platformstaffcolumnactions3Inputs */
+/** @typedef {{}} Platformstaffcolumncreated3Inputs */
+/** @typedef {{}} Platformstaffcolumnemail3Inputs */
+/** @typedef {{}} Platformstaffcolumnrole3Inputs */
+/** @typedef {{}} Platformstaffdescription2Inputs */
+/** @typedef {{}} Platformstaffemptytitle3Inputs */
+/** @typedef {{}} Platformstaffloaderrortitle4Inputs */
+/** @typedef {{}} Platformstaffloading2Inputs */
+/** @typedef {{}} Platformstaffremoveaction3Inputs */
+/** @typedef {{}} Platformstaffremoveerrortoast4Inputs */
 /** @typedef {{}} Platformstataicreditbalance4Inputs */
 /** @typedef {{}} Platformstataicreditspent4Inputs */
 /** @typedef {{}} Platformstatcampaigns2Inputs */
@@ -586,7 +606,9 @@ import * as __en from "./en.js";
 /** @typedef {{}} Platformsubscriptiontitle2Inputs */
 /** @typedef {{}} Platformtabaudit2Inputs */
 /** @typedef {{}} Platformtabbilling2Inputs */
+/** @typedef {{}} Platformtaborgs2Inputs */
 /** @typedef {{}} Platformtaboverview2Inputs */
+/** @typedef {{}} Platformtabstaff2Inputs */
 /** @typedef {{}} Productsaddbutton2Inputs */
 /** @typedef {{}} Productsadddialogtitle3Inputs */
 /** @typedef {{}} Productscolumnactions2Inputs */
@@ -915,15 +937,29 @@ import * as __en from "./en.js";
 /** @typedef {{}} Studiorollbacksuccesstoast3Inputs */
 /** @typedef {{}} Studiosavebutton2Inputs */
 /** @typedef {{}} Studiosaveshortcuthint3Inputs */
+/** @typedef {{}} Studioseocanonicalurlhint4Inputs */
+/** @typedef {{}} Studioseocanonicalurllabel4Inputs */
 /** @typedef {{}} Studioseodescriptionlabel3Inputs */
+/** @typedef {{}} Studioseonofollowlabel3Inputs */
 /** @typedef {{}} Studioseonoindexhint3Inputs */
 /** @typedef {{}} Studioseonoindexlabel3Inputs */
 /** @typedef {{}} Studioseoogimagelabel4Inputs */
 /** @typedef {{}} Studioseopaneltitle3Inputs */
 /** @typedef {{}} Studioseosharepreviewlabel4Inputs */
 /** @typedef {{}} Studioseosharepreviewnoimage5Inputs */
+/** @typedef {{}} Studioseostructureddatatypearticle5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeauto5Inputs */
+/** @typedef {{}} Studioseostructureddatatypecourse5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelabel5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelocalbusiness6Inputs */
+/** @typedef {{}} Studioseostructureddatatypeorganization5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeproduct5Inputs */
+/** @typedef {{}} Studioseostructureddatatypewebpage6Inputs */
 /** @typedef {{}} Studioseotitlehint3Inputs */
 /** @typedef {{}} Studioseotitlelabel3Inputs */
+/** @typedef {{}} Studioseotwittercardlabel4Inputs */
+/** @typedef {{}} Studioseotwittercardsummary4Inputs */
+/** @typedef {{}} Studioseotwittercardsummarylargeimage6Inputs */
 /** @typedef {{}} Studioshare1Inputs */
 /** @typedef {{}} Studioshortcutcomment2Inputs */
 /** @typedef {{}} Studioshortcutdraw2Inputs */
@@ -943,6 +979,21 @@ import * as __en from "./en.js";
 /** @typedef {{}} Studioskillspopovertitle3Inputs */
 /** @typedef {{}} Studioskillstoggleerrortoast4Inputs */
 /** @typedef {{}} Studiotabdesignfiles3Inputs */
+/** @typedef {{}} Studiotokenscoloraccentforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscoloraccentlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorborderlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorforegroundlabel4Inputs */
+/** @typedef {{}} Studiotokenscolormutedlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorprimaryforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscolorprimarylabel4Inputs */
+/** @typedef {{}} Studiotokenscolorsurfacelabel4Inputs */
+/** @typedef {{}} Studiotokensfontbodylabel4Inputs */
+/** @typedef {{}} Studiotokensfontcustomoption4Inputs */
+/** @typedef {{}} Studiotokensfontheadinglabel4Inputs */
+/** @typedef {{}} Studiotokenspaneltitle3Inputs */
+/** @typedef {{}} Studiotokensradiushint3Inputs */
+/** @typedef {{}} Studiotokensradiuslabel3Inputs */
+/** @typedef {{}} Studiotokensresetbutton3Inputs */
 /** @typedef {{}} Studiotoolbarcomment2Inputs */
 /** @typedef {{}} Studiotoolbardraw2Inputs */
 /** @typedef {{}} Studiotoolbaredit2Inputs */
@@ -979,6 +1030,60 @@ import * as __en from "./en.js";
 /** @typedef {{}} Verifyemailbody2Inputs */
 /** @typedef {{}} Verifyemailtitle2Inputs */
 import * as __vi from "./vi.js";
+/**
+ * | output |
+ * | --- |
+ * | "This invitation may have expired or already been used. Go to your dashboard to check your pending invitations." |
+ *
+ * @param {Acceptinviteerrorbody3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const acceptinviteerrorbody3 =
+  /** @type {((inputs?: Acceptinviteerrorbody3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Acceptinviteerrorbody3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.acceptinviteerrorbody3(inputs);
+      return __vi.acceptinviteerrorbody3(inputs);
+    }
+  );
+export { acceptinviteerrorbody3 as "acceptInviteErrorBody" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't accept the invitation" |
+ *
+ * @param {Acceptinviteerrortitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const acceptinviteerrortitle3 =
+  /** @type {((inputs?: Acceptinviteerrortitle3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Acceptinviteerrortitle3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.acceptinviteerrortitle3(inputs);
+      return __vi.acceptinviteerrortitle3(inputs);
+    }
+  );
+export { acceptinviteerrortitle3 as "acceptInviteErrorTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Joining organization…" |
+ *
+ * @param {Acceptinvitetitle2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const acceptinvitetitle2 =
+  /** @type {((inputs?: Acceptinvitetitle2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Acceptinvitetitle2Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.acceptinvitetitle2(inputs);
+      return __vi.acceptinvitetitle2(inputs);
+    }
+  );
+export { acceptinvitetitle2 as "acceptInviteTitle" };
 /**
  * | output |
  * | --- |
@@ -4265,6 +4370,43 @@ export { domainstitle1 as "domainsTitle" };
 /**
  * | output |
  * | --- |
+ * | "Connecting your own domain to a landing page is available on paid plans. Upgrade to unlock it." |
+ *
+ * @param {Domainsupgraderequireddescription3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const domainsupgraderequireddescription3 =
+  /** @type {((inputs?: Domainsupgraderequireddescription3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Domainsupgraderequireddescription3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.domainsupgraderequireddescription3(inputs);
+      return __vi.domainsupgraderequireddescription3(inputs);
+    }
+  );
+export { domainsupgraderequireddescription3 as "domainsUpgradeRequiredDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "Custom domains need a plan upgrade" |
+ *
+ * @param {Domainsupgraderequiredtitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const domainsupgraderequiredtitle3 =
+  /** @type {((inputs?: Domainsupgraderequiredtitle3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Domainsupgraderequiredtitle3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.domainsupgraderequiredtitle3(inputs);
+      return __vi.domainsupgraderequiredtitle3(inputs);
+    }
+  );
+export { domainsupgraderequiredtitle3 as "domainsUpgradeRequiredTitle" };
+/**
+ * | output |
+ * | --- |
  * | "Check verification status" |
  *
  * @param {Domainsverifybutton2Inputs} inputs
@@ -4388,6 +4530,43 @@ const entityimageuploadinglabel3 =
     }
   );
 export { entityimageuploadinglabel3 as "entityImageUploadingLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Upgrade your plan to unlock this feature." |
+ *
+ * @param {Featureupgradegenericdescription3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const featureupgradegenericdescription3 =
+  /** @type {((inputs?: Featureupgradegenericdescription3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Featureupgradegenericdescription3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.featureupgradegenericdescription3(inputs);
+      return __vi.featureupgradegenericdescription3(inputs);
+    }
+  );
+export { featureupgradegenericdescription3 as "featureUpgradeGenericDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "This feature needs a plan upgrade" |
+ *
+ * @param {Featureupgradegenerictitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const featureupgradegenerictitle3 =
+  /** @type {((inputs?: Featureupgradegenerictitle3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Featureupgradegenerictitle3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.featureupgradegenerictitle3(inputs);
+      return __vi.featureupgradegenerictitle3(inputs);
+    }
+  );
+export { featureupgradegenerictitle3 as "featureUpgradeGenericTitle" };
 /**
  * | output |
  * | --- |
@@ -11316,6 +11495,241 @@ export { platformrefundorderidplaceholder4 as "platformRefundOrderIdPlaceholder"
 /**
  * | output |
  * | --- |
+ * | "Add" |
+ *
+ * @param {Platformstaffaddaction3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffaddaction3 =
+  /** @type {((inputs?: Platformstaffaddaction3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffaddaction3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffaddaction3(inputs);
+      return __vi.platformstaffaddaction3(inputs);
+    }
+  );
+export { platformstaffaddaction3 as "platformStaffAddAction" };
+/**
+ * | output |
+ * | --- |
+ * | "Email" |
+ *
+ * @param {Platformstaffaddemailplaceholder4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffaddemailplaceholder4 =
+  /** @type {((inputs?: Platformstaffaddemailplaceholder4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffaddemailplaceholder4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.platformstaffaddemailplaceholder4(inputs);
+      return __vi.platformstaffaddemailplaceholder4(inputs);
+    }
+  );
+export { platformstaffaddemailplaceholder4 as "platformStaffAddEmailPlaceholder" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't add this staff member. Check the email is a real user." |
+ *
+ * @param {Platformstaffadderrortoast4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffadderrortoast4 =
+  /** @type {((inputs?: Platformstaffadderrortoast4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffadderrortoast4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffadderrortoast4(inputs);
+      return __vi.platformstaffadderrortoast4(inputs);
+    }
+  );
+export { platformstaffadderrortoast4 as "platformStaffAddErrorToast" };
+/**
+ * | output |
+ * | --- |
+ * | "" |
+ *
+ * @param {Platformstaffcolumnactions3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffcolumnactions3 =
+  /** @type {((inputs?: Platformstaffcolumnactions3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffcolumnactions3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffcolumnactions3(inputs);
+      return __vi.platformstaffcolumnactions3(inputs);
+    }
+  );
+export { platformstaffcolumnactions3 as "platformStaffColumnActions" };
+/**
+ * | output |
+ * | --- |
+ * | "Added" |
+ *
+ * @param {Platformstaffcolumncreated3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffcolumncreated3 =
+  /** @type {((inputs?: Platformstaffcolumncreated3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffcolumncreated3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffcolumncreated3(inputs);
+      return __vi.platformstaffcolumncreated3(inputs);
+    }
+  );
+export { platformstaffcolumncreated3 as "platformStaffColumnCreated" };
+/**
+ * | output |
+ * | --- |
+ * | "Email" |
+ *
+ * @param {Platformstaffcolumnemail3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffcolumnemail3 =
+  /** @type {((inputs?: Platformstaffcolumnemail3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffcolumnemail3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffcolumnemail3(inputs);
+      return __vi.platformstaffcolumnemail3(inputs);
+    }
+  );
+export { platformstaffcolumnemail3 as "platformStaffColumnEmail" };
+/**
+ * | output |
+ * | --- |
+ * | "Role" |
+ *
+ * @param {Platformstaffcolumnrole3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffcolumnrole3 =
+  /** @type {((inputs?: Platformstaffcolumnrole3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffcolumnrole3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffcolumnrole3(inputs);
+      return __vi.platformstaffcolumnrole3(inputs);
+    }
+  );
+export { platformstaffcolumnrole3 as "platformStaffColumnRole" };
+/**
+ * | output |
+ * | --- |
+ * | "Cross-tenant access, granted by another platform admin." |
+ *
+ * @param {Platformstaffdescription2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffdescription2 =
+  /** @type {((inputs?: Platformstaffdescription2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffdescription2Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffdescription2(inputs);
+      return __vi.platformstaffdescription2(inputs);
+    }
+  );
+export { platformstaffdescription2 as "platformStaffDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "No platform staff yet" |
+ *
+ * @param {Platformstaffemptytitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffemptytitle3 =
+  /** @type {((inputs?: Platformstaffemptytitle3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffemptytitle3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffemptytitle3(inputs);
+      return __vi.platformstaffemptytitle3(inputs);
+    }
+  );
+export { platformstaffemptytitle3 as "platformStaffEmptyTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't load platform staff" |
+ *
+ * @param {Platformstaffloaderrortitle4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffloaderrortitle4 =
+  /** @type {((inputs?: Platformstaffloaderrortitle4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffloaderrortitle4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffloaderrortitle4(inputs);
+      return __vi.platformstaffloaderrortitle4(inputs);
+    }
+  );
+export { platformstaffloaderrortitle4 as "platformStaffLoadErrorTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Loading platform staff…" |
+ *
+ * @param {Platformstaffloading2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffloading2 =
+  /** @type {((inputs?: Platformstaffloading2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffloading2Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffloading2(inputs);
+      return __vi.platformstaffloading2(inputs);
+    }
+  );
+export { platformstaffloading2 as "platformStaffLoading" };
+/**
+ * | output |
+ * | --- |
+ * | "Remove" |
+ *
+ * @param {Platformstaffremoveaction3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffremoveaction3 =
+  /** @type {((inputs?: Platformstaffremoveaction3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffremoveaction3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffremoveaction3(inputs);
+      return __vi.platformstaffremoveaction3(inputs);
+    }
+  );
+export { platformstaffremoveaction3 as "platformStaffRemoveAction" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't remove this staff member." |
+ *
+ * @param {Platformstaffremoveerrortoast4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformstaffremoveerrortoast4 =
+  /** @type {((inputs?: Platformstaffremoveerrortoast4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformstaffremoveerrortoast4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformstaffremoveerrortoast4(inputs);
+      return __vi.platformstaffremoveerrortoast4(inputs);
+    }
+  );
+export { platformstaffremoveerrortoast4 as "platformStaffRemoveErrorToast" };
+/**
+ * | output |
+ * | --- |
  * | "AI credit balance" |
  *
  * @param {Platformstataicreditbalance4Inputs} inputs
@@ -11532,6 +11946,24 @@ export { platformtabbilling2 as "platformTabBilling" };
 /**
  * | output |
  * | --- |
+ * | "Organizations" |
+ *
+ * @param {Platformtaborgs2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformtaborgs2 =
+  /** @type {((inputs?: Platformtaborgs2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformtaborgs2Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformtaborgs2(inputs);
+      return __vi.platformtaborgs2(inputs);
+    }
+  );
+export { platformtaborgs2 as "platformTabOrgs" };
+/**
+ * | output |
+ * | --- |
  * | "Overview" |
  *
  * @param {Platformtaboverview2Inputs} inputs
@@ -11547,6 +11979,24 @@ const platformtaboverview2 =
     }
   );
 export { platformtaboverview2 as "platformTabOverview" };
+/**
+ * | output |
+ * | --- |
+ * | "Staff" |
+ *
+ * @param {Platformtabstaff2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const platformtabstaff2 =
+  /** @type {((inputs?: Platformtabstaff2Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Platformtabstaff2Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.platformtabstaff2(inputs);
+      return __vi.platformtabstaff2(inputs);
+    }
+  );
+export { platformtabstaff2 as "platformTabStaff" };
 /**
  * | output |
  * | --- |
@@ -17492,6 +17942,42 @@ export { studiosaveshortcuthint3 as "studioSaveShortcutHint" };
 /**
  * | output |
  * | --- |
+ * | "Overrides the default canonical link. Leave blank to use this page's own hostname." |
+ *
+ * @param {Studioseocanonicalurlhint4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseocanonicalurlhint4 =
+  /** @type {((inputs?: Studioseocanonicalurlhint4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseocanonicalurlhint4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseocanonicalurlhint4(inputs);
+      return __vi.studioseocanonicalurlhint4(inputs);
+    }
+  );
+export { studioseocanonicalurlhint4 as "studioSeoCanonicalUrlHint" };
+/**
+ * | output |
+ * | --- |
+ * | "Canonical URL" |
+ *
+ * @param {Studioseocanonicalurllabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseocanonicalurllabel4 =
+  /** @type {((inputs?: Studioseocanonicalurllabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseocanonicalurllabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseocanonicalurllabel4(inputs);
+      return __vi.studioseocanonicalurllabel4(inputs);
+    }
+  );
+export { studioseocanonicalurllabel4 as "studioSeoCanonicalUrlLabel" };
+/**
+ * | output |
+ * | --- |
  * | "Meta description" |
  *
  * @param {Studioseodescriptionlabel3Inputs} inputs
@@ -17507,6 +17993,24 @@ const studioseodescriptionlabel3 =
     }
   );
 export { studioseodescriptionlabel3 as "studioSeoDescriptionLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Don't follow links on this page" |
+ *
+ * @param {Studioseonofollowlabel3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseonofollowlabel3 =
+  /** @type {((inputs?: Studioseonofollowlabel3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseonofollowlabel3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseonofollowlabel3(inputs);
+      return __vi.studioseonofollowlabel3(inputs);
+    }
+  );
+export { studioseonofollowlabel3 as "studioSeoNofollowLabel" };
 /**
  * | output |
  * | --- |
@@ -17618,6 +18122,157 @@ export { studioseosharepreviewnoimage5 as "studioSeoSharePreviewNoImage" };
 /**
  * | output |
  * | --- |
+ * | "Article" |
+ *
+ * @param {Studioseostructureddatatypearticle5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypearticle5 =
+  /** @type {((inputs?: Studioseostructureddatatypearticle5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypearticle5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypearticle5(inputs);
+      return __vi.studioseostructureddatatypearticle5(inputs);
+    }
+  );
+export { studioseostructureddatatypearticle5 as "studioSeoStructuredDataTypeArticle" };
+/**
+ * | output |
+ * | --- |
+ * | "Auto (from linked product)" |
+ *
+ * @param {Studioseostructureddatatypeauto5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypeauto5 =
+  /** @type {((inputs?: Studioseostructureddatatypeauto5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypeauto5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseostructureddatatypeauto5(inputs);
+      return __vi.studioseostructureddatatypeauto5(inputs);
+    }
+  );
+export { studioseostructureddatatypeauto5 as "studioSeoStructuredDataTypeAuto" };
+/**
+ * | output |
+ * | --- |
+ * | "Course" |
+ *
+ * @param {Studioseostructureddatatypecourse5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypecourse5 =
+  /** @type {((inputs?: Studioseostructureddatatypecourse5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypecourse5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypecourse5(inputs);
+      return __vi.studioseostructureddatatypecourse5(inputs);
+    }
+  );
+export { studioseostructureddatatypecourse5 as "studioSeoStructuredDataTypeCourse" };
+/**
+ * | output |
+ * | --- |
+ * | "Structured data type" |
+ *
+ * @param {Studioseostructureddatatypelabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypelabel5 =
+  /** @type {((inputs?: Studioseostructureddatatypelabel5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypelabel5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypelabel5(inputs);
+      return __vi.studioseostructureddatatypelabel5(inputs);
+    }
+  );
+export { studioseostructureddatatypelabel5 as "studioSeoStructuredDataTypeLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Local business" |
+ *
+ * @param {Studioseostructureddatatypelocalbusiness6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypelocalbusiness6 =
+  /** @type {((inputs?: Studioseostructureddatatypelocalbusiness6Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypelocalbusiness6Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypelocalbusiness6(inputs);
+      return __vi.studioseostructureddatatypelocalbusiness6(inputs);
+    }
+  );
+export { studioseostructureddatatypelocalbusiness6 as "studioSeoStructuredDataTypeLocalBusiness" };
+/**
+ * | output |
+ * | --- |
+ * | "Organization" |
+ *
+ * @param {Studioseostructureddatatypeorganization5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypeorganization5 =
+  /** @type {((inputs?: Studioseostructureddatatypeorganization5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypeorganization5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypeorganization5(inputs);
+      return __vi.studioseostructureddatatypeorganization5(inputs);
+    }
+  );
+export { studioseostructureddatatypeorganization5 as "studioSeoStructuredDataTypeOrganization" };
+/**
+ * | output |
+ * | --- |
+ * | "Product" |
+ *
+ * @param {Studioseostructureddatatypeproduct5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypeproduct5 =
+  /** @type {((inputs?: Studioseostructureddatatypeproduct5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypeproduct5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypeproduct5(inputs);
+      return __vi.studioseostructureddatatypeproduct5(inputs);
+    }
+  );
+export { studioseostructureddatatypeproduct5 as "studioSeoStructuredDataTypeProduct" };
+/**
+ * | output |
+ * | --- |
+ * | "Web page" |
+ *
+ * @param {Studioseostructureddatatypewebpage6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseostructureddatatypewebpage6 =
+  /** @type {((inputs?: Studioseostructureddatatypewebpage6Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseostructureddatatypewebpage6Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseostructureddatatypewebpage6(inputs);
+      return __vi.studioseostructureddatatypewebpage6(inputs);
+    }
+  );
+export { studioseostructureddatatypewebpage6 as "studioSeoStructuredDataTypeWebPage" };
+/**
+ * | output |
+ * | --- |
  * | "Shown as the browser tab title and the share-card headline. Defaults to the page name." |
  *
  * @param {Studioseotitlehint3Inputs} inputs
@@ -17651,6 +18306,61 @@ const studioseotitlelabel3 =
     }
   );
 export { studioseotitlelabel3 as "studioSeoTitleLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Twitter card" |
+ *
+ * @param {Studioseotwittercardlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseotwittercardlabel4 =
+  /** @type {((inputs?: Studioseotwittercardlabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseotwittercardlabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseotwittercardlabel4(inputs);
+      return __vi.studioseotwittercardlabel4(inputs);
+    }
+  );
+export { studioseotwittercardlabel4 as "studioSeoTwitterCardLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Summary" |
+ *
+ * @param {Studioseotwittercardsummary4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseotwittercardsummary4 =
+  /** @type {((inputs?: Studioseotwittercardsummary4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseotwittercardsummary4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studioseotwittercardsummary4(inputs);
+      return __vi.studioseotwittercardsummary4(inputs);
+    }
+  );
+export { studioseotwittercardsummary4 as "studioSeoTwitterCardSummary" };
+/**
+ * | output |
+ * | --- |
+ * | "Summary with large image" |
+ *
+ * @param {Studioseotwittercardsummarylargeimage6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studioseotwittercardsummarylargeimage6 =
+  /** @type {((inputs?: Studioseotwittercardsummarylargeimage6Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studioseotwittercardsummarylargeimage6Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studioseotwittercardsummarylargeimage6(inputs);
+      return __vi.studioseotwittercardsummarylargeimage6(inputs);
+    }
+  );
+export { studioseotwittercardsummarylargeimage6 as "studioSeoTwitterCardSummaryLargeImage" };
 /**
  * | output |
  * | --- |
@@ -17993,6 +18703,279 @@ const studiotabdesignfiles3 =
     }
   );
 export { studiotabdesignfiles3 as "studioTabDesignFiles" };
+/**
+ * | output |
+ * | --- |
+ * | "Accent text (on accent)" |
+ *
+ * @param {Studiotokenscoloraccentforegroundlabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscoloraccentforegroundlabel5 =
+  /** @type {((inputs?: Studiotokenscoloraccentforegroundlabel5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscoloraccentforegroundlabel5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studiotokenscoloraccentforegroundlabel5(inputs);
+      return __vi.studiotokenscoloraccentforegroundlabel5(inputs);
+    }
+  );
+export { studiotokenscoloraccentforegroundlabel5 as "studioTokensColorAccentForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Accent" |
+ *
+ * @param {Studiotokenscoloraccentlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscoloraccentlabel4 =
+  /** @type {((inputs?: Studiotokenscoloraccentlabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscoloraccentlabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenscoloraccentlabel4(inputs);
+      return __vi.studiotokenscoloraccentlabel4(inputs);
+    }
+  );
+export { studiotokenscoloraccentlabel4 as "studioTokensColorAccentLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Border" |
+ *
+ * @param {Studiotokenscolorborderlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolorborderlabel4 =
+  /** @type {((inputs?: Studiotokenscolorborderlabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolorborderlabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenscolorborderlabel4(inputs);
+      return __vi.studiotokenscolorborderlabel4(inputs);
+    }
+  );
+export { studiotokenscolorborderlabel4 as "studioTokensColorBorderLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Text" |
+ *
+ * @param {Studiotokenscolorforegroundlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolorforegroundlabel4 =
+  /** @type {((inputs?: Studiotokenscolorforegroundlabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolorforegroundlabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studiotokenscolorforegroundlabel4(inputs);
+      return __vi.studiotokenscolorforegroundlabel4(inputs);
+    }
+  );
+export { studiotokenscolorforegroundlabel4 as "studioTokensColorForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Muted text" |
+ *
+ * @param {Studiotokenscolormutedlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolormutedlabel4 =
+  /** @type {((inputs?: Studiotokenscolormutedlabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolormutedlabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenscolormutedlabel4(inputs);
+      return __vi.studiotokenscolormutedlabel4(inputs);
+    }
+  );
+export { studiotokenscolormutedlabel4 as "studioTokensColorMutedLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Primary text (on primary)" |
+ *
+ * @param {Studiotokenscolorprimaryforegroundlabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolorprimaryforegroundlabel5 =
+  /** @type {((inputs?: Studiotokenscolorprimaryforegroundlabel5Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolorprimaryforegroundlabel5Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en")
+        return __en.studiotokenscolorprimaryforegroundlabel5(inputs);
+      return __vi.studiotokenscolorprimaryforegroundlabel5(inputs);
+    }
+  );
+export { studiotokenscolorprimaryforegroundlabel5 as "studioTokensColorPrimaryForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Primary" |
+ *
+ * @param {Studiotokenscolorprimarylabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolorprimarylabel4 =
+  /** @type {((inputs?: Studiotokenscolorprimarylabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolorprimarylabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenscolorprimarylabel4(inputs);
+      return __vi.studiotokenscolorprimarylabel4(inputs);
+    }
+  );
+export { studiotokenscolorprimarylabel4 as "studioTokensColorPrimaryLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Surface" |
+ *
+ * @param {Studiotokenscolorsurfacelabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenscolorsurfacelabel4 =
+  /** @type {((inputs?: Studiotokenscolorsurfacelabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenscolorsurfacelabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenscolorsurfacelabel4(inputs);
+      return __vi.studiotokenscolorsurfacelabel4(inputs);
+    }
+  );
+export { studiotokenscolorsurfacelabel4 as "studioTokensColorSurfaceLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Body font" |
+ *
+ * @param {Studiotokensfontbodylabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensfontbodylabel4 =
+  /** @type {((inputs?: Studiotokensfontbodylabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensfontbodylabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensfontbodylabel4(inputs);
+      return __vi.studiotokensfontbodylabel4(inputs);
+    }
+  );
+export { studiotokensfontbodylabel4 as "studioTokensFontBodyLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Custom…" |
+ *
+ * @param {Studiotokensfontcustomoption4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensfontcustomoption4 =
+  /** @type {((inputs?: Studiotokensfontcustomoption4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensfontcustomoption4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensfontcustomoption4(inputs);
+      return __vi.studiotokensfontcustomoption4(inputs);
+    }
+  );
+export { studiotokensfontcustomoption4 as "studioTokensFontCustomOption" };
+/**
+ * | output |
+ * | --- |
+ * | "Heading font" |
+ *
+ * @param {Studiotokensfontheadinglabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensfontheadinglabel4 =
+  /** @type {((inputs?: Studiotokensfontheadinglabel4Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensfontheadinglabel4Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensfontheadinglabel4(inputs);
+      return __vi.studiotokensfontheadinglabel4(inputs);
+    }
+  );
+export { studiotokensfontheadinglabel4 as "studioTokensFontHeadingLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Design tokens" |
+ *
+ * @param {Studiotokenspaneltitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokenspaneltitle3 =
+  /** @type {((inputs?: Studiotokenspaneltitle3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokenspaneltitle3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokenspaneltitle3(inputs);
+      return __vi.studiotokenspaneltitle3(inputs);
+    }
+  );
+export { studiotokenspaneltitle3 as "studioTokensPanelTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "CSS value, e.g. 0.5rem or 8px." |
+ *
+ * @param {Studiotokensradiushint3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensradiushint3 =
+  /** @type {((inputs?: Studiotokensradiushint3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensradiushint3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensradiushint3(inputs);
+      return __vi.studiotokensradiushint3(inputs);
+    }
+  );
+export { studiotokensradiushint3 as "studioTokensRadiusHint" };
+/**
+ * | output |
+ * | --- |
+ * | "Corner radius" |
+ *
+ * @param {Studiotokensradiuslabel3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensradiuslabel3 =
+  /** @type {((inputs?: Studiotokensradiuslabel3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensradiuslabel3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensradiuslabel3(inputs);
+      return __vi.studiotokensradiuslabel3(inputs);
+    }
+  );
+export { studiotokensradiuslabel3 as "studioTokensRadiusLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Reset to default" |
+ *
+ * @param {Studiotokensresetbutton3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+const studiotokensresetbutton3 =
+  /** @type {((inputs?: Studiotokensresetbutton3Inputs, options?: { locale?: "vi" | "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Studiotokensresetbutton3Inputs, { locale?: "vi" | "en" }, {}>} */ (
+    (inputs = {}, options = {}) => {
+      const locale = experimentalStaticLocale ?? options.locale ?? getLocale();
+      if (locale === "en") return __en.studiotokensresetbutton3(inputs);
+      return __vi.studiotokensresetbutton3(inputs);
+    }
+  );
+export { studiotokensresetbutton3 as "studioTokensResetButton" };
 /**
  * | output |
  * | --- |

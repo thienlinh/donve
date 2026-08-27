@@ -1,4 +1,5 @@
 import { encryptApiKey, importMasterKey } from "@dv/ai-gateway";
+import { can } from "@dv/auth";
 import {
   assignLeadSchema,
   assignmentRuleSchema,
@@ -82,8 +83,7 @@ function requireOrgId(c: Context<AppEnv>): string {
 /** Same owner/admin gate used by `/pipeline`-adjacent config screens (sales-config, routing
  * rules, shared saved views) — everything an individual sales rep shouldn't be able to touch. */
 function requireAdminOrOwner(c: Context<AppEnv>): void {
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin")
+  if (!can(c.get("membershipRole"), "manageLeadAutomation"))
     throw new ApiError(403, "forbidden");
 }
 
@@ -678,9 +678,8 @@ leadsRoutes.delete("/saved-views/:id", async (c) => {
   const existing = await savedViewsRepository.findById(db, orgId, id);
   if (!existing) throw new ApiError(404, "saved_view_not_found");
 
-  const role = c.get("membershipRole");
   const isOwnRow = existing.userId === c.get("userId");
-  if (!isOwnRow && role !== "owner" && role !== "admin") {
+  if (!isOwnRow && !can(c.get("membershipRole"), "manageLeadAutomation")) {
     throw new ApiError(403, "forbidden");
   }
 
@@ -1103,8 +1102,7 @@ leadsRoutes.post("/:id/anonymize", async (c) => {
   const orgId = requireOrgId(c);
   const id = c.req.param("id");
 
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin")
+  if (!can(c.get("membershipRole"), "crmWrite"))
     throw new ApiError(403, "forbidden");
 
   const lead = await findVisibleLead(c, db, orgId, id);
@@ -1211,8 +1209,7 @@ leadsRoutes.get("/members/sales-config", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
 
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin")
+  if (!can(c.get("membershipRole"), "manageSalesVisibility"))
     throw new ApiError(403, "forbidden");
 
   const salesMembers = await membershipsRepository.listByRole(
@@ -1240,8 +1237,7 @@ leadsRoutes.patch("/members/:membershipId/sales-config", async (c) => {
   const membershipId = c.req.param("membershipId");
   const body = updateSalesConfigSchema.parse(await c.req.json());
 
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin")
+  if (!can(c.get("membershipRole"), "manageSalesVisibility"))
     throw new ApiError(403, "forbidden");
 
   const membership = await membershipsRepository.findById(

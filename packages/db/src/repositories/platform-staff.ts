@@ -1,6 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, getTableColumns } from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
+import { user } from "../schema/auth.js";
 import { platformAuditLogs, platformStaff } from "../schema/platform.js";
 
 /**
@@ -27,6 +28,51 @@ export const platformStaffRepository = {
     const rows = await db.raw
       .insert(platformStaff)
       .values({ userId, role })
+      .returning();
+    return rows[0];
+  },
+
+  /** Staff-management screen (platform-admin.md §6/§10) — email is what an operator adding a
+   * teammate has on hand, joined the same way `organizations.listAll`'s owner email is. */
+  listAll(db: Db) {
+    return db.raw
+      .select({ ...getTableColumns(platformStaff), email: user.email })
+      .from(platformStaff)
+      .innerJoin(user, eq(user.id, platformStaff.userId))
+      .orderBy(platformStaff.createdAt);
+  },
+
+  /** Looks up the target user by email (operators know the person, not their ULID — same
+   * lookup `grant-platform-staff.ts` does) and upserts their role. `null` return means no user
+   * with that email exists yet. */
+  async upsertByEmail(
+    db: Db,
+    email: string,
+    role: (typeof platformStaff.$inferInsert)["role"]
+  ) {
+    const users = await db.raw
+      .select({ id: user.id, email: user.email })
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+    const found = users[0];
+    if (!found) return null;
+
+    const rows = await db.raw
+      .insert(platformStaff)
+      .values({ userId: found.id, role })
+      .onConflictDoUpdate({
+        target: platformStaff.userId,
+        set: { role, updatedAt: new Date() }
+      })
+      .returning();
+    return { ...rows[0], email: found.email };
+  },
+
+  async remove(db: Db, userId: string) {
+    const rows = await db.raw
+      .delete(platformStaff)
+      .where(eq(platformStaff.userId, userId))
       .returning();
     return rows[0];
   }

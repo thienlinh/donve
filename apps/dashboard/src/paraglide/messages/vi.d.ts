@@ -1,4 +1,7 @@
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
+/** @typedef {{}} Acceptinviteerrorbody3Inputs */
+/** @typedef {{}} Acceptinviteerrortitle3Inputs */
+/** @typedef {{}} Acceptinvitetitle2Inputs */
 /** @typedef {{}} Aiapikeylabel3Inputs */
 /** @typedef {{}} Aiconnectbutton2Inputs */
 /** @typedef {{}} Aiconnectdialogdescription3Inputs */
@@ -181,6 +184,8 @@
 /** @typedef {{}} Domainsstatusfailed2Inputs */
 /** @typedef {{}} Domainsstatuspending2Inputs */
 /** @typedef {{}} Domainstitle1Inputs */
+/** @typedef {{}} Domainsupgraderequireddescription3Inputs */
+/** @typedef {{}} Domainsupgraderequiredtitle3Inputs */
 /** @typedef {{}} Domainsverifybutton2Inputs */
 /** @typedef {{}} Domainsverifyerrortoast3Inputs */
 /** @typedef {{}} Entityimagedrophint3Inputs */
@@ -188,6 +193,8 @@
 /** @typedef {{}} Entityimageuploadfailed3Inputs */
 /** @typedef {{}} Entityimageuploadlabel3Inputs */
 /** @typedef {{}} Entityimageuploadinglabel3Inputs */
+/** @typedef {{}} Featureupgradegenericdescription3Inputs */
+/** @typedef {{}} Featureupgradegenerictitle3Inputs */
 /** @typedef {{}} Forgotpasswordbody2Inputs */
 /** @typedef {{}} Forgotpasswordemaillabel3Inputs */
 /** @typedef {{}} Forgotpasswordsent2Inputs */
@@ -571,6 +578,19 @@
 /** @typedef {{}} Platformrefundassistdonetoast4Inputs */
 /** @typedef {{}} Platformrefundassisttitle3Inputs */
 /** @typedef {{}} Platformrefundorderidplaceholder4Inputs */
+/** @typedef {{}} Platformstaffaddaction3Inputs */
+/** @typedef {{}} Platformstaffaddemailplaceholder4Inputs */
+/** @typedef {{}} Platformstaffadderrortoast4Inputs */
+/** @typedef {{}} Platformstaffcolumnactions3Inputs */
+/** @typedef {{}} Platformstaffcolumncreated3Inputs */
+/** @typedef {{}} Platformstaffcolumnemail3Inputs */
+/** @typedef {{}} Platformstaffcolumnrole3Inputs */
+/** @typedef {{}} Platformstaffdescription2Inputs */
+/** @typedef {{}} Platformstaffemptytitle3Inputs */
+/** @typedef {{}} Platformstaffloaderrortitle4Inputs */
+/** @typedef {{}} Platformstaffloading2Inputs */
+/** @typedef {{}} Platformstaffremoveaction3Inputs */
+/** @typedef {{}} Platformstaffremoveerrortoast4Inputs */
 /** @typedef {{}} Platformstataicreditbalance4Inputs */
 /** @typedef {{}} Platformstataicreditspent4Inputs */
 /** @typedef {{}} Platformstatcampaigns2Inputs */
@@ -583,7 +603,9 @@
 /** @typedef {{}} Platformsubscriptiontitle2Inputs */
 /** @typedef {{}} Platformtabaudit2Inputs */
 /** @typedef {{}} Platformtabbilling2Inputs */
+/** @typedef {{}} Platformtaborgs2Inputs */
 /** @typedef {{}} Platformtaboverview2Inputs */
+/** @typedef {{}} Platformtabstaff2Inputs */
 /** @typedef {{}} Productsaddbutton2Inputs */
 /** @typedef {{}} Productsadddialogtitle3Inputs */
 /** @typedef {{}} Productscolumnactions2Inputs */
@@ -912,15 +934,29 @@
 /** @typedef {{}} Studiorollbacksuccesstoast3Inputs */
 /** @typedef {{}} Studiosavebutton2Inputs */
 /** @typedef {{}} Studiosaveshortcuthint3Inputs */
+/** @typedef {{}} Studioseocanonicalurlhint4Inputs */
+/** @typedef {{}} Studioseocanonicalurllabel4Inputs */
 /** @typedef {{}} Studioseodescriptionlabel3Inputs */
+/** @typedef {{}} Studioseonofollowlabel3Inputs */
 /** @typedef {{}} Studioseonoindexhint3Inputs */
 /** @typedef {{}} Studioseonoindexlabel3Inputs */
 /** @typedef {{}} Studioseoogimagelabel4Inputs */
 /** @typedef {{}} Studioseopaneltitle3Inputs */
 /** @typedef {{}} Studioseosharepreviewlabel4Inputs */
 /** @typedef {{}} Studioseosharepreviewnoimage5Inputs */
+/** @typedef {{}} Studioseostructureddatatypearticle5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeauto5Inputs */
+/** @typedef {{}} Studioseostructureddatatypecourse5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelabel5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelocalbusiness6Inputs */
+/** @typedef {{}} Studioseostructureddatatypeorganization5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeproduct5Inputs */
+/** @typedef {{}} Studioseostructureddatatypewebpage6Inputs */
 /** @typedef {{}} Studioseotitlehint3Inputs */
 /** @typedef {{}} Studioseotitlelabel3Inputs */
+/** @typedef {{}} Studioseotwittercardlabel4Inputs */
+/** @typedef {{}} Studioseotwittercardsummary4Inputs */
+/** @typedef {{}} Studioseotwittercardsummarylargeimage6Inputs */
 /** @typedef {{}} Studioshare1Inputs */
 /** @typedef {{}} Studioshortcutcomment2Inputs */
 /** @typedef {{}} Studioshortcutdraw2Inputs */
@@ -940,6 +976,21 @@
 /** @typedef {{}} Studioskillspopovertitle3Inputs */
 /** @typedef {{}} Studioskillstoggleerrortoast4Inputs */
 /** @typedef {{}} Studiotabdesignfiles3Inputs */
+/** @typedef {{}} Studiotokenscoloraccentforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscoloraccentlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorborderlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorforegroundlabel4Inputs */
+/** @typedef {{}} Studiotokenscolormutedlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorprimaryforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscolorprimarylabel4Inputs */
+/** @typedef {{}} Studiotokenscolorsurfacelabel4Inputs */
+/** @typedef {{}} Studiotokensfontbodylabel4Inputs */
+/** @typedef {{}} Studiotokensfontcustomoption4Inputs */
+/** @typedef {{}} Studiotokensfontheadinglabel4Inputs */
+/** @typedef {{}} Studiotokenspaneltitle3Inputs */
+/** @typedef {{}} Studiotokensradiushint3Inputs */
+/** @typedef {{}} Studiotokensradiuslabel3Inputs */
+/** @typedef {{}} Studiotokensresetbutton3Inputs */
 /** @typedef {{}} Studiotoolbarcomment2Inputs */
 /** @typedef {{}} Studiotoolbardraw2Inputs */
 /** @typedef {{}} Studiotoolbaredit2Inputs */
@@ -976,6 +1027,9 @@
 /** @typedef {{}} Verifyemailbody2Inputs */
 /** @typedef {{}} Verifyemailtitle2Inputs */
 export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Acceptinviteerrorbody3Inputs = {};
+export type Acceptinviteerrortitle3Inputs = {};
+export type Acceptinvitetitle2Inputs = {};
 export type Aiapikeylabel3Inputs = {};
 export type Aiconnectbutton2Inputs = {};
 export type Aiconnectdialogdescription3Inputs = {};
@@ -1172,6 +1226,8 @@ export type Domainsstatusactive2Inputs = {};
 export type Domainsstatusfailed2Inputs = {};
 export type Domainsstatuspending2Inputs = {};
 export type Domainstitle1Inputs = {};
+export type Domainsupgraderequireddescription3Inputs = {};
+export type Domainsupgraderequiredtitle3Inputs = {};
 export type Domainsverifybutton2Inputs = {};
 export type Domainsverifyerrortoast3Inputs = {};
 export type Entityimagedrophint3Inputs = {};
@@ -1179,6 +1235,8 @@ export type Entityimageremovelabel3Inputs = {};
 export type Entityimageuploadfailed3Inputs = {};
 export type Entityimageuploadlabel3Inputs = {};
 export type Entityimageuploadinglabel3Inputs = {};
+export type Featureupgradegenericdescription3Inputs = {};
+export type Featureupgradegenerictitle3Inputs = {};
 export type Forgotpasswordbody2Inputs = {};
 export type Forgotpasswordemaillabel3Inputs = {};
 export type Forgotpasswordsent2Inputs = {};
@@ -1601,6 +1659,19 @@ export type Platformrefundassistdescription3Inputs = {};
 export type Platformrefundassistdonetoast4Inputs = {};
 export type Platformrefundassisttitle3Inputs = {};
 export type Platformrefundorderidplaceholder4Inputs = {};
+export type Platformstaffaddaction3Inputs = {};
+export type Platformstaffaddemailplaceholder4Inputs = {};
+export type Platformstaffadderrortoast4Inputs = {};
+export type Platformstaffcolumnactions3Inputs = {};
+export type Platformstaffcolumncreated3Inputs = {};
+export type Platformstaffcolumnemail3Inputs = {};
+export type Platformstaffcolumnrole3Inputs = {};
+export type Platformstaffdescription2Inputs = {};
+export type Platformstaffemptytitle3Inputs = {};
+export type Platformstaffloaderrortitle4Inputs = {};
+export type Platformstaffloading2Inputs = {};
+export type Platformstaffremoveaction3Inputs = {};
+export type Platformstaffremoveerrortoast4Inputs = {};
 export type Platformstataicreditbalance4Inputs = {};
 export type Platformstataicreditspent4Inputs = {};
 export type Platformstatcampaigns2Inputs = {};
@@ -1613,7 +1684,9 @@ export type Platformsubscriptionsave2Inputs = {};
 export type Platformsubscriptiontitle2Inputs = {};
 export type Platformtabaudit2Inputs = {};
 export type Platformtabbilling2Inputs = {};
+export type Platformtaborgs2Inputs = {};
 export type Platformtaboverview2Inputs = {};
+export type Platformtabstaff2Inputs = {};
 export type Productsaddbutton2Inputs = {};
 export type Productsadddialogtitle3Inputs = {};
 export type Productscolumnactions2Inputs = {};
@@ -1954,15 +2027,29 @@ export type Studiorollbackerrortoast3Inputs = {};
 export type Studiorollbacksuccesstoast3Inputs = {};
 export type Studiosavebutton2Inputs = {};
 export type Studiosaveshortcuthint3Inputs = {};
+export type Studioseocanonicalurlhint4Inputs = {};
+export type Studioseocanonicalurllabel4Inputs = {};
 export type Studioseodescriptionlabel3Inputs = {};
+export type Studioseonofollowlabel3Inputs = {};
 export type Studioseonoindexhint3Inputs = {};
 export type Studioseonoindexlabel3Inputs = {};
 export type Studioseoogimagelabel4Inputs = {};
 export type Studioseopaneltitle3Inputs = {};
 export type Studioseosharepreviewlabel4Inputs = {};
 export type Studioseosharepreviewnoimage5Inputs = {};
+export type Studioseostructureddatatypearticle5Inputs = {};
+export type Studioseostructureddatatypeauto5Inputs = {};
+export type Studioseostructureddatatypecourse5Inputs = {};
+export type Studioseostructureddatatypelabel5Inputs = {};
+export type Studioseostructureddatatypelocalbusiness6Inputs = {};
+export type Studioseostructureddatatypeorganization5Inputs = {};
+export type Studioseostructureddatatypeproduct5Inputs = {};
+export type Studioseostructureddatatypewebpage6Inputs = {};
 export type Studioseotitlehint3Inputs = {};
 export type Studioseotitlelabel3Inputs = {};
+export type Studioseotwittercardlabel4Inputs = {};
+export type Studioseotwittercardsummary4Inputs = {};
+export type Studioseotwittercardsummarylargeimage6Inputs = {};
 export type Studioshare1Inputs = {};
 export type Studioshortcutcomment2Inputs = {};
 export type Studioshortcutdraw2Inputs = {};
@@ -1982,6 +2069,21 @@ export type Studioskillspopoverdescription3Inputs = {};
 export type Studioskillspopovertitle3Inputs = {};
 export type Studioskillstoggleerrortoast4Inputs = {};
 export type Studiotabdesignfiles3Inputs = {};
+export type Studiotokenscoloraccentforegroundlabel5Inputs = {};
+export type Studiotokenscoloraccentlabel4Inputs = {};
+export type Studiotokenscolorborderlabel4Inputs = {};
+export type Studiotokenscolorforegroundlabel4Inputs = {};
+export type Studiotokenscolormutedlabel4Inputs = {};
+export type Studiotokenscolorprimaryforegroundlabel5Inputs = {};
+export type Studiotokenscolorprimarylabel4Inputs = {};
+export type Studiotokenscolorsurfacelabel4Inputs = {};
+export type Studiotokensfontbodylabel4Inputs = {};
+export type Studiotokensfontcustomoption4Inputs = {};
+export type Studiotokensfontheadinglabel4Inputs = {};
+export type Studiotokenspaneltitle3Inputs = {};
+export type Studiotokensradiushint3Inputs = {};
+export type Studiotokensradiuslabel3Inputs = {};
+export type Studiotokensresetbutton3Inputs = {};
 export type Studiotoolbarcomment2Inputs = {};
 export type Studiotoolbardraw2Inputs = {};
 export type Studiotoolbaredit2Inputs = {};
@@ -2017,6 +2119,15 @@ export type Verifiedloginlink2Inputs = {};
 export type Verifiedtitle1Inputs = {};
 export type Verifyemailbody2Inputs = {};
 export type Verifyemailtitle2Inputs = {};
+export declare const acceptinviteerrorbody3: (
+  inputs: Acceptinviteerrorbody3Inputs
+) => LocalizedString;
+export declare const acceptinviteerrortitle3: (
+  inputs: Acceptinviteerrortitle3Inputs
+) => LocalizedString;
+export declare const acceptinvitetitle2: (
+  inputs: Acceptinvitetitle2Inputs
+) => LocalizedString;
 export declare const aiapikeylabel3: (
   inputs: Aiapikeylabel3Inputs
 ) => LocalizedString;
@@ -2559,6 +2670,12 @@ export declare const domainsstatuspending2: (
 export declare const domainstitle1: (
   inputs: Domainstitle1Inputs
 ) => LocalizedString;
+export declare const domainsupgraderequireddescription3: (
+  inputs: Domainsupgraderequireddescription3Inputs
+) => LocalizedString;
+export declare const domainsupgraderequiredtitle3: (
+  inputs: Domainsupgraderequiredtitle3Inputs
+) => LocalizedString;
 export declare const domainsverifybutton2: (
   inputs: Domainsverifybutton2Inputs
 ) => LocalizedString;
@@ -2579,6 +2696,12 @@ export declare const entityimageuploadlabel3: (
 ) => LocalizedString;
 export declare const entityimageuploadinglabel3: (
   inputs: Entityimageuploadinglabel3Inputs
+) => LocalizedString;
+export declare const featureupgradegenericdescription3: (
+  inputs: Featureupgradegenericdescription3Inputs
+) => LocalizedString;
+export declare const featureupgradegenerictitle3: (
+  inputs: Featureupgradegenerictitle3Inputs
 ) => LocalizedString;
 export declare const forgotpasswordbody2: (
   inputs: Forgotpasswordbody2Inputs
@@ -3729,6 +3852,45 @@ export declare const platformrefundassisttitle3: (
 export declare const platformrefundorderidplaceholder4: (
   inputs: Platformrefundorderidplaceholder4Inputs
 ) => LocalizedString;
+export declare const platformstaffaddaction3: (
+  inputs: Platformstaffaddaction3Inputs
+) => LocalizedString;
+export declare const platformstaffaddemailplaceholder4: (
+  inputs: Platformstaffaddemailplaceholder4Inputs
+) => LocalizedString;
+export declare const platformstaffadderrortoast4: (
+  inputs: Platformstaffadderrortoast4Inputs
+) => LocalizedString;
+export declare const platformstaffcolumnactions3: (
+  inputs: Platformstaffcolumnactions3Inputs
+) => LocalizedString;
+export declare const platformstaffcolumncreated3: (
+  inputs: Platformstaffcolumncreated3Inputs
+) => LocalizedString;
+export declare const platformstaffcolumnemail3: (
+  inputs: Platformstaffcolumnemail3Inputs
+) => LocalizedString;
+export declare const platformstaffcolumnrole3: (
+  inputs: Platformstaffcolumnrole3Inputs
+) => LocalizedString;
+export declare const platformstaffdescription2: (
+  inputs: Platformstaffdescription2Inputs
+) => LocalizedString;
+export declare const platformstaffemptytitle3: (
+  inputs: Platformstaffemptytitle3Inputs
+) => LocalizedString;
+export declare const platformstaffloaderrortitle4: (
+  inputs: Platformstaffloaderrortitle4Inputs
+) => LocalizedString;
+export declare const platformstaffloading2: (
+  inputs: Platformstaffloading2Inputs
+) => LocalizedString;
+export declare const platformstaffremoveaction3: (
+  inputs: Platformstaffremoveaction3Inputs
+) => LocalizedString;
+export declare const platformstaffremoveerrortoast4: (
+  inputs: Platformstaffremoveerrortoast4Inputs
+) => LocalizedString;
 export declare const platformstataicreditbalance4: (
   inputs: Platformstataicreditbalance4Inputs
 ) => LocalizedString;
@@ -3765,8 +3927,14 @@ export declare const platformtabaudit2: (
 export declare const platformtabbilling2: (
   inputs: Platformtabbilling2Inputs
 ) => LocalizedString;
+export declare const platformtaborgs2: (
+  inputs: Platformtaborgs2Inputs
+) => LocalizedString;
 export declare const platformtaboverview2: (
   inputs: Platformtaboverview2Inputs
+) => LocalizedString;
+export declare const platformtabstaff2: (
+  inputs: Platformtabstaff2Inputs
 ) => LocalizedString;
 export declare const productsaddbutton2: (
   inputs: Productsaddbutton2Inputs
@@ -4744,8 +4912,17 @@ export declare const studiosavebutton2: (
 export declare const studiosaveshortcuthint3: (
   inputs: Studiosaveshortcuthint3Inputs
 ) => LocalizedString;
+export declare const studioseocanonicalurlhint4: (
+  inputs: Studioseocanonicalurlhint4Inputs
+) => LocalizedString;
+export declare const studioseocanonicalurllabel4: (
+  inputs: Studioseocanonicalurllabel4Inputs
+) => LocalizedString;
 export declare const studioseodescriptionlabel3: (
   inputs: Studioseodescriptionlabel3Inputs
+) => LocalizedString;
+export declare const studioseonofollowlabel3: (
+  inputs: Studioseonofollowlabel3Inputs
 ) => LocalizedString;
 export declare const studioseonoindexhint3: (
   inputs: Studioseonoindexhint3Inputs
@@ -4765,11 +4942,44 @@ export declare const studioseosharepreviewlabel4: (
 export declare const studioseosharepreviewnoimage5: (
   inputs: Studioseosharepreviewnoimage5Inputs
 ) => LocalizedString;
+export declare const studioseostructureddatatypearticle5: (
+  inputs: Studioseostructureddatatypearticle5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypeauto5: (
+  inputs: Studioseostructureddatatypeauto5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypecourse5: (
+  inputs: Studioseostructureddatatypecourse5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypelabel5: (
+  inputs: Studioseostructureddatatypelabel5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypelocalbusiness6: (
+  inputs: Studioseostructureddatatypelocalbusiness6Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypeorganization5: (
+  inputs: Studioseostructureddatatypeorganization5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypeproduct5: (
+  inputs: Studioseostructureddatatypeproduct5Inputs
+) => LocalizedString;
+export declare const studioseostructureddatatypewebpage6: (
+  inputs: Studioseostructureddatatypewebpage6Inputs
+) => LocalizedString;
 export declare const studioseotitlehint3: (
   inputs: Studioseotitlehint3Inputs
 ) => LocalizedString;
 export declare const studioseotitlelabel3: (
   inputs: Studioseotitlelabel3Inputs
+) => LocalizedString;
+export declare const studioseotwittercardlabel4: (
+  inputs: Studioseotwittercardlabel4Inputs
+) => LocalizedString;
+export declare const studioseotwittercardsummary4: (
+  inputs: Studioseotwittercardsummary4Inputs
+) => LocalizedString;
+export declare const studioseotwittercardsummarylargeimage6: (
+  inputs: Studioseotwittercardsummarylargeimage6Inputs
 ) => LocalizedString;
 export declare const studioshare1: (
   inputs: Studioshare1Inputs
@@ -4827,6 +5037,51 @@ export declare const studioskillstoggleerrortoast4: (
 ) => LocalizedString;
 export declare const studiotabdesignfiles3: (
   inputs: Studiotabdesignfiles3Inputs
+) => LocalizedString;
+export declare const studiotokenscoloraccentforegroundlabel5: (
+  inputs: Studiotokenscoloraccentforegroundlabel5Inputs
+) => LocalizedString;
+export declare const studiotokenscoloraccentlabel4: (
+  inputs: Studiotokenscoloraccentlabel4Inputs
+) => LocalizedString;
+export declare const studiotokenscolorborderlabel4: (
+  inputs: Studiotokenscolorborderlabel4Inputs
+) => LocalizedString;
+export declare const studiotokenscolorforegroundlabel4: (
+  inputs: Studiotokenscolorforegroundlabel4Inputs
+) => LocalizedString;
+export declare const studiotokenscolormutedlabel4: (
+  inputs: Studiotokenscolormutedlabel4Inputs
+) => LocalizedString;
+export declare const studiotokenscolorprimaryforegroundlabel5: (
+  inputs: Studiotokenscolorprimaryforegroundlabel5Inputs
+) => LocalizedString;
+export declare const studiotokenscolorprimarylabel4: (
+  inputs: Studiotokenscolorprimarylabel4Inputs
+) => LocalizedString;
+export declare const studiotokenscolorsurfacelabel4: (
+  inputs: Studiotokenscolorsurfacelabel4Inputs
+) => LocalizedString;
+export declare const studiotokensfontbodylabel4: (
+  inputs: Studiotokensfontbodylabel4Inputs
+) => LocalizedString;
+export declare const studiotokensfontcustomoption4: (
+  inputs: Studiotokensfontcustomoption4Inputs
+) => LocalizedString;
+export declare const studiotokensfontheadinglabel4: (
+  inputs: Studiotokensfontheadinglabel4Inputs
+) => LocalizedString;
+export declare const studiotokenspaneltitle3: (
+  inputs: Studiotokenspaneltitle3Inputs
+) => LocalizedString;
+export declare const studiotokensradiushint3: (
+  inputs: Studiotokensradiushint3Inputs
+) => LocalizedString;
+export declare const studiotokensradiuslabel3: (
+  inputs: Studiotokensradiuslabel3Inputs
+) => LocalizedString;
+export declare const studiotokensresetbutton3: (
+  inputs: Studiotokensresetbutton3Inputs
 ) => LocalizedString;
 export declare const studiotoolbarcomment2: (
   inputs: Studiotoolbarcomment2Inputs

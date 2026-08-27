@@ -36,7 +36,10 @@ import { Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import {
+  useActiveOrganizationQuery,
+  useSessionQuery
+} from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchSkills, removeSkill, updateSkill } from "../api";
@@ -44,8 +47,8 @@ import { skillKeys } from "../query-keys";
 import { SkillFormDialog } from "./skill-form-dialog";
 
 export function SkillsPage() {
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: session } = useSessionQuery();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
   );

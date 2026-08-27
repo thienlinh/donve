@@ -233,6 +233,13 @@ export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export const designTokensSchema = z.object({
   colorPrimary: z.string(),
   colorPrimaryForeground: z.string(),
+  // Defaulted, not required: pages saved before these 2 fields existed have `tokens` blobs
+  // without them — a plain `z.string()` would make every such existing page fail to parse
+  // (`/spec`, `/audit`, `/architecture` all call `nativePageDocumentSchema.parse` on stored
+  // data). A default is the correct fix for a token schema that evolves after real pages exist,
+  // not something specific to this pair.
+  colorAccent: z.string().default("#4f46e5"),
+  colorAccentForeground: z.string().default("#ffffff"),
   colorSurface: z.string(),
   colorForeground: z.string(),
   colorMuted: z.string(),
@@ -278,13 +285,35 @@ export type ArchitectureNote = z.infer<typeof architectureNoteSchema>;
 /** Editable SEO block of a native page document (`architecture-and-data-model.md` §Publish ·
  * Domain · SEO) — surfaced by the Studio's SEO tab. `title` overrides the rendered `<title>`/
  * `og:title` (falls back to the landing page's name), `ogImage.src` points at one of this
- * page's own `pageAssets` (the publish pipeline resolves it back to bytes), `noindex` emits
- * `<meta name="robots" content="noindex">` and takes the page out of its sitemap. */
+ * page's own `pageAssets` (the publish pipeline resolves it back to bytes), `canonicalUrl`
+ * overrides the hostname-derived canonical `<link>`, `structuredDataType` overrides the
+ * campaign/product auto-resolved JSON-LD `@type` ("auto" or unset keeps the auto resolution),
+ * `twitterCard` picks the `twitter:card` meta value, and `robots.noindex`/`robots.nofollow`
+ * emit `<meta name="robots">` — `robots.noindex` also takes the page out of its sitemap and
+ * ships a deployment-local `robots.txt` disallowing crawlers. */
 export const pageSeoSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   ogImage: z.object({ src: z.string(), alt: z.string().optional() }).optional(),
-  noindex: z.boolean().optional()
+  canonicalUrl: z.url().optional(),
+  structuredDataType: z
+    .enum([
+      "auto",
+      "Product",
+      "Course",
+      "Organization",
+      "LocalBusiness",
+      "Article",
+      "WebPage"
+    ])
+    .optional(),
+  twitterCard: z.enum(["summary", "summary_large_image"]).optional(),
+  robots: z
+    .object({
+      noindex: z.boolean().optional(),
+      nofollow: z.boolean().optional()
+    })
+    .optional()
 });
 export type PageSeo = z.infer<typeof pageSeoSchema>;
 
@@ -304,12 +333,29 @@ export type UpdateLandingPageSpecInput = z.infer<
   typeof updateLandingPageSpecInputSchema
 >;
 
+/** Curated set offered in the template picker's industry filter — open enum (same idiom as
+ * `emailTemplateSchema` in `email.ts`): any free-text industry a template was created with
+ * (e.g. via "save as template") still passes validation, just falls outside the filter's
+ * known options. */
+export const templateIndustryValues = [
+  "beauty",
+  "saas",
+  "ecommerce",
+  "real_estate",
+  "education",
+  "other"
+] as const;
+export const templateIndustrySchema = z
+  .enum(templateIndustryValues)
+  .or(z.string());
+export type TemplateIndustry = z.infer<typeof templateIndustrySchema>;
+
 /** Pre-built starting point offered in the "create landing page" flow — shared across every
  * org (`packages/db/src/schema/templates.ts`), not tenant content. */
 export const templateSchema = z.object({
   id: idSchema,
   name: z.string().min(1),
-  industry: z.string().min(1),
+  industry: templateIndustrySchema,
   thumbnailKey: z.string().nullable(),
   pageSpec: pageSpecSchema,
   tokens: designTokensSchema,

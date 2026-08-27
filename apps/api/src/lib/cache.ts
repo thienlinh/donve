@@ -16,7 +16,7 @@ export function createCacheFromEnv(env: Bindings): cache.CacheDriver {
     });
   }
   return cache.createIoredisCacheDriver({
-    url: env.LOCAL_REDIS_URL ?? "redis://localhost:6379"
+    url: env.LOCAL_REDIS_URL || "redis://localhost:6379"
   });
 }
 
@@ -29,6 +29,6 @@ export function createRealtimeFromEnv(env: Bindings): realtime.RealtimeDriver {
     });
   }
   return realtime.createIoredisRealtimeDriver({
-    url: env.LOCAL_REDIS_URL ?? "redis://localhost:6379"
+    url: env.LOCAL_REDIS_URL || "redis://localhost:6379"
   });
 }

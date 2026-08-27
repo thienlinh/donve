@@ -17,7 +17,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, X } from "lucide-react";
 import { useState } from "react";
 
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import {
+  useActiveOrganizationQuery,
+  useSessionQuery
+} from "@/features/auth/queries";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
 import { fetchProducts } from "@/features/products/api";
@@ -68,7 +71,7 @@ export function LeadsFilterBar({
     queryKey: productKeys.list(),
     queryFn: fetchProducts
   });
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
 
   function set<K extends keyof LeadFilterState>(
     key: K,
@@ -238,8 +241,8 @@ function SavedViewsBar({
   onApply: (filters: LeadFilterState) => void;
 }) {
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: session } = useSessionQuery();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
   );

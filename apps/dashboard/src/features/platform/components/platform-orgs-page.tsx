@@ -19,6 +19,12 @@ import {
   TableHeader,
   TableRow
 } from "@dv/ui/components/shadcn/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@dv/ui/components/shadcn/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
@@ -30,6 +36,7 @@ import * as m from "@/paraglide/messages.js";
 import { fetchOrgs } from "../api";
 import { platformKeys } from "../query-keys";
 import { PlatformOrgDetail } from "./platform-org-detail";
+import { PlatformStaffPage } from "./platform-staff-page";
 
 const routeApi = getRouteApi("/_authenticated/platform");
 
@@ -37,14 +44,40 @@ type StatusFilter = "all" | "active" | "disabled";
 
 /**
  * `/platform` (docs/architecture/platform-admin.md §5/§11) — cross-tenant org list, or the
- * detail view when `?org=` is set. Filtering happens client-side on the full list: the whole
- * point of this screen is that there are few enough orgs to eyeball, and the endpoint already
- * returns all of them for the table.
- * ponytail: move filter/search into `GET /platform/orgs` query params once the list outgrows
- * one page of scrolling.
+ * detail view when `?org=` is set. The Staff tab only shows for `platform_admin` viewers, since
+ * `GET/POST/DELETE /platform/staff` 403 for `support`/`billing_ops` anyway (platform-admin.md
+ * §6/§10) — no point rendering a tab that always fails.
  */
 export function PlatformOrgsPage() {
+  const { staff } = routeApi.useRouteContext();
   const { org: selectedOrgId } = routeApi.useSearch();
+
+  if (selectedOrgId) return <PlatformOrgDetail orgId={selectedOrgId} />;
+
+  if (staff.role !== "platform_admin") return <PlatformOrgsList />;
+
+  return (
+    <Tabs defaultValue="orgs">
+      <TabsList>
+        <TabsTrigger value="orgs">{m.platformTabOrgs()}</TabsTrigger>
+        <TabsTrigger value="staff">{m.platformTabStaff()}</TabsTrigger>
+      </TabsList>
+      <TabsContent value="orgs">
+        <PlatformOrgsList />
+      </TabsContent>
+      <TabsContent value="staff">
+        <PlatformStaffPage />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+/** Filtering happens client-side on the full list: the whole point of this screen is that
+ * there are few enough orgs to eyeball, and the endpoint already returns all of them for the
+ * table.
+ * ponytail: move filter/search into `GET /platform/orgs` query params once the list outgrows
+ * one page of scrolling. */
+function PlatformOrgsList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
 
@@ -52,8 +85,6 @@ export function PlatformOrgsPage() {
     queryKey: platformKeys.orgs(),
     queryFn: fetchOrgs
   });
-
-  if (selectedOrgId) return <PlatformOrgDetail orgId={selectedOrgId} />;
 
   const needle = search.trim().toLowerCase();
   const orgs = (data ?? []).filter((org) => {

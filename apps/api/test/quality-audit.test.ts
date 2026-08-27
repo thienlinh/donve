@@ -12,6 +12,8 @@ import {
 const tokens: NativePageDocument["tokens"] = {
   colorPrimary: "#111827",
   colorPrimaryForeground: "#ffffff",
+  colorAccent: "#4f46e5",
+  colorAccentForeground: "#ffffff",
   colorSurface: "#ffffff",
   colorForeground: "#111827",
   colorMuted: "#6b7280",

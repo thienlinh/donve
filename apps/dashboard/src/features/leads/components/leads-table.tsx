@@ -15,7 +15,7 @@ import { useMemo, useState } from "react";
 
 import { Pagination } from "@/components/pagination";
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, type PipelineStage } from "../api";
@@ -44,7 +44,7 @@ export function LeadsTable({
     queryKey: leadKeys.list(query),
     queryFn: () => fetchLeads(query)
   });
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   // ponytail: selection cleared "on filter change" by remounting via `key` in `leads-page.tsx`
   // (React resets all local state on remount) instead of an effect that reset-on-prop-change.
   const [selected, setSelected] = useState<Set<string>>(new Set());

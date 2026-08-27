@@ -75,6 +75,12 @@ export async function fetchTemplates(): Promise<Template[]> {
   return templateListResponseSchema.parse(await res.json()).templates;
 }
 
+/** Mirrors `thumbnailUrl` above — `null` `thumbnailKey` (not yet seeded with a screenshot)
+ * means the caller should render a placeholder instead of pointing an `<img>` here. */
+export function templateThumbnailUrl(id: string): string {
+  return `${import.meta.env.VITE_API_URL}/api/landings/templates/${id}/thumbnail`;
+}
+
 /** Promotes this page into the shared `templates` gallery — the source of new templates is a
  * page already brought to quality through Studio, not a separate generator. `document` is the
  * Studio's own in-memory doc (may include edits not yet landed via `updateLandingPageSpec`) so
@@ -248,6 +254,15 @@ export async function fetchVersionHtmlById(
 ): Promise<string> {
   const res = await landingsFetch(`/${id}/versions/${versionId}/html`);
   return res.text();
+}
+
+/** Studio Native version diff — the one full row (including `spec`), by id. */
+export async function fetchVersionSpec(
+  id: string,
+  versionId: string
+): Promise<PageVersion> {
+  const res = await landingsFetch(`/${id}/versions/${versionId}`);
+  return pageVersionSchema.parse(await res.json());
 }
 
 export async function setVersionLabel(

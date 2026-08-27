@@ -2,12 +2,15 @@ import {
   organizationSchema,
   platformOrgDetailSchema,
   platformOrgListItemSchema,
+  platformStaffMemberSchema,
   platformWhoAmISchema,
   refundRequestSchema,
   type Organization,
   type PlatformOrgDetail,
   type PlatformOrgListItem,
   type PlatformRefundAssistInput,
+  type PlatformStaffMember,
+  type PlatformStaffUpsertInput,
   type PlatformSubscriptionUpdateInput,
   type PlatformWhoAmI,
   type RefundRequest
@@ -20,6 +23,10 @@ export class PlatformForbiddenError extends Error {}
 
 const orgListResponseSchema = z.object({
   orgs: z.array(platformOrgListItemSchema)
+});
+
+const staffListResponseSchema = z.object({
+  staff: z.array(platformStaffMemberSchema)
 });
 
 /**
@@ -94,5 +101,24 @@ export async function updateOrgSubscription(
   await platformFetch(`/orgs/${orgId}/subscription`, {
     method: "PATCH",
     body: input
+  });
+}
+
+export async function fetchStaff(): Promise<PlatformStaffMember[]> {
+  return staffListResponseSchema.parse(await platformFetch("/staff")).staff;
+}
+
+export async function upsertStaff(
+  input: PlatformStaffUpsertInput
+): Promise<PlatformStaffMember> {
+  return platformStaffMemberSchema.parse(
+    await platformFetch("/staff", { method: "POST", body: input })
+  );
+}
+
+export async function removeStaff(userId: string): Promise<void> {
+  await platformFetch(`/staff/${userId}`, {
+    method: "DELETE",
+    body: undefined
   });
 }

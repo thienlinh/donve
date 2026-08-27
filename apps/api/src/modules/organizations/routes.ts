@@ -1,3 +1,4 @@
+import { can } from "@dv/auth";
 import { auditLogSchema, orgSettingsSchema } from "@dv/contracts";
 import { auditLogsRepository, organizationsRepository } from "@dv/db";
 import { Hono, type Context } from "hono";
@@ -29,8 +30,7 @@ organizationsRoutes.patch("/settings", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
 
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin") {
+  if (!can(c.get("membershipRole"), "manageOrgSettings")) {
     throw new ApiError(403, "forbidden");
   }
 
@@ -49,8 +49,7 @@ organizationsRoutes.get("/audit-logs", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
 
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin") {
+  if (!can(c.get("membershipRole"), "viewAuditLogs")) {
     throw new ApiError(403, "forbidden");
   }
 

@@ -227,6 +227,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@dv/contracts": "workspace:*",
+        "@dv/studio-ui": "workspace:*",
         "@dv/ui": "workspace:*",
         "@json-render/core": "catalog:ui",
         "@json-render/react": "catalog:ui",
@@ -355,6 +356,20 @@
         "typescript": "catalog:",
       },
     },
+    "tooling/generate-component-thumbnails": {
+      "name": "@dv/generate-component-thumbnails",
+      "version": "0.0.0",
+      "dependencies": {
+        "@dv/studio-catalog": "workspace:*",
+        "@dv/studio-render": "workspace:*",
+        "@playwright/test": "catalog:",
+      },
+      "devDependencies": {
+        "@dv/config": "workspace:*",
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "tooling/lighthouse-ci": {
       "name": "@dv/lighthouse-ci",
       "version": "0.0.0",
@@ -372,7 +387,12 @@
       "name": "@dv/seed-templates",
       "version": "0.0.0",
       "dependencies": {
+        "@dv/contracts": "workspace:*",
         "@dv/db": "workspace:*",
+        "@dv/drivers": "workspace:*",
+        "@dv/studio-catalog": "workspace:*",
+        "@dv/studio-render": "workspace:*",
+        "@playwright/test": "catalog:",
         "drizzle-orm": "catalog:db",
       },
       "devDependencies": {
@@ -683,6 +703,8 @@
     "@dv/drivers": ["@dv/drivers@workspace:packages/drivers"],
 
     "@dv/edge-router": ["@dv/edge-router@workspace:apps/edge-router"],
+
+    "@dv/generate-component-thumbnails": ["@dv/generate-component-thumbnails@workspace:tooling/generate-component-thumbnails"],
 
     "@dv/landing-runtime": ["@dv/landing-runtime@workspace:apps/landing-runtime"],
 

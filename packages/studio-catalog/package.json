@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@dv/contracts": "workspace:*",
+    "@dv/studio-ui": "workspace:*",
     "@dv/ui": "workspace:*",
     "@json-render/core": "catalog:ui",
     "@json-render/react": "catalog:ui",

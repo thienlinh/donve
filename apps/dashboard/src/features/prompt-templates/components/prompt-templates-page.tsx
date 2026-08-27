@@ -39,15 +39,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import {
+  useActiveOrganizationQuery,
+  useSessionQuery
+} from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { createPromptTemplate, fetchPromptTemplates } from "../api";
 import { promptTemplateKeys } from "../query-keys";
 
 export function PromptTemplatesPage() {
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: session } = useSessionQuery();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
   );

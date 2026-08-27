@@ -35,11 +35,11 @@ import { Mail, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { QueryState } from "@/components/query-state";
+import { authClient } from "@/features/auth/auth-client";
 import {
-  authClient,
-  useActiveOrganization,
-  useSession
-} from "@/features/auth/auth-client";
+  useActiveOrganizationQuery,
+  useSessionQuery
+} from "@/features/auth/queries";
 import {
   fetchSalesConfigList,
   updateMemberSalesConfig
@@ -51,12 +51,12 @@ import { roleBadgeVariant, roleLabel } from "../role-labels";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
 export function MembersPage() {
-  const { data: session } = useSession();
+  const { data: session } = useSessionQuery();
   const {
     data: activeOrganization,
     isPending,
     error
-  } = useActiveOrganization();
+  } = useActiveOrganizationQuery();
 
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id

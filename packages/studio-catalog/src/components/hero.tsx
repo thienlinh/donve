@@ -20,6 +20,9 @@ export const heroPropsSchema = z.object({
   ctaLabel: z.string(),
   ctaHref: z.string(),
   secondaryCtaLabel: z.string().optional(),
+  // Optional (not paired 1:1 with `secondaryCtaLabel`) so existing content saved before this
+  // field existed still renders — see `HeroRender`'s fallback to plain, unstyled text below.
+  secondaryCtaHref: z.string().optional(),
   image: imagePropsSchema,
   variant: z.enum(heroVariantValues)
 });
@@ -47,7 +50,15 @@ export function HeroRender({ props }: BaseComponentProps<HeroProps>) {
           >
             {props.ctaLabel}
           </a>
-          {props.secondaryCtaLabel ? (
+          {props.secondaryCtaLabel && props.secondaryCtaHref ? (
+            <a
+              href={props.secondaryCtaHref}
+              {...trackAttr("cta_clicked")}
+              className="rounded-[var(--lp-radius)] border border-[var(--lp-color-accent)] px-6 py-3 font-medium text-[var(--lp-color-accent)]"
+            >
+              {props.secondaryCtaLabel}
+            </a>
+          ) : props.secondaryCtaLabel ? (
             <span className="px-6 py-3 font-medium">
               {props.secondaryCtaLabel}
             </span>

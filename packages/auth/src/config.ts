@@ -46,6 +46,11 @@ export interface AuthConfig {
  * of scope here.
  */
 export function createAuth(config: AuthConfig) {
+  if (!config.email) {
+    console.error(
+      "[auth] created without an email provider — verify-email, reset-password, and invite emails will not be sent"
+    );
+  }
   return betterAuth({
     baseURL: config.baseURL,
     secret: config.secret,
@@ -57,16 +62,33 @@ export function createAuth(config: AuthConfig) {
         generateId: false
       }
     },
+    session: {
+      // Rolling session (expiresIn 7d / updateAge 1d, both left at better-auth's defaults) is
+      // what keeps a user logged in without a separate refresh token — this only adds a short
+      // read-through cache on top of `getSession()` so most requests skip the session DB round
+      // trip. Membership/org-disabled checks (require-org-session.ts) always hit the DB fresh
+      // regardless of this cache — the only thing that can read stale here is session validity
+      // itself, e.g. a sign-out elsewhere can take up to `maxAge` to be observed. 60s keeps that
+      // window small.
+      cookieCache: {
+        enabled: true,
+        maxAge: 60
+      }
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
       sendResetPassword: async ({ user, url }) => {
         if (!config.email) return;
-        await config.email.sender.send({
-          to: user.email,
-          template: "reset_password",
-          props: { name: user.name || user.email, url }
-        });
+        try {
+          await config.email.sender.send({
+            to: user.email,
+            template: "reset_password",
+            props: { name: user.name || user.email, url }
+          });
+        } catch (err) {
+          console.error("[auth] sendResetPassword failed", user.email, err);
+        }
       }
     },
     emailVerification: {
@@ -74,11 +96,15 @@ export function createAuth(config: AuthConfig) {
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
         if (!config.email) return;
-        await config.email.sender.send({
-          to: user.email,
-          template: "verify_email",
-          props: { name: user.name || user.email, url }
-        });
+        try {
+          await config.email.sender.send({
+            to: user.email,
+            template: "verify_email",
+            props: { name: user.name || user.email, url }
+          });
+        } catch (err) {
+          console.error("[auth] sendVerificationEmail failed", user.email, err);
+        }
       }
     },
     socialProviders: config.socialProviders,
@@ -105,23 +131,34 @@ export function createAuth(config: AuthConfig) {
           editor: editorRole,
           sales: salesRole
         },
-        // Runs in the background (better-auth doesn't await this before
-        // responding to invite-member) — a Resend failure never blocks the
-        // invite itself. No dedicated accept-invite page exists in the
-        // dashboard; the invitee sees pending invitations in-app after
-        // logging in (apps/dashboard's PendingInvitationsBanner), so the
-        // link only needs to land them there.
+        // Awaited by better-auth (`runInBackgroundOrAwait` only actually backgrounds it when an
+        // `advanced.backgroundTasks.handler` is configured, which we don't set) — same as
+        // sendResetPassword/sendVerificationEmail above, so a Resend failure here surfaces the
+        // same way those do (caught below, logged, response still succeeds since invite creation
+        // already committed). The link deep-links into /accept-invite (apps/dashboard), which
+        // sends an unauthenticated visitor through /login (or /signup) first and resumes the
+        // accept once a session exists.
         sendInvitationEmail: async (data) => {
-          if (!config.email) return;
-          await config.email.sender.send({
-            to: data.email,
-            template: "invite",
-            props: {
-              orgName: data.organization.name,
-              inviteUrl: config.email.appURL,
-              role: data.role
-            }
-          });
+          if (!config.email) {
+            console.error(
+              "[auth] sendInvitationEmail skipped: no email provider configured",
+              data.email
+            );
+            return;
+          }
+          try {
+            await config.email.sender.send({
+              to: data.email,
+              template: "invite",
+              props: {
+                orgName: data.organization.name,
+                inviteUrl: `${config.email.appURL}/accept-invite?invitationId=${data.id}`,
+                role: data.role
+              }
+            });
+          } catch (err) {
+            console.error("[auth] sendInvitationEmail failed", data.email, err);
+          }
         },
         // Point the org plugin at the existing hand-rolled tables
         // (packages/db/src/schema/core.ts) instead of generating its own

@@ -158,6 +158,7 @@ export interface AppEnv {
 export const requiredBindingsSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   BETTER_AUTH_SECRET: z.string().min(1, "BETTER_AUTH_SECRET is required"),
+  RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
   AI_KEY_MASTER_SECRET: z.string().min(1, "AI_KEY_MASTER_SECRET is required"),
   PAYMENTS_KEY_MASTER_SECRET: z
     .string()

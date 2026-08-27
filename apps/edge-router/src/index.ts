@@ -109,7 +109,7 @@ async function handleSeoFile(env: Env, url: URL): Promise<Response> {
   );
   if (!pointer) return notFound();
 
-  // A `seo.noindex` page ships its own robots.txt/sitemap.xml with the deployment (see
+  // A `seo.robots.noindex` page ships its own robots.txt/sitemap.xml with the deployment (see
   // apps/api/src/lib/publish.ts) — that copy wins over the generated default below, and
   // rollback swaps it along with everything else in the deployment.
   const shipped = await env.DEPLOYMENTS_BUCKET.get(
@@ -135,7 +135,7 @@ async function handleSeoFile(env: Env, url: URL): Promise<Response> {
   return new Response(body, {
     headers: {
       "content-type": contentType,
-      // Not immutable: toggling `seo.noindex` republishes and swaps this file's content for the
+      // Not immutable: toggling `seo.robots.noindex` republishes and swaps this file's content for the
       // same URL, so it has to expire on the same short horizon as the root document.
       "Cache-Control": ROOT_DOCUMENT_CACHE
     }

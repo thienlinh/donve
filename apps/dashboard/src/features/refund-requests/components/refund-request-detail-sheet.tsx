@@ -7,11 +7,11 @@ import {
   SheetHeader,
   SheetTitle
 } from "@dv/ui/components/shadcn/sheet";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 
+import { DetailSheetSkeleton } from "@/components/detail-sheet-skeleton";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -66,11 +66,7 @@ function RefundRequestDetailBody({ id }: { id: string }) {
   });
 
   if (isPending || !data) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
+    return <DetailSheetSkeleton rows={4} />;
   }
 
   const canComplete = data.status === "pending" || data.status === "processing";

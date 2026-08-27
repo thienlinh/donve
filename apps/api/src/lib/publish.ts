@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 import {
   auditResultSchema,
   nativePageDocumentSchema,
-  passesLaunchThreshold
+  passesLaunchThreshold,
+  type PageSeo
 } from "@dv/contracts";
 import {
   auditFindingsRepository,
@@ -108,7 +109,7 @@ function createDeploymentStorage(env: Bindings) {
     return storage.createR2StorageDriver(env.DEPLOYMENTS_BUCKET);
   }
   return storage.createLocalFsStorageDriver(
-    env.LOCAL_DEPLOYMENTS_DIR ?? ".data/deployments"
+    env.LOCAL_DEPLOYMENTS_DIR || ".data/deployments"
   );
 }
 
@@ -329,6 +330,25 @@ async function resolveStructuredData(
   }));
 }
 
+/**
+ * `pageSeo.structuredDataType` (Studio SEO tab), when set to anything but `"auto"`, overrides
+ * the campaign/product auto-resolution above entirely — a manual pick doesn't know a price, so
+ * it publishes without an `offers` block (`buildPublishArtifacts`'s `toItemSchema` already only
+ * adds one for `type: "Product"` with a `price`).
+ */
+function resolveStructuredDataType(
+  seo: PageSeo | undefined,
+  title: string,
+  auto: PublishStructuredData[] | undefined
+): PublishStructuredData[] | undefined {
+  if (!seo?.structuredDataType || seo.structuredDataType === "auto") {
+    return auto;
+  }
+  return [
+    { type: seo.structuredDataType, name: title, description: seo.description }
+  ];
+}
+
 type LandingPageRow = NonNullable<
   Awaited<ReturnType<typeof landingPagesRepository.findById>>
 >;
@@ -352,17 +372,24 @@ async function buildLandingArtifacts(
 ): Promise<{ artifacts: PublishPipelineOutput; noindex: boolean }> {
   const { hostname, deployId, assetBasePath } = options;
   const draftStorage = createStorageFromEnv(env);
-  // Native (PageSpec) vs legacy (srcmap HTML) — `seo.title`/`noindex`/`ogImage` only exist on
+  // Native (PageSpec) vs legacy (srcmap HTML) — `seo.title`/`robots`/`ogImage` only exist on
   // the native document; a legacy page carries its own <head> markup.
   const doc = version.spec
     ? nativePageDocumentSchema.parse(version.spec)
     : null;
   const seo = doc?.seo;
 
-  const [ogImage, structuredData] = await Promise.all([
+  const [ogImage, autoStructuredData] = await Promise.all([
     resolveOgImage(db, orgId, draftStorage, landingPage, seo?.ogImage?.src),
     resolveStructuredData(db, orgId, landingPage.campaignId)
   ]);
+  // `seo.title` overrides the page name (architecture-and-data-model.md §Publish · SEO).
+  const title = seo?.title?.trim() || landingPage.name;
+  const structuredData = resolveStructuredDataType(
+    seo,
+    title,
+    autoStructuredData
+  );
 
   const runtimeConfig = {
     orgId,
@@ -382,13 +409,15 @@ async function buildLandingArtifacts(
   const runtimeScript = (await readRuntimeScript(env)) ?? undefined;
   const shared = {
     hostname,
-    // `seo.title` overrides the page name (architecture-and-data-model.md §Publish · SEO).
-    title: seo?.title?.trim() || landingPage.name,
+    title,
     ogImage,
     structuredData,
     runtimeConfig,
     runtimeScript,
-    assetBasePath
+    assetBasePath,
+    canonicalUrl: seo?.canonicalUrl,
+    twitterCard: seo?.twitterCard,
+    robots: seo?.robots
   };
 
   // `renderPageArtifact` already wraps `buildPublishArtifacts` internally (roadmap.md
@@ -399,7 +428,6 @@ async function buildLandingArtifacts(
         spec: doc.pageSpec as Spec,
         tokens: doc.tokens,
         description: seo?.description,
-        noindex: seo?.noindex,
         // A native page's images come from the same `pageAssets` table (Studio's image
         // fields upload there) — without this they'd ship pointing at the authenticated
         // draft endpoint, which no published visitor can read.
@@ -420,7 +448,7 @@ async function buildLandingArtifacts(
         });
       })();
 
-  return { artifacts, noindex: seo?.noindex === true };
+  return { artifacts, noindex: seo?.robots?.noindex === true };
 }
 
 type DeploymentRow = NonNullable<
@@ -619,7 +647,7 @@ export async function publishLandingPage(
     );
 
     // FR-G-05 — edge-router generates robots.txt/sitemap.xml per hostname, but serves a
-    // deployment-local copy when one exists; a `seo.noindex` page ships that copy so the
+    // deployment-local copy when one exists; a `seo.robots.noindex` page ships that copy so the
     // opt-out survives rollback to (or from) any other deployment of the same hostname.
     if (noindex) {
       artifacts.assets.push(

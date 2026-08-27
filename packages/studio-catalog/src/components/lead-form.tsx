@@ -105,13 +105,21 @@ export function LeadFormRender(ctx: BaseComponentProps<LeadFormProps>) {
   const { props } = ctx;
   if (props.variant !== "modal_trigger") {
     return (
-      <div data-lp-component="lead_form" data-lp-variant={props.variant}>
+      <div
+        data-lp-component="lead_form"
+        className="px-6 py-16 md:px-12"
+        data-lp-variant={props.variant}
+      >
         <LeadFormFields {...ctx} />
       </div>
     );
   }
   return (
-    <div data-lp-component="lead_form" data-lp-variant={props.variant}>
+    <div
+      data-lp-component="lead_form"
+      className="px-6 py-16 md:px-12"
+      data-lp-variant={props.variant}
+    >
       <button
         type="button"
         data-dv-popup-open="lead"

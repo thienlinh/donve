@@ -99,6 +99,33 @@ export async function insertVersionAndActivate(
   return version;
 }
 
+/** Shared by `PATCH /:id/spec` (manual edit) and the native branch of `POST
+ * /:id/versions/:versionId/restore` (restoring a native/PageSpec version) — both just land a
+ * new `pageVersions` row carrying a `spec` and activate it, differing only in `origin`. */
+export async function applySpecUpdate(
+  db: ReturnType<typeof createDbFromEnv>,
+  orgId: string,
+  landingPageId: string,
+  spec: unknown,
+  origin: "manual" | "restore"
+) {
+  const versions = await pageVersionsRepository.listByLandingPage(
+    db,
+    orgId,
+    landingPageId
+  );
+  const seq = (versions[0]?.seq ?? 0) + 1;
+
+  return insertVersionAndActivate(db, orgId, landingPageId, seq, {
+    origin,
+    patch: null,
+    chatMessageId: null,
+    label: null,
+    createdBy: null,
+    spec
+  });
+}
+
 export const pageArchitectSectionSchema = z.object({
   componentId: z.string(),
   variant: z.string(),

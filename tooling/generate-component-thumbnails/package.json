@@ -1,0 +1,21 @@
+{
+  "name": "@dv/generate-component-thumbnails",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "bun run.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf node_modules"
+  },
+  "dependencies": {
+    "@dv/studio-catalog": "workspace:*",
+    "@dv/studio-render": "workspace:*",
+    "@playwright/test": "catalog:"
+  },
+  "devDependencies": {
+    "@dv/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

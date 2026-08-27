@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { queryClient } from "@/lib/query-client";
 import * as m from "@/paraglide/messages.js";
 
 import { authClient } from "../auth-client";
@@ -32,6 +33,11 @@ export function LoginForm() {
       setServerError(m.loginError());
       return;
     }
+    // A previous session in this tab (this account signing back in, or a different one) can
+    // leave the auth/session query cached as "signed out" within its staleTime window —
+    // without this, `_authenticated`'s beforeLoad reads that stale cache and bounces straight
+    // back to /login right after a successful sign-in.
+    queryClient.clear();
     await navigate({ to: "/landings" });
   });
 

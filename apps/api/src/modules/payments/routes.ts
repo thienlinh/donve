@@ -1,4 +1,5 @@
 import { encryptApiKey, importMasterKey } from "@dv/ai-gateway";
+import { can } from "@dv/auth";
 import {
   connectPaymentConnectionSchema,
   createRefundRequestSchema,
@@ -48,8 +49,7 @@ function requireOrgId(c: Context<AppEnv>): string {
 /** FR-D-11: refund actions gate on the "Xác nhận thanh toán" permission (architecture.md §6) —
  * owner/admin/sales, not manager. */
 function requireRefundPermission(c: Context<AppEnv>): void {
-  const role = c.get("membershipRole");
-  if (role !== "owner" && role !== "admin" && role !== "sales") {
+  if (!can(c.get("membershipRole"), "confirmPayment")) {
     throw new ApiError(403, "forbidden");
   }
 }

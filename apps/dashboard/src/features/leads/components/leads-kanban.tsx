@@ -25,7 +25,7 @@ import {
 } from "@tanstack/react-query";
 
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLeads, updateLeadStage, type PipelineStage } from "../api";
@@ -191,7 +191,7 @@ function KanbanCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: lead.id, data: { stage: lead.stage } });
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
 
   return (
     <Card

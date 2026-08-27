@@ -20,10 +20,11 @@ import { z } from "zod";
 
 import { createDbFromEnv } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import { createStorageFromEnv } from "@/lib/storage.js";
 import type { AppEnv } from "@/types.js";
 
 import {
-  insertVersionAndActivate,
+  applySpecUpdate,
   requireLandingPage,
   requireOrgId
 } from "../shared.js";
@@ -119,6 +120,28 @@ crudRoutes.get("/templates", async (c) => {
   const db = createDbFromEnv(c.env);
   const templates = await templatesRepository.list(db);
   return c.json({ templates: z.array(templateSchema).parse(templates) });
+});
+
+/** Same authenticated-stream shape as `assets.routes.ts`'s `/:id/thumbnail`, minus
+ * `requireOrgId`/`requireLandingPage` — `templates` has no tenant boundary, so any signed-in
+ * user can read one, same as the list route above. Key is set at seed time
+ * (`tooling/seed-templates`), never by a tenant action. */
+crudRoutes.get("/templates/:id/thumbnail", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const id = c.req.param("id");
+  const template = await templatesRepository.findById(db, id);
+  if (!template?.thumbnailKey) throw new ApiError(404, "thumbnail_not_found");
+
+  const storage = createStorageFromEnv(c.env);
+  const object = await storage.get(template.thumbnailKey);
+  if (!object) throw new ApiError(404, "thumbnail_not_found");
+
+  return new Response(object.body, {
+    headers: {
+      "content-type": object.contentType ?? "image/jpeg",
+      "x-content-type-options": "nosniff"
+    }
+  });
 });
 
 const saveAsTemplateSchema = z.object({
@@ -258,21 +281,7 @@ crudRoutes.patch("/:id/spec", async (c) => {
     throw new ApiError(409, "custom_import_has_no_spec");
   }
 
-  const versions = await pageVersionsRepository.listByLandingPage(
-    db,
-    orgId,
-    id
-  );
-  const seq = (versions[0]?.seq ?? 0) + 1;
-
-  const version = await insertVersionAndActivate(db, orgId, id, seq, {
-    origin: "manual",
-    patch: null,
-    chatMessageId: null,
-    label: null,
-    createdBy: null,
-    spec: body
-  });
+  const version = await applySpecUpdate(db, orgId, id, body, "manual");
 
   return c.json(pageVersionSchema.parse(version), 201);
 });

@@ -10,6 +10,7 @@ import { createStorageFromEnv } from "@/lib/storage.js";
 import type { AppEnv } from "@/types.js";
 
 import {
+  applySpecUpdate,
   insertVersionAndActivate,
   requireLandingPage,
   requireLandingPageContext,
@@ -109,6 +110,24 @@ versionsRoutes.get("/:id/versions", async (c) => {
   return c.json({ versions: z.array(pageVersionSchema).parse(versions) });
 });
 
+// Studio Native version diff (full row, including `spec`) — `pageVersionSchema` already carries
+// `spec`, and `listByLandingPage` above doesn't trim it either, but the diff dialog only needs
+// one version at a time, not the whole list.
+versionsRoutes.get("/:id/versions/:versionId", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const id = c.req.param("id");
+  const versionId = c.req.param("versionId");
+  await requireLandingPage(db, orgId, id);
+
+  const version = await pageVersionsRepository.findById(db, orgId, versionId);
+  if (!version || version.landingPageId !== id || version.prunedAt) {
+    throw new ApiError(404, "page_version_not_found");
+  }
+
+  return c.json(pageVersionSchema.parse(version));
+});
+
 const updateVersionLabelSchema = z.object({
   label: z.string().trim().max(120).nullable()
 });
@@ -153,6 +172,19 @@ versionsRoutes.post("/:id/versions/:versionId/restore", async (c) => {
     foundTarget.prunedAt
   ) {
     throw new ApiError(404, "page_version_not_found");
+  }
+
+  // Native (PageSpec) version — restore via the same "apply spec + bump version" path
+  // `PATCH /:id/spec` uses, not the srcmap-only guard below.
+  if (foundTarget.spec !== null) {
+    const version = await applySpecUpdate(
+      db,
+      orgId,
+      landingPage.id,
+      foundTarget.spec,
+      "restore"
+    );
+    return c.json(pageVersionSchema.parse(version), 201);
   }
   const target = requireSrcmapVersion(foundTarget);
 

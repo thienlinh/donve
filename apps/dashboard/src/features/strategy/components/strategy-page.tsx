@@ -1,6 +1,5 @@
 import type { UpdateStrategyBriefInput } from "@dv/contracts";
 import { Button } from "@dv/ui/components/shadcn/button";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
@@ -15,6 +14,7 @@ import {
 import { strategyBriefKeys } from "../query-keys";
 import { ClaimsField } from "./claims-field";
 import { StringArrayField, TextField } from "./strategy-section-fields";
+import { WizardSkeleton } from "./wizard-skeleton";
 
 /** Wizard AI — bước 2 (`technical/ui-ux-design.md` §Wizard AI, `strategy-brief.md`). */
 export function StrategyPage() {
@@ -73,11 +73,7 @@ export function StrategyPage() {
   });
 
   if (isPending) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
-      </div>
-    );
+    return <WizardSkeleton sections={6} />;
   }
 
   return (

@@ -26,7 +26,10 @@ import { FileQuestion, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { QueryState } from "@/components/query-state";
-import { useActiveOrganization, useSession } from "@/features/auth/auth-client";
+import {
+  useActiveOrganizationQuery,
+  useSessionQuery
+} from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchPromptTemplates, removePromptTemplate } from "../api";
@@ -42,8 +45,8 @@ const routeApi = getRouteApi("/_authenticated/prompt-templates/$id");
 export function PromptTemplateDetailPage() {
   const { id } = routeApi.useParams();
   const navigate = routeApi.useNavigate();
-  const { data: session } = useSession();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: session } = useSessionQuery();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const myMembership = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
   );

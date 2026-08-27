@@ -21,6 +21,6 @@ export function createStorageFromEnv(env: Bindings): storage.StorageDriver {
     return storage.createR2StorageDriver(env.LANDING_ASSETS_BUCKET);
   }
   return storage.createLocalFsStorageDriver(
-    env.LOCAL_STORAGE_DIR ?? ".data/storage"
+    env.LOCAL_STORAGE_DIR || ".data/storage"
   );
 }

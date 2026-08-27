@@ -23,6 +23,11 @@ export default defineConfig({
       outdir: "./src/paraglide",
       strategy: ["cookie", "baseLocale"],
       emitTsDeclarations: true,
+      // Pinned explicitly: the compiler's own default is `message-modules` (one file per
+      // message), which doesn't match what's committed under `src/paraglide` — without this,
+      // any dev/build run regenerates the whole tree into ~2k per-message files instead of the
+      // three-file-per-locale shape this repo commits.
+      outputStructure: "locale-modules",
       // `src/paraglide` is committed (see repo note in that dir) so `tsc`
       // can resolve it without a `vite build` bootstrap step first — the
       // default self-gitignore would fight that.

@@ -35,7 +35,6 @@ import {
   SheetHeader,
   SheetTitle
 } from "@dv/ui/components/shadcn/sheet";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { Textarea } from "@dv/ui/components/shadcn/textarea";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +44,8 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { DetailSheetSkeleton } from "@/components/detail-sheet-skeleton";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
 import { fetchOrderRefundRequests } from "@/features/refund-requests/api";
@@ -112,7 +112,7 @@ export function LeadDetailSheet({
 
 function LeadDetailBody({ leadId }: { leadId: string }) {
   const queryClient = useQueryClient();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const { data, isPending } = useQuery({
     queryKey: leadKeys.detail(leadId),
     queryFn: () => fetchLeadDetail(leadId)
@@ -181,11 +181,7 @@ function LeadDetailBody({ leadId }: { leadId: string }) {
   });
 
   if (isPending || !data) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
+    return <DetailSheetSkeleton />;
   }
 
   const { lead, activities, orders, campaign } = data;

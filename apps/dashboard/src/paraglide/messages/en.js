@@ -1,5 +1,8 @@
 /* eslint-disable */
 /** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
+/** @typedef {{}} Acceptinviteerrorbody3Inputs */
+/** @typedef {{}} Acceptinviteerrortitle3Inputs */
+/** @typedef {{}} Acceptinvitetitle2Inputs */
 /** @typedef {{}} Aiapikeylabel3Inputs */
 /** @typedef {{}} Aiconnectbutton2Inputs */
 /** @typedef {{}} Aiconnectdialogdescription3Inputs */
@@ -182,6 +185,8 @@
 /** @typedef {{}} Domainsstatusfailed2Inputs */
 /** @typedef {{}} Domainsstatuspending2Inputs */
 /** @typedef {{}} Domainstitle1Inputs */
+/** @typedef {{}} Domainsupgraderequireddescription3Inputs */
+/** @typedef {{}} Domainsupgraderequiredtitle3Inputs */
 /** @typedef {{}} Domainsverifybutton2Inputs */
 /** @typedef {{}} Domainsverifyerrortoast3Inputs */
 /** @typedef {{}} Entityimagedrophint3Inputs */
@@ -189,6 +194,8 @@
 /** @typedef {{}} Entityimageuploadfailed3Inputs */
 /** @typedef {{}} Entityimageuploadlabel3Inputs */
 /** @typedef {{}} Entityimageuploadinglabel3Inputs */
+/** @typedef {{}} Featureupgradegenericdescription3Inputs */
+/** @typedef {{}} Featureupgradegenerictitle3Inputs */
 /** @typedef {{}} Forgotpasswordbody2Inputs */
 /** @typedef {{}} Forgotpasswordemaillabel3Inputs */
 /** @typedef {{}} Forgotpasswordsent2Inputs */
@@ -572,6 +579,19 @@
 /** @typedef {{}} Platformrefundassistdonetoast4Inputs */
 /** @typedef {{}} Platformrefundassisttitle3Inputs */
 /** @typedef {{}} Platformrefundorderidplaceholder4Inputs */
+/** @typedef {{}} Platformstaffaddaction3Inputs */
+/** @typedef {{}} Platformstaffaddemailplaceholder4Inputs */
+/** @typedef {{}} Platformstaffadderrortoast4Inputs */
+/** @typedef {{}} Platformstaffcolumnactions3Inputs */
+/** @typedef {{}} Platformstaffcolumncreated3Inputs */
+/** @typedef {{}} Platformstaffcolumnemail3Inputs */
+/** @typedef {{}} Platformstaffcolumnrole3Inputs */
+/** @typedef {{}} Platformstaffdescription2Inputs */
+/** @typedef {{}} Platformstaffemptytitle3Inputs */
+/** @typedef {{}} Platformstaffloaderrortitle4Inputs */
+/** @typedef {{}} Platformstaffloading2Inputs */
+/** @typedef {{}} Platformstaffremoveaction3Inputs */
+/** @typedef {{}} Platformstaffremoveerrortoast4Inputs */
 /** @typedef {{}} Platformstataicreditbalance4Inputs */
 /** @typedef {{}} Platformstataicreditspent4Inputs */
 /** @typedef {{}} Platformstatcampaigns2Inputs */
@@ -584,7 +604,9 @@
 /** @typedef {{}} Platformsubscriptiontitle2Inputs */
 /** @typedef {{}} Platformtabaudit2Inputs */
 /** @typedef {{}} Platformtabbilling2Inputs */
+/** @typedef {{}} Platformtaborgs2Inputs */
 /** @typedef {{}} Platformtaboverview2Inputs */
+/** @typedef {{}} Platformtabstaff2Inputs */
 /** @typedef {{}} Productsaddbutton2Inputs */
 /** @typedef {{}} Productsadddialogtitle3Inputs */
 /** @typedef {{}} Productscolumnactions2Inputs */
@@ -913,15 +935,29 @@
 /** @typedef {{}} Studiorollbacksuccesstoast3Inputs */
 /** @typedef {{}} Studiosavebutton2Inputs */
 /** @typedef {{}} Studiosaveshortcuthint3Inputs */
+/** @typedef {{}} Studioseocanonicalurlhint4Inputs */
+/** @typedef {{}} Studioseocanonicalurllabel4Inputs */
 /** @typedef {{}} Studioseodescriptionlabel3Inputs */
+/** @typedef {{}} Studioseonofollowlabel3Inputs */
 /** @typedef {{}} Studioseonoindexhint3Inputs */
 /** @typedef {{}} Studioseonoindexlabel3Inputs */
 /** @typedef {{}} Studioseoogimagelabel4Inputs */
 /** @typedef {{}} Studioseopaneltitle3Inputs */
 /** @typedef {{}} Studioseosharepreviewlabel4Inputs */
 /** @typedef {{}} Studioseosharepreviewnoimage5Inputs */
+/** @typedef {{}} Studioseostructureddatatypearticle5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeauto5Inputs */
+/** @typedef {{}} Studioseostructureddatatypecourse5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelabel5Inputs */
+/** @typedef {{}} Studioseostructureddatatypelocalbusiness6Inputs */
+/** @typedef {{}} Studioseostructureddatatypeorganization5Inputs */
+/** @typedef {{}} Studioseostructureddatatypeproduct5Inputs */
+/** @typedef {{}} Studioseostructureddatatypewebpage6Inputs */
 /** @typedef {{}} Studioseotitlehint3Inputs */
 /** @typedef {{}} Studioseotitlelabel3Inputs */
+/** @typedef {{}} Studioseotwittercardlabel4Inputs */
+/** @typedef {{}} Studioseotwittercardsummary4Inputs */
+/** @typedef {{}} Studioseotwittercardsummarylargeimage6Inputs */
 /** @typedef {{}} Studioshare1Inputs */
 /** @typedef {{}} Studioshortcutcomment2Inputs */
 /** @typedef {{}} Studioshortcutdraw2Inputs */
@@ -941,6 +977,21 @@
 /** @typedef {{}} Studioskillspopovertitle3Inputs */
 /** @typedef {{}} Studioskillstoggleerrortoast4Inputs */
 /** @typedef {{}} Studiotabdesignfiles3Inputs */
+/** @typedef {{}} Studiotokenscoloraccentforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscoloraccentlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorborderlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorforegroundlabel4Inputs */
+/** @typedef {{}} Studiotokenscolormutedlabel4Inputs */
+/** @typedef {{}} Studiotokenscolorprimaryforegroundlabel5Inputs */
+/** @typedef {{}} Studiotokenscolorprimarylabel4Inputs */
+/** @typedef {{}} Studiotokenscolorsurfacelabel4Inputs */
+/** @typedef {{}} Studiotokensfontbodylabel4Inputs */
+/** @typedef {{}} Studiotokensfontcustomoption4Inputs */
+/** @typedef {{}} Studiotokensfontheadinglabel4Inputs */
+/** @typedef {{}} Studiotokenspaneltitle3Inputs */
+/** @typedef {{}} Studiotokensradiushint3Inputs */
+/** @typedef {{}} Studiotokensradiuslabel3Inputs */
+/** @typedef {{}} Studiotokensresetbutton3Inputs */
 /** @typedef {{}} Studiotoolbarcomment2Inputs */
 /** @typedef {{}} Studiotoolbardraw2Inputs */
 /** @typedef {{}} Studiotoolbaredit2Inputs */
@@ -976,6 +1027,21 @@
 /** @typedef {{}} Verifiedtitle1Inputs */
 /** @typedef {{}} Verifyemailbody2Inputs */
 /** @typedef {{}} Verifyemailtitle2Inputs */
+
+export const acceptinviteerrorbody3 =
+  /** @type {(inputs: Acceptinviteerrorbody3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `This invitation may have expired or already been used. Go to your dashboard to check your pending invitations.`;
+  };
+
+export const acceptinviteerrortitle3 =
+  /** @type {(inputs: Acceptinviteerrortitle3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Couldn't accept the invitation`;
+  };
+
+export const acceptinvitetitle2 =
+  /** @type {(inputs: Acceptinvitetitle2Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Joining organization…`;
+  };
 
 export const aiapikeylabel3 =
   /** @type {(inputs: Aiapikeylabel3Inputs) => LocalizedString} */ () => {
@@ -1899,6 +1965,16 @@ export const domainstitle1 =
     return /** @type {LocalizedString} */ `Custom domains`;
   };
 
+export const domainsupgraderequireddescription3 =
+  /** @type {(inputs: Domainsupgraderequireddescription3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Connecting your own domain to a landing page is available on paid plans. Upgrade to unlock it.`;
+  };
+
+export const domainsupgraderequiredtitle3 =
+  /** @type {(inputs: Domainsupgraderequiredtitle3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Custom domains need a plan upgrade`;
+  };
+
 export const domainsverifybutton2 =
   /** @type {(inputs: Domainsverifybutton2Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Check verification status`;
@@ -1932,6 +2008,16 @@ export const entityimageuploadlabel3 =
 export const entityimageuploadinglabel3 =
   /** @type {(inputs: Entityimageuploadinglabel3Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Uploading…`;
+  };
+
+export const featureupgradegenericdescription3 =
+  /** @type {(inputs: Featureupgradegenericdescription3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Upgrade your plan to unlock this feature.`;
+  };
+
+export const featureupgradegenerictitle3 =
+  /** @type {(inputs: Featureupgradegenerictitle3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `This feature needs a plan upgrade`;
   };
 
 export const forgotpasswordbody2 =
@@ -3879,6 +3965,71 @@ export const platformrefundorderidplaceholder4 =
     return /** @type {LocalizedString} */ `Order id`;
   };
 
+export const platformstaffaddaction3 =
+  /** @type {(inputs: Platformstaffaddaction3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Add`;
+  };
+
+export const platformstaffaddemailplaceholder4 =
+  /** @type {(inputs: Platformstaffaddemailplaceholder4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Email`;
+  };
+
+export const platformstaffadderrortoast4 =
+  /** @type {(inputs: Platformstaffadderrortoast4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Couldn't add this staff member. Check the email is a real user.`;
+  };
+
+export const platformstaffcolumnactions3 =
+  /** @type {(inputs: Platformstaffcolumnactions3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ ``;
+  };
+
+export const platformstaffcolumncreated3 =
+  /** @type {(inputs: Platformstaffcolumncreated3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Added`;
+  };
+
+export const platformstaffcolumnemail3 =
+  /** @type {(inputs: Platformstaffcolumnemail3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Email`;
+  };
+
+export const platformstaffcolumnrole3 =
+  /** @type {(inputs: Platformstaffcolumnrole3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Role`;
+  };
+
+export const platformstaffdescription2 =
+  /** @type {(inputs: Platformstaffdescription2Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Cross-tenant access, granted by another platform admin.`;
+  };
+
+export const platformstaffemptytitle3 =
+  /** @type {(inputs: Platformstaffemptytitle3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `No platform staff yet`;
+  };
+
+export const platformstaffloaderrortitle4 =
+  /** @type {(inputs: Platformstaffloaderrortitle4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Couldn't load platform staff`;
+  };
+
+export const platformstaffloading2 =
+  /** @type {(inputs: Platformstaffloading2Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Loading platform staff…`;
+  };
+
+export const platformstaffremoveaction3 =
+  /** @type {(inputs: Platformstaffremoveaction3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Remove`;
+  };
+
+export const platformstaffremoveerrortoast4 =
+  /** @type {(inputs: Platformstaffremoveerrortoast4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Couldn't remove this staff member.`;
+  };
+
 export const platformstataicreditbalance4 =
   /** @type {(inputs: Platformstataicreditbalance4Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `AI credit balance`;
@@ -3939,9 +4090,19 @@ export const platformtabbilling2 =
     return /** @type {LocalizedString} */ `Billing`;
   };
 
+export const platformtaborgs2 =
+  /** @type {(inputs: Platformtaborgs2Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Organizations`;
+  };
+
 export const platformtaboverview2 =
   /** @type {(inputs: Platformtaboverview2Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Overview`;
+  };
+
+export const platformtabstaff2 =
+  /** @type {(inputs: Platformtabstaff2Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Staff`;
   };
 
 export const productsaddbutton2 =
@@ -5594,9 +5755,24 @@ export const studiosaveshortcuthint3 =
     return /** @type {LocalizedString} */ `Save (⌘S)`;
   };
 
+export const studioseocanonicalurlhint4 =
+  /** @type {(inputs: Studioseocanonicalurlhint4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Overrides the default canonical link. Leave blank to use this page's own hostname.`;
+  };
+
+export const studioseocanonicalurllabel4 =
+  /** @type {(inputs: Studioseocanonicalurllabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Canonical URL`;
+  };
+
 export const studioseodescriptionlabel3 =
   /** @type {(inputs: Studioseodescriptionlabel3Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Meta description`;
+  };
+
+export const studioseonofollowlabel3 =
+  /** @type {(inputs: Studioseonofollowlabel3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Don't follow links on this page`;
   };
 
 export const studioseonoindexhint3 =
@@ -5629,6 +5805,46 @@ export const studioseosharepreviewnoimage5 =
     return /** @type {LocalizedString} */ `No share image yet`;
   };
 
+export const studioseostructureddatatypearticle5 =
+  /** @type {(inputs: Studioseostructureddatatypearticle5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Article`;
+  };
+
+export const studioseostructureddatatypeauto5 =
+  /** @type {(inputs: Studioseostructureddatatypeauto5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Auto (from linked product)`;
+  };
+
+export const studioseostructureddatatypecourse5 =
+  /** @type {(inputs: Studioseostructureddatatypecourse5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Course`;
+  };
+
+export const studioseostructureddatatypelabel5 =
+  /** @type {(inputs: Studioseostructureddatatypelabel5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Structured data type`;
+  };
+
+export const studioseostructureddatatypelocalbusiness6 =
+  /** @type {(inputs: Studioseostructureddatatypelocalbusiness6Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Local business`;
+  };
+
+export const studioseostructureddatatypeorganization5 =
+  /** @type {(inputs: Studioseostructureddatatypeorganization5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Organization`;
+  };
+
+export const studioseostructureddatatypeproduct5 =
+  /** @type {(inputs: Studioseostructureddatatypeproduct5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Product`;
+  };
+
+export const studioseostructureddatatypewebpage6 =
+  /** @type {(inputs: Studioseostructureddatatypewebpage6Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Web page`;
+  };
+
 export const studioseotitlehint3 =
   /** @type {(inputs: Studioseotitlehint3Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Shown as the browser tab title and the share-card headline. Defaults to the page name.`;
@@ -5637,6 +5853,21 @@ export const studioseotitlehint3 =
 export const studioseotitlelabel3 =
   /** @type {(inputs: Studioseotitlelabel3Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Page title`;
+  };
+
+export const studioseotwittercardlabel4 =
+  /** @type {(inputs: Studioseotwittercardlabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Twitter card`;
+  };
+
+export const studioseotwittercardsummary4 =
+  /** @type {(inputs: Studioseotwittercardsummary4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Summary`;
+  };
+
+export const studioseotwittercardsummarylargeimage6 =
+  /** @type {(inputs: Studioseotwittercardsummarylargeimage6Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Summary with large image`;
   };
 
 export const studioshare1 =
@@ -5732,6 +5963,81 @@ export const studioskillstoggleerrortoast4 =
 export const studiotabdesignfiles3 =
   /** @type {(inputs: Studiotabdesignfiles3Inputs) => LocalizedString} */ () => {
     return /** @type {LocalizedString} */ `Design Files`;
+  };
+
+export const studiotokenscoloraccentforegroundlabel5 =
+  /** @type {(inputs: Studiotokenscoloraccentforegroundlabel5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Accent text (on accent)`;
+  };
+
+export const studiotokenscoloraccentlabel4 =
+  /** @type {(inputs: Studiotokenscoloraccentlabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Accent`;
+  };
+
+export const studiotokenscolorborderlabel4 =
+  /** @type {(inputs: Studiotokenscolorborderlabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Border`;
+  };
+
+export const studiotokenscolorforegroundlabel4 =
+  /** @type {(inputs: Studiotokenscolorforegroundlabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Text`;
+  };
+
+export const studiotokenscolormutedlabel4 =
+  /** @type {(inputs: Studiotokenscolormutedlabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Muted text`;
+  };
+
+export const studiotokenscolorprimaryforegroundlabel5 =
+  /** @type {(inputs: Studiotokenscolorprimaryforegroundlabel5Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Primary text (on primary)`;
+  };
+
+export const studiotokenscolorprimarylabel4 =
+  /** @type {(inputs: Studiotokenscolorprimarylabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Primary`;
+  };
+
+export const studiotokenscolorsurfacelabel4 =
+  /** @type {(inputs: Studiotokenscolorsurfacelabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Surface`;
+  };
+
+export const studiotokensfontbodylabel4 =
+  /** @type {(inputs: Studiotokensfontbodylabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Body font`;
+  };
+
+export const studiotokensfontcustomoption4 =
+  /** @type {(inputs: Studiotokensfontcustomoption4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Custom…`;
+  };
+
+export const studiotokensfontheadinglabel4 =
+  /** @type {(inputs: Studiotokensfontheadinglabel4Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Heading font`;
+  };
+
+export const studiotokenspaneltitle3 =
+  /** @type {(inputs: Studiotokenspaneltitle3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Design tokens`;
+  };
+
+export const studiotokensradiushint3 =
+  /** @type {(inputs: Studiotokensradiushint3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `CSS value, e.g. 0.5rem or 8px.`;
+  };
+
+export const studiotokensradiuslabel3 =
+  /** @type {(inputs: Studiotokensradiuslabel3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Corner radius`;
+  };
+
+export const studiotokensresetbutton3 =
+  /** @type {(inputs: Studiotokensresetbutton3Inputs) => LocalizedString} */ () => {
+    return /** @type {LocalizedString} */ `Reset to default`;
   };
 
 export const studiotoolbarcomment2 =

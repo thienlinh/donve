@@ -26,7 +26,13 @@ export interface PublishPipelineAsset {
  * A campaign can link several products, so the pipeline receives an array and emits one
  * Product/Course schema per item (wrapped in an ItemList when there's more than one). */
 export interface PublishStructuredData {
-  type: "Product" | "Course";
+  type:
+    | "Product"
+    | "Course"
+    | "Organization"
+    | "LocalBusiness"
+    | "Article"
+    | "WebPage";
   name: string;
   description?: string;
   imageUrl?: string;
@@ -39,6 +45,15 @@ export interface PublishPipelineInput {
   hostname: string;
   title: string;
   canonicalPath?: string;
+  /** Overrides the hostname-derived canonical `<link href>` when set (Studio SEO tab
+   * `pageSeo.canonicalUrl`). */
+  canonicalUrl?: string;
+  /** `twitter:card` meta value; defaults to `"summary_large_image"` when an `ogImage` is
+   * present and no explicit value was chosen, `"summary"` otherwise. */
+  twitterCard?: "summary" | "summary_large_image";
+  /** `<meta name="robots">` content (Studio SEO tab `pageSeo.robots`) — omitted entirely when
+   * neither flag is set, since index/follow is the HTML default. */
+  robots?: { noindex?: boolean; nofollow?: boolean };
   /** Prefix every rewritten asset URL gets, without a trailing slash (default: none, i.e.
    * root-relative `/assets/...` as a real deployment is served). Only the private preview
    * endpoint sets it — there the artifacts live under a token path on the API origin, not at
@@ -134,7 +149,9 @@ export async function buildPublishArtifacts(
     }
   }
 
-  const canonicalUrl = `https://${input.hostname}${input.canonicalPath ?? "/"}`;
+  const canonicalUrl =
+    input.canonicalUrl ??
+    `https://${input.hostname}${input.canonicalPath ?? "/"}`;
   const head = document.querySelector("head") ?? document.documentElement;
 
   // NFR-01 (LCP < 1.8s on 4G): best-effort preconnect/display=swap for Google Fonts and a
@@ -190,6 +207,18 @@ export async function buildPublishArtifacts(
   canonical.setAttribute("href", canonicalUrl);
   head.appendChild(canonical);
 
+  // No `<meta name="robots">` when neither flag is set — index/follow is the HTML default.
+  const robotsContent = [
+    input.robots?.noindex ? "noindex" : null,
+    input.robots?.nofollow ? "nofollow" : null
+  ].filter((token): token is string => token != null);
+  if (robotsContent.length > 0) {
+    const robots = document.createElement("meta");
+    robots.setAttribute("name", "robots");
+    robots.setAttribute("content", robotsContent.join(","));
+    head.appendChild(robots);
+  }
+
   let ogImageUrl: string | undefined;
   if (input.ogImage) {
     const key = `og-image.${extFor(input.ogImage.mime, "")}`;
@@ -210,6 +239,32 @@ export async function buildPublishArtifacts(
   for (const [property, content] of ogTags) {
     const meta = document.createElement("meta");
     meta.setAttribute("property", property);
+    meta.setAttribute("content", content);
+    head.appendChild(meta);
+  }
+
+  // Same title/ogImage already used for OG tags, plus whatever `<meta name="description">`
+  // the source HTML already carries (native pages inject it themselves — render-page.ts —
+  // legacy srcmap pages keep their own <head> markup) rather than threading a second
+  // description source through this pipeline.
+  const description = document
+    .querySelector('meta[name="description"]')
+    ?.getAttribute("content");
+  const twitterCard =
+    input.twitterCard ?? (ogImageUrl ? "summary_large_image" : "summary");
+  const twitterTags: [string, string][] = [
+    ["twitter:card", twitterCard],
+    ["twitter:title", input.title],
+    ...(description
+      ? ([["twitter:description", description]] as [string, string][])
+      : []),
+    ...(ogImageUrl
+      ? ([["twitter:image", ogImageUrl]] as [string, string][])
+      : [])
+  ];
+  for (const [name, content] of twitterTags) {
+    const meta = document.createElement("meta");
+    meta.setAttribute("name", name);
     meta.setAttribute("content", content);
     head.appendChild(meta);
   }

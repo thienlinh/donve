@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { authClient } from "@/features/auth/auth-client";
+import { queryClient } from "@/lib/query-client";
 import * as m from "@/paraglide/messages.js";
 
 const onboardingSchema = z.object({ name: z.string().min(1) });
@@ -51,6 +52,9 @@ export function OnboardingPage() {
       return;
     }
     await authClient.organization.setActive({ organizationId: org.id });
+    // Same as org-switcher.tsx's switchOrg — every org-scoped query in the cache (including
+    // the new auth/session/organizations queries) is now for the wrong org until this runs.
+    await queryClient.invalidateQueries();
     await navigate({ to: "/landings" });
   });
 

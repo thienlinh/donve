@@ -11,7 +11,7 @@ import {
 } from "@dv/ui/components/shadcn/alert-dialog";
 import { Badge } from "@dv/ui/components/shadcn/badge";
 import { Button } from "@dv/ui/components/shadcn/button";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
+import { Skeleton } from "@dv/ui/components/shadcn/skeleton";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -104,8 +104,25 @@ export function CustomImportPage() {
 
   if (landingPending || bundlePending || !landingPage) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
+      <div className="flex h-screen flex-col">
+        <div className="flex items-center justify-between border-b px-4 py-2">
+          <Skeleton className="h-5 w-48" />
+        </div>
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 md:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-2 rounded-md border p-3"
+              >
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="min-h-[60vh] w-full" />
+        </div>
       </div>
     );
   }

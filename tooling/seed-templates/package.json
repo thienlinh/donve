@@ -9,7 +9,12 @@
     "clean": "rm -rf node_modules"
   },
   "dependencies": {
+    "@dv/contracts": "workspace:*",
     "@dv/db": "workspace:*",
+    "@dv/drivers": "workspace:*",
+    "@dv/studio-catalog": "workspace:*",
+    "@dv/studio-render": "workspace:*",
+    "@playwright/test": "catalog:",
     "drizzle-orm": "catalog:db"
   },
   "devDependencies": {

@@ -13,11 +13,15 @@ import { createAccessControl } from "better-auth/plugins/access";
 export const PERMISSIONS = {
   billingAndOrgSettings: ["owner"],
   manageMembers: ["owner", "admin"],
+  manageOrgSettings: ["owner", "admin"],
+  viewAuditLogs: ["owner", "admin"],
   studioPublish: ["owner", "admin", "editor"],
   campaignProductWrite: ["owner", "admin", "editor"],
   campaignProductRead: ["owner", "admin", "editor", "sales"],
   crmWrite: ["owner", "admin"],
   crmRead: ["owner", "admin", "editor", "sales"],
+  manageLeadAutomation: ["owner", "admin"],
+  manageSalesVisibility: ["owner", "admin"],
   confirmPayment: ["owner", "admin", "sales"],
   promptSkillsTenant: ["owner", "admin", "editor"]
 } as const satisfies Record<string, readonly MembershipRole[]>;

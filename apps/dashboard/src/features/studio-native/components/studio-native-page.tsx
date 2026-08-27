@@ -1,9 +1,12 @@
 import type { NativePageDocument, Template } from "@dv/contracts";
+import { templateIndustryValues } from "@dv/contracts";
 import {
   buildPuckConfig,
   designTokensToCss,
+  googleFontsHref,
   pageSpecToPuckData,
-  puckDataToPageSpec
+  puckDataToPageSpec,
+  renderSpecToHtml
 } from "@dv/studio-catalog";
 import {
   AlertDialog,
@@ -16,9 +19,23 @@ import {
   AlertDialogTitle
 } from "@dv/ui/components/shadcn/alert-dialog";
 import { Button } from "@dv/ui/components/shadcn/button";
+import { Card } from "@dv/ui/components/shadcn/card";
 import { Input } from "@dv/ui/components/shadcn/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@dv/ui/components/shadcn/select";
 import { useSidebar } from "@dv/ui/components/shadcn/sidebar";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
+import { Skeleton } from "@dv/ui/components/shadcn/skeleton";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@dv/ui/components/shadcn/tabs";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import {
   Tooltip,
@@ -35,13 +52,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Eye,
   Gauge,
   LayoutTemplate,
+  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
   Pencil,
+  History,
   Redo2,
   Save,
   Search,
@@ -52,6 +74,7 @@ import {
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CardGridSkeleton } from "@/components/card-grid-skeleton";
 import { compressToWebp } from "@/lib/image-compress";
 import * as m from "@/paraglide/messages.js";
 
@@ -65,6 +88,7 @@ import {
   uploadAsset
 } from "../../studio/api";
 import { PublishDialog } from "../../studio/components/publish-dialog";
+import { TemplateThumbnail } from "../../studio/components/template-thumbnail";
 import {
   extractVideoPoster,
   MAX_VIDEO_BYTES,
@@ -73,10 +97,13 @@ import {
 import { landingKeys } from "../../studio/query-keys";
 import { createAiPlugin } from "../lib/ai-plugin";
 import { puckDictionaryVi, puckViewportsVi } from "../lib/puck-dictionary";
+import { DesignTokensPanel } from "./design-tokens-panel";
 import { OptimizationPanel } from "./optimization-panel";
 import { QualityPanel } from "./quality-panel";
 import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { SeoPanel } from "./seo-panel";
+import { SettingsTab } from "./settings-tab";
+import { VersionHistoryPanel } from "./version-history-panel";
 
 /**
  * In-memory editing shape — `pageSpec` typed as `@json-render/core`'s own `Spec` (what the
@@ -99,6 +126,8 @@ const EMPTY_SPEC: Spec = {
 const DEFAULT_TOKENS: NativePageDocument["tokens"] = {
   colorPrimary: "#111827",
   colorPrimaryForeground: "#ffffff",
+  colorAccent: "#4f46e5",
+  colorAccentForeground: "#ffffff",
   colorSurface: "#ffffff",
   colorForeground: "#111827",
   colorMuted: "#6b7280",
@@ -115,7 +144,13 @@ function toEditable(spec: unknown): EditableDocument {
     "pageSpec" in spec &&
     "tokens" in spec
   ) {
-    return spec as EditableDocument;
+    const doc = spec as EditableDocument;
+    // The API validates writes against `designTokensSchema` (which defaults new fields for
+    // old data), but this reads whatever `pageVersions.spec` already has on disk, unvalidated
+    // — a page saved before a token was added still has a `tokens` blob missing it. Merging
+    // over `DEFAULT_TOKENS` here is what actually keeps the editor from showing an empty/black
+    // swatch for that field instead of the schema's own default value.
+    return { ...doc, tokens: { ...DEFAULT_TOKENS, ...doc.tokens } };
   }
   return { pageSpec: EMPTY_SPEC, tokens: DEFAULT_TOKENS };
 }
@@ -324,6 +359,65 @@ function StudioHeader({
   );
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      (
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        }) as Record<string, string>
+      )[char] ?? char
+  );
+}
+
+/**
+ * Opens the *current in-memory* editor state (including unsaved edits) in a new tab, rendered
+ * exactly like a real published page — no editor chrome, no API round-trip, no save required.
+ * `renderSpecToHtml` (`@dv/studio-catalog`) is plain `renderToStaticMarkup`, safe to call
+ * client-side. The catalog components' Tailwind classes need the app's own compiled stylesheet
+ * to look right — rather than standing up a second build step, this clones the parent document's
+ * own `<style>`/`<link>` tags into the new tab, the same trick the canvas iframe preview already
+ * relies on (Puck's own "AutoFrame" mechanism, see the design-tokens `useEffect` below). A Blob
+ * URL (not `window.open("", ...)` + `document.write`) keeps this a single synchronous write with
+ * no deprecated API and no cross-document XSS surface for the one piece of user data that lands
+ * in raw HTML here (the `<title>`, escaped below) — everything else is React-escaped markup or
+ * same-origin stylesheet hrefs.
+ */
+function openLivePreview(doc: EditableDocument, title: string) {
+  const bodyHtml = renderSpecToHtml(doc.pageSpec);
+  const styleLinks = Array.from(
+    document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
+  )
+    .map((link) => `<link rel="stylesheet" href="${link.href}">`)
+    .join("");
+  const inlineStyles = Array.from(document.querySelectorAll("style"))
+    .map((style) => `<style>${style.textContent ?? ""}</style>`)
+    .join("");
+  const fontHref = googleFontsHref(doc.tokens);
+  const fontLink = fontHref ? `<link rel="stylesheet" href="${fontHref}">` : "";
+  const tokenCss = `${designTokensToCss(doc.tokens)}body{background-color:var(--lp-color-surface);color:var(--lp-color-foreground);}`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>${styleLinks}${inlineStyles}${fontLink}<style>${tokenCss}</style></head><body>${bodyHtml}</body></html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const preview = window.open(url, "_blank", "noopener,noreferrer");
+  if (!preview) {
+    URL.revokeObjectURL(url);
+    toast.add({
+      title: "Trình duyệt đã chặn cửa sổ preview",
+      type: "error"
+    });
+    return;
+  }
+  // Give the new tab time to actually load the blob before freeing it.
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
 /**
  * Replaces Puck's default header actions (`overrides.headerActions` — `renderHeaderActions` is
  * deprecated). Hoisted to module scope so it's a stable component type across renders (an
@@ -339,6 +433,8 @@ function HeaderActions({
   setQualityOpen,
   setOptimizationOpen,
   setSeoOpen,
+  setDesignTokensOpen,
+  setVersionHistoryOpen,
   setPublishOpen,
   puckDispatchRef,
   puckDataRef
@@ -349,6 +445,8 @@ function HeaderActions({
   setQualityOpen: (open: boolean) => void;
   setOptimizationOpen: (open: boolean) => void;
   setSeoOpen: (open: boolean) => void;
+  setDesignTokensOpen: (open: boolean) => void;
+  setVersionHistoryOpen: (open: boolean) => void;
   setPublishOpen: (open: boolean) => void;
   puckDispatchRef: React.RefObject<((action: PuckAction) => void) | null>;
   puckDataRef: React.RefObject<Data | null>;
@@ -417,13 +515,156 @@ function HeaderActions({
       <Button variant="outline" size="sm" onClick={() => setSeoOpen(true)}>
         <Search /> {m.studioSeoPanelTitle()}
       </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setDesignTokensOpen(true)}
+      >
+        <Palette /> {m.studioTokensPanelTitle()}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setVersionHistoryOpen(true)}
+      >
+        <History /> {m.studioVersionHistoryTitle()}
+      </Button>
       <SaveAsTemplateDialog landingPageId={id} document={activeDoc} />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          openLivePreview(activeDoc, activeDoc.seo?.title || "Xem trước")
+        }
+      >
+        <Eye /> Xem trước
+      </Button>
       <Button size="sm" onClick={() => setPublishOpen(true)}>
         <Upload /> {m.studioPublishButton()}
       </Button>
     </div>
   );
 }
+
+/**
+ * Wraps Puck's own category-list renderer (`overrides.drawer`) with a search box + expand/
+ * collapse-all toolbar above it. Filtering doesn't touch `children` at all — it drives Puck's own
+ * `state.ui.componentList[category].visible/components/expanded` via the same `setUi` dispatch
+ * pattern as `StudioHeader`, so Puck's renderer does the actual show/hide (it already returns
+ * `null` for a category with `visible: false`).
+ *
+ * `componentList` is seeded once from `config.categories` at mount and only ever shallow-merged
+ * on `setUi` (each dispatched key fully replaces the previous value, no deep merge) — so
+ * `config.categories` is kept as this component's single source of truth to filter/restore from,
+ * rather than trying to diff against whatever `componentList` currently holds.
+ */
+function StudioDrawer({ children }: { children: ReactNode }) {
+  const config = useTypedPuck((s) => s.config);
+  const dispatch = useTypedPuck((s) => s.dispatch);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedTerm, setDebouncedTerm] = useState("");
+  const [allExpanded, setAllExpandedState] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedTerm(searchTerm), 150);
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const categories = config.categories ?? {};
+    const term = debouncedTerm.trim().toLowerCase();
+    const componentList = Object.fromEntries([
+      ...Object.entries(categories).map(([key, category]) => {
+        if (!term) {
+          return [
+            key,
+            {
+              title: category.title,
+              components: category.components,
+              visible: category.visible,
+              expanded: category.defaultExpanded
+            }
+          ];
+        }
+        const filtered = (category.components ?? []).filter((name) => {
+          const label = config.components[name]?.label ?? name;
+          return label.toLowerCase().includes(term);
+        });
+        return [
+          key,
+          {
+            title: category.title,
+            components: filtered,
+            visible: filtered.length > 0,
+            expanded: filtered.length > 0
+          }
+        ];
+      }),
+      // studio-catalog's categories already claim every registered component — an empty,
+      // hidden "other" bucket stops Puck's own useComponentList from dumping the FULL
+      // unfiltered component set into a synthetic "Khác" category the moment search narrows
+      // any real category below the total component count (Puck treats components missing
+      // from every category's `components` array as "uncategorized" and force-shows them).
+      ["other", { components: [], visible: false }]
+    ]);
+    dispatch({ type: "setUi", ui: { componentList } });
+  }, [debouncedTerm, config, dispatch]);
+
+  function toggleAllExpanded() {
+    const nextExpanded = !allExpanded;
+    const categoryKeys = Object.keys(config.categories ?? {});
+    dispatch({
+      type: "setUi",
+      ui: (previous) => ({
+        componentList: Object.fromEntries(
+          categoryKeys.map((key) => [
+            key,
+            { ...previous.componentList[key], expanded: nextExpanded }
+          ])
+        )
+      })
+    });
+    setAllExpandedState(nextExpanded);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1 px-2 pt-2">
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Tìm khối..."
+          className="h-8 flex-1"
+        />
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <button
+                type="button"
+                aria-label={allExpanded ? "Thu gọn tất cả" : "Mở rộng tất cả"}
+                onClick={toggleAllExpanded}
+                className={iconButtonClass}
+              >
+                {allExpanded ? (
+                  <ChevronsDownUp className="size-4" />
+                ) : (
+                  <ChevronsUpDown className="size-4" />
+                )}
+              </button>
+            }
+          />
+          <TooltipContent>
+            {allExpanded ? "Thu gọn tất cả" : "Mở rộng tất cả"}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const ALL_INDUSTRIES = "all";
 
 /**
  * Left-nav "Mẫu" (Templates) tab, alongside Puck's own built-in "Khối"/"Cấu trúc" tabs
@@ -436,16 +677,29 @@ function HeaderActions({
  * so the user lands on the full picked layout and only needs to edit copy/add-remove individual
  * sections from there (exactly what a "choose a template" step means, distinct from "insert a
  * few extra sections"). Destructive (discards unsaved section edits), so it's gated behind a
- * confirm dialog, same convention as `custom-import-page.tsx`'s "Convert sang native" button.
+ * confirm dialog — but only when there's actually something to lose: an empty canvas or picking
+ * between templates before making any edit (`hasPast` false, Puck's own undo history) applies
+ * straight away, same convention as `custom-import-page.tsx`'s "Convert sang native" button for
+ * the case where it does need to ask.
  */
 function TemplatesPluginPanel() {
   const dispatch = useTypedPuck((s) => s.dispatch);
+  // Puck's own undo history doubles as a "has the user actually edited anything" flag — true
+  // once any change has happened since the page/template was loaded. Used to skip the confirm
+  // dialog below when there's nothing to lose (empty canvas, or switching templates before
+  // making any edits), only asking once a real edit is on the line.
+  const hasPast = useTypedPuck((s) => s.history.hasPast);
   const { data: templates, isPending } = useQuery({
     queryKey: ["templates"],
     queryFn: fetchTemplates
   });
   const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [pendingTemplate, setPendingTemplate] = useState<Template | null>(null);
+  const [industryFilter, setIndustryFilter] = useState(ALL_INDUSTRIES);
+  const filteredTemplates =
+    industryFilter === ALL_INDUSTRIES
+      ? templates
+      : templates?.filter((template) => template.industry === industryFilter);
 
   function applyTemplate(template: Template) {
     const templateData = pageSpecToPuckData(
@@ -462,27 +716,51 @@ function TemplatesPluginPanel() {
 
   return (
     <div className="flex flex-col gap-3 p-4">
-      <p className="text-sm text-muted-foreground">
+      {/* <p className="text-sm text-muted-foreground">
         Chọn một mẫu để dùng làm toàn bộ nội dung trang này. Nội dung hiện tại
         sẽ được thay thế — sau đó bạn có thể chỉnh sửa hoặc thêm/xoá từng
         section trong tab Khối.
-      </p>
+      </p> */}
+      {templates && templates.length > 0 && (
+        <Select
+          value={industryFilter}
+          onValueChange={(value) => setIndustryFilter(value ?? ALL_INDUSTRIES)}
+        >
+          <SelectTrigger size="sm" className="w-fit">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_INDUSTRIES}>Tất cả ngành</SelectItem>
+            {templateIndustryValues.map((industry) => (
+              <SelectItem key={industry} value={industry}>
+                {industry}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
       {isPending ? (
-        <div className="flex items-center justify-center py-8">
-          <Spinner />
-        </div>
-      ) : !templates || templates.length === 0 ? (
+        <CardGridSkeleton
+          count={4}
+          gridClassName="flex flex-col gap-2"
+          withThumbnail={false}
+        />
+      ) : !filteredTemplates || filteredTemplates.length === 0 ? (
         <p className="text-sm text-muted-foreground">Chưa có mẫu nào.</p>
       ) : (
         <div className="flex flex-col gap-2">
-          {templates.map((template) => (
+          {filteredTemplates.map((template) => (
             <button
               key={template.id}
               type="button"
-              onClick={() => setPendingTemplate(template)}
+              onClick={() => {
+                if (hasPast) setPendingTemplate(template);
+                else applyTemplate(template);
+              }}
               data-active={template.id === activeTemplateId}
-              className="flex flex-col gap-0.5 rounded-md border border-border p-3 text-left hover:bg-accent data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:ring-1 data-[active=true]:ring-primary"
+              className="flex flex-col gap-1.5 rounded-md border border-border p-3 text-left hover:bg-accent data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:ring-1 data-[active=true]:ring-primary"
             >
+              <TemplateThumbnail template={template} />
               <span className="text-sm font-medium">{template.name}</span>
               <span className="text-xs text-muted-foreground">
                 {template.industry}
@@ -567,10 +845,22 @@ export function StudioNativePage() {
   );
 
   const [doc, setDoc] = useState<EditableDocument | null>(null);
+  // Controlled (not `Tabs`' own uncontrolled `defaultValue`) and lifted up here rather than left
+  // as local state inside the `fields` override below: `overrides` is a fresh object literal on
+  // every render of this component, which Puck's own `FieldsInternal` re-memoizes into a new
+  // `Wrapper` component identity each time — React then unmounts/remounts the whole subtree
+  // `fields()` returns (Tabs included) on every field edit. Local state inside that subtree would
+  // reset to its default on every keystroke; state living here, outside the remounted subtree,
+  // survives it.
+  const [fieldsTab, setFieldsTab] = useState<"contents" | "settings">(
+    "contents"
+  );
   const [publishOpen, setPublishOpen] = useState(false);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [optimizationOpen, setOptimizationOpen] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
+  const [designTokensOpen, setDesignTokensOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
 
   // The builder canvas needs the width the main nav sidebar otherwise eats — collapse it on
   // entry, restore whatever the user had on exit rather than forcing it back open.
@@ -610,6 +900,26 @@ export function StudioNativePage() {
       document.head.appendChild(styleEl);
     }
     styleEl.textContent = `${designTokensToCss(activeDoc.tokens)}#frame-root{background-color:var(--lp-color-surface);color:var(--lp-color-foreground);min-height:100vh;}`;
+
+    // Mirrors the `<link>` `packages/studio-render`'s `renderPageArtifact` emits for a published
+    // page, so a chosen Google Font actually renders in this preview instead of silently falling
+    // back — without this the editor would look right (assuming the font happened to already be
+    // loaded elsewhere) while the real published page didn't, or vice versa.
+    const href = googleFontsHref(activeDoc.tokens);
+    let linkEl = document.getElementById(
+      "lp-google-fonts"
+    ) as HTMLLinkElement | null;
+    if (href) {
+      if (!linkEl) {
+        linkEl = document.createElement("link");
+        linkEl.id = "lp-google-fonts";
+        linkEl.rel = "stylesheet";
+        document.head.appendChild(linkEl);
+      }
+      linkEl.href = href;
+    } else {
+      linkEl?.remove();
+    }
   }, [activeDoc]);
 
   const saveMutation = useMutation({
@@ -626,14 +936,24 @@ export function StudioNativePage() {
     () => (activeDoc ? pageSpecToPuckData(activeDoc.pageSpec) : null),
     // Recompute only when the server hands us a genuinely new version (AI regenerate/auto-fix/
     // convert-to-native) — see the `key` on `<Puck>` below, which forces the remount this reads.
+    // A landing page with no version yet (e.g. skipped straight to manual editing) has
+    // `currentVersion: null` both while the query is still loading AND once it resolves, so
+    // `landingPage?.currentVersion?.id` is `undefined` in both states — the memo would never
+    // recompute and the page would spin forever. `landingPage === undefined` (query still
+    // pending) is the only state this must stay stable through.
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-    [landingPage?.currentVersion?.id]
+    [landingPage ? (landingPage.currentVersion?.id ?? "empty") : undefined]
   );
 
   if (isPending || !landingPage || !activeDoc || !initialPuckData) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-2">
+          <Skeleton className="size-8" />
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="ml-auto h-7 w-64" />
+        </div>
+        <Skeleton className="m-4 flex-1" />
       </div>
     );
   }
@@ -679,6 +999,72 @@ export function StudioNativePage() {
         viewports={puckViewportsVi}
         plugins={puckPlugins}
         overrides={{
+          // Thumbnail preview above each block's label in the "Khối"/"Cấu trúc" drag-drop
+          // palette (`tooling/generate-component-thumbnails` produces the static PNGs at build
+          // time — no thumbnail field on the catalog itself). `onError` hides a missing/failed
+          // image rather than showing a broken-image icon — the palette stays fully usable
+          // (falls back to `children`'s default label+drag-icon row) even if a thumbnail is
+          // missing. `Card` (not a hand-rolled bordered div) merges the image and Puck's own
+          // bordered label row into ONE visual card — Puck's `_DrawerItem-draggable` row ships
+          // its own border/rounded/bg TWO levels below `children` (Puck wraps it in an extra
+          // unstyled div), so a `[&>*]` DIRECT-child selector never reaches it; `[&_*]` (any
+          // descendant) is required to actually reach it. The `!` (important) suffix is required
+          // too — `@puckeditor/core/puck.css` is imported after Tailwind's utilities, so on the
+          // resulting specificity tie Puck's stylesheet wins source order without it.
+          drawerItem: ({ name, children }) => (
+            <Card size="sm" className="gap-0 p-0">
+              <img
+                src={`/component-thumbnails/${name}.png`}
+                alt=""
+                className="aspect-video w-full object-cover object-top"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+              <div className="[&_*]:rounded-none! [&_*]:border-0! [&_*]:bg-transparent! [&_*]:shadow-none!">
+                {children}
+              </div>
+            </Card>
+          ),
+          drawer: ({ children }) => <StudioDrawer>{children}</StudioDrawer>,
+          // Splits the right sidebar into "Nội dung" (Puck's own auto-generated content fields,
+          // unchanged, rendered as `children`) and "Cài đặt" (visual/CSS props, `SettingsTab`) —
+          // `overrides.fields` wraps the whole field list as one opaque slot (no native per-group
+          // tab support in Puck), so this is the extension point, same pattern as `drawerItem`/
+          // `drawer`/`header` above.
+          fields: ({ children, itemSelector }) => (
+            <Tabs
+              value={fieldsTab}
+              onValueChange={(value) =>
+                setFieldsTab(value as "contents" | "settings")
+              }
+              className="flex h-full min-h-0 flex-col gap-0"
+            >
+              <TabsList
+                variant="line"
+                className="w-full shrink-0 border-b border-border px-2 pt-1"
+              >
+                <TabsTrigger value="contents" className="flex-1">
+                  Nội dung
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex-1">
+                  Cài đặt
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent
+                value="contents"
+                className="min-h-0 flex-1 overflow-y-auto"
+              >
+                {children}
+              </TabsContent>
+              <TabsContent
+                value="settings"
+                className="min-h-0 flex-1 overflow-y-auto"
+              >
+                <SettingsTab itemSelector={itemSelector ?? null} />
+              </TabsContent>
+            </Tabs>
+          ),
           header: ({ actions }) => (
             <StudioHeader
               landingPage={{ id, name: landingPage.name }}
@@ -693,6 +1079,8 @@ export function StudioNativePage() {
               setQualityOpen={setQualityOpen}
               setOptimizationOpen={setOptimizationOpen}
               setSeoOpen={setSeoOpen}
+              setDesignTokensOpen={setDesignTokensOpen}
+              setVersionHistoryOpen={setVersionHistoryOpen}
               setPublishOpen={setPublishOpen}
               puckDispatchRef={puckDispatchRef}
               puckDataRef={puckDataRef}
@@ -729,6 +1117,19 @@ export function StudioNativePage() {
         pageName={landingPage.name}
         seo={activeDoc.seo}
         onChange={(seo) => setDoc({ ...activeDoc, seo })}
+      />
+      <DesignTokensPanel
+        open={designTokensOpen}
+        onOpenChange={setDesignTokensOpen}
+        tokens={activeDoc.tokens}
+        onChange={(tokens) => setDoc({ ...activeDoc, tokens })}
+      />
+      <VersionHistoryPanel
+        open={versionHistoryOpen}
+        onOpenChange={setVersionHistoryOpen}
+        landingPageId={id}
+        currentVersionId={landingPage.currentVersionId}
+        onRestored={() => setDoc(null)}
       />
     </div>
   );

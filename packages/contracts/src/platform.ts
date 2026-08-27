@@ -116,3 +116,22 @@ export const platformSubscriptionUpdateSchema = z.object({
 export type PlatformSubscriptionUpdateInput = z.infer<
   typeof platformSubscriptionUpdateSchema
 >;
+
+/** `GET /platform/staff` row — the staff-management screen (platform-admin.md §6). */
+export const platformStaffMemberSchema = z.object({
+  id: idSchema,
+  userId: idSchema,
+  email: z.string(),
+  role: platformStaffRoleSchema,
+  ...timestampsSchema.shape
+});
+export type PlatformStaffMember = z.infer<typeof platformStaffMemberSchema>;
+
+/** `POST /platform/staff` — upsert by email, since operators know the person, not their ULID. */
+export const platformStaffUpsertSchema = z.object({
+  email: z.string().trim().email(),
+  role: platformStaffRoleSchema
+});
+export type PlatformStaffUpsertInput = z.infer<
+  typeof platformStaffUpsertSchema
+>;

@@ -20,7 +20,7 @@ import { Copy } from "lucide-react";
 import { useState } from "react";
 
 import { SettingsForbidden } from "@/components/settings-forbidden";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
 import { useCanManageOrg } from "@/hooks/use-can-manage-org";
@@ -51,7 +51,7 @@ const PROVIDERS: { key: WebhookProvider; label: string; path: string }[] = [
  * per-campaign, not per-org. Previously this was a manually-pasted `<campaign-id>` placeholder;
  * see lead-integrations.md. */
 export function WebhookSettingsPage() {
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const canManage = useCanManageOrg();
 
   const { data: credentials, isPending } = useQuery({

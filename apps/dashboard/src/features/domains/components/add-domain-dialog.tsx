@@ -16,6 +16,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { FormDialog } from "@/components/form-dialog";
+import { FeatureRequiredError } from "@/lib/api-client";
+import { featureUpgradeCopy } from "@/lib/feature-upgrade-copy";
 import * as m from "@/paraglide/messages.js";
 
 import { fetchLandingPages } from "../../studio/api";
@@ -54,7 +56,14 @@ export function AddDomainDialog() {
       reset();
       setOpen(false);
     },
-    onError: () => setServerError(m.domainsAddErrorToast())
+    onError: (error) => {
+      if (error instanceof FeatureRequiredError) {
+        const { title, description } = featureUpgradeCopy(error.featureKey);
+        setServerError(`${title}. ${description}`);
+        return;
+      }
+      setServerError(m.domainsAddErrorToast());
+    }
   });
 
   const onSubmit = handleSubmit((values) => {

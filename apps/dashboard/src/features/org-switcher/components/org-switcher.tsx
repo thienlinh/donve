@@ -11,18 +11,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronsUpDown, Plus } from "lucide-react";
 
+import { authClient } from "@/features/auth/auth-client";
 import {
-  authClient,
-  useActiveOrganization,
-  useListOrganizations
-} from "@/features/auth/auth-client";
+  useActiveOrganizationQuery,
+  useOrganizationsQuery
+} from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 export function OrgSwitcher() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: organizations } = useListOrganizations();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: organizations } = useOrganizationsQuery();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
 
   const label = activeOrganization?.name ?? m.orgSwitcherNoOrg();
 

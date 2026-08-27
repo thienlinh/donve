@@ -35,6 +35,3 @@ export const authClient = createAuthClient({
     })
   ]
 });
-
-export const { useSession, useListOrganizations, useActiveOrganization } =
-  authClient;

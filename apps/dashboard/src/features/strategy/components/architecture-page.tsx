@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue
 } from "@dv/ui/components/shadcn/select";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
@@ -21,6 +20,7 @@ import { fetchLandingPage, updateLandingPageSpec } from "@/features/studio/api";
 import { landingKeys } from "@/features/studio/query-keys";
 
 import { fillContent, generateArchitecture } from "../api-architecture";
+import { WizardSkeleton } from "./wizard-skeleton";
 
 function toDocument(spec: unknown): NativePageDocument | null {
   if (spec && typeof spec === "object" && "pageSpec" in spec) {
@@ -180,11 +180,7 @@ export function ArchitecturePage() {
   }
 
   if (isPending) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
-      </div>
-    );
+    return <WizardSkeleton />;
   }
 
   const rootElement = doc?.pageSpec.elements[doc.pageSpec.root];

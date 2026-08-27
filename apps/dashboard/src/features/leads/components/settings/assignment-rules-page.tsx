@@ -48,7 +48,7 @@ import { useMemo, useState } from "react";
 
 import { QueryState } from "@/components/query-state";
 import { SettingsForbidden } from "@/components/settings-forbidden";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import { fetchCampaigns } from "@/features/campaigns/api";
 import { campaignKeys } from "@/features/campaigns/query-keys";
 import { useCanManageOrg } from "@/hooks/use-can-manage-org";
@@ -280,7 +280,7 @@ function RuleFormDialog({
   nextPriority: number;
 }) {
   const queryClient = useQueryClient();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const { data: campaigns } = useQuery({
     queryKey: campaignKeys.list(),
     queryFn: fetchCampaigns

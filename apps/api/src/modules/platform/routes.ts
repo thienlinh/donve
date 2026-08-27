@@ -7,6 +7,8 @@ import {
   platformOrgListItemSchema,
   platformReasonSchema,
   platformRefundAssistSchema,
+  platformStaffMemberSchema,
+  platformStaffUpsertSchema,
   platformSubscriptionUpdateSchema,
   platformWhoAmISchema,
   refundRequestSchema
@@ -19,6 +21,7 @@ import {
   paymentsRepository,
   planFeaturesRepository,
   platformAuditLogsRepository,
+  platformStaffRepository,
   refundRequestsRepository
 } from "@dv/db";
 import { Hono } from "hono";
@@ -305,5 +308,81 @@ platformRoutes.post(
     });
 
     return c.json(result);
+  }
+);
+
+/**
+ * Staff-management screen (platform-admin.md §6/§10) — the operational gap that used to require
+ * hand-editing `platform_staff` (`bun run grant-platform-staff`). `platform_admin`-only across
+ * all three routes: this is who can grant cross-tenant access, a bigger compliance surface than
+ * anything `billing_ops`/`support` can already touch, so it isn't exposed to them at all.
+ */
+platformRoutes.get(
+  "/staff",
+  requirePlatformStaff("platform_admin"),
+  async (c) => {
+    const db = createDbFromEnv(c.env);
+    const staff = await platformStaffRepository.listAll(db);
+
+    await platformAuditLogsRepository.record(db, {
+      staffUserId: c.get("platformStaffId"),
+      action: "staff.list",
+      targetOrgId: null,
+      targetType: "platform_staff",
+      targetId: null,
+      meta: null
+    });
+
+    return c.json({ staff: z.array(platformStaffMemberSchema).parse(staff) });
+  }
+);
+
+platformRoutes.post(
+  "/staff",
+  requirePlatformStaff("platform_admin"),
+  async (c) => {
+    const db = createDbFromEnv(c.env);
+    const body = platformStaffUpsertSchema.parse(await c.req.json());
+
+    const staff = await platformStaffRepository.upsertByEmail(
+      db,
+      body.email,
+      body.role
+    );
+    if (!staff) throw new ApiError(404, "user_not_found");
+
+    await platformAuditLogsRepository.record(db, {
+      staffUserId: c.get("platformStaffId"),
+      action: "staff.upsert",
+      targetOrgId: null,
+      targetType: "platform_staff",
+      targetId: staff.userId,
+      meta: JSON.stringify({ email: body.email, role: body.role })
+    });
+
+    return c.json(platformStaffMemberSchema.parse(staff));
+  }
+);
+
+platformRoutes.delete(
+  "/staff/:userId",
+  requirePlatformStaff("platform_admin"),
+  async (c) => {
+    const db = createDbFromEnv(c.env);
+    const userId = c.req.param("userId");
+
+    const removed = await platformStaffRepository.remove(db, userId);
+    if (!removed) throw new ApiError(404, "staff_not_found");
+
+    await platformAuditLogsRepository.record(db, {
+      staffUserId: c.get("platformStaffId"),
+      action: "staff.remove",
+      targetOrgId: null,
+      targetType: "platform_staff",
+      targetId: userId,
+      meta: null
+    });
+
+    return c.json({ ok: true });
   }
 );

@@ -1,6 +1,5 @@
 import type { KnowledgeItem } from "@dv/contracts";
 import { Button } from "@dv/ui/components/shadcn/button";
-import { Spinner } from "@dv/ui/components/shadcn/spinner";
 import { Textarea } from "@dv/ui/components/shadcn/textarea";
 import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import {
 } from "../api";
 import { businessProfileKeys } from "../query-keys";
 import { KnowledgeItemRow } from "./knowledge-item-row";
+import { WizardSkeleton } from "./wizard-skeleton";
 
 type CategoryItems = {
   product: KnowledgeItem[];
@@ -92,11 +92,7 @@ export function BusinessPage() {
   }
 
   if (isPending) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
-      </div>
-    );
+    return <WizardSkeleton />;
   }
 
   const showForm = showBriefForm || !draft;

@@ -7,6 +7,8 @@ import { renderPageArtifact } from "../src/render-page.js";
 const tokens: DesignTokens = {
   colorPrimary: "#2563eb",
   colorPrimaryForeground: "#ffffff",
+  colorAccent: "#4f46e5",
+  colorAccentForeground: "#ffffff",
   colorSurface: "#ffffff",
   colorForeground: "#111827",
   colorMuted: "#6b7280",

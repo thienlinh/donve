@@ -1,5 +1,6 @@
 import {
   designTokensToCss,
+  googleFontsHref,
   renderSpecToHtml,
   type DesignTokens
 } from "@dv/studio-catalog";
@@ -19,9 +20,6 @@ export interface RenderPageInput extends Omit<
   spec: Spec;
   tokens: DesignTokens;
   description?: string;
-  /** `seo.noindex` — keeps the page out of search indexes; the deployment's `robots.txt`/
-   * `sitemap.xml` are overridden to match at publish time (`apps/api/src/lib/publish.ts`). */
-  noindex?: boolean;
   /** The page's uploaded `pageAssets` — hashed + rewritten into `/assets/*` by the shared
    * pipeline, exactly as the legacy srcmap flow does. Optional: a PageSpec with no uploaded
    * media (or a preview render) has none. */
@@ -49,20 +47,14 @@ function escapeHtml(value: string): string {
 export async function renderPageArtifact(
   input: RenderPageInput
 ): Promise<PublishPipelineOutput> {
-  const {
-    spec,
-    tokens,
-    description,
-    noindex,
-    assets = [],
-    ...publishFields
-  } = input;
+  const { spec, tokens, description, assets = [], ...publishFields } = input;
 
   const [body, catalogCss] = await Promise.all([
     Promise.resolve(renderSpecToHtml(spec)),
     compileCatalogCss()
   ]);
   const tokenCss = designTokensToCss(tokens);
+  const fontsHref = googleFontsHref(tokens);
 
   const html = [
     "<!doctype html>",
@@ -74,7 +66,13 @@ export async function renderPageArtifact(
     description
       ? `<meta name="description" content="${escapeHtml(description)}">`
       : "",
-    noindex ? '<meta name="robots" content="noindex">' : "",
+    // Without this, `fontHeading`/`fontBody` picking a Google Font (e.g. "Poppins, sans-serif")
+    // never actually loads it on the published page — the browser silently falls back to its
+    // default sans-serif, and the editor preview (which does load it, see the Puck iframe's own
+    // `<link>` injection) would then look wrong compared to what visitors actually see.
+    fontsHref
+      ? `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="${fontsHref}">`
+      : "",
     '<link rel="stylesheet" href="/style.css">',
     `<style>${tokenCss}</style>`,
     "</head>",

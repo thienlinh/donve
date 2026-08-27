@@ -51,8 +51,13 @@ export function PricingTableRender({
           <div
             key={planIndex}
             data-highlighted={plan.highlighted}
-            className="rounded-[var(--lp-radius)] border border-[var(--lp-color-border)] p-6 data-[highlighted=true]:border-[var(--lp-color-primary)]"
+            className="relative rounded-[var(--lp-radius)] border border-[var(--lp-color-border)] p-6 data-[highlighted=true]:border-[var(--lp-color-accent)]"
           >
+            {plan.highlighted ? (
+              <span className="absolute -top-3 left-6 rounded-[var(--lp-radius)] bg-[var(--lp-color-accent)] px-3 py-1 text-xs font-medium text-[var(--lp-color-accent-foreground)]">
+                Phổ biến nhất
+              </span>
+            ) : null}
             <h3 className="font-medium text-[var(--lp-color-foreground)]">
               {plan.name}
             </h3>

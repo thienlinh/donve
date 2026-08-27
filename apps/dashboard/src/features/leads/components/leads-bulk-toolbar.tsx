@@ -19,7 +19,7 @@ import { toast } from "@dv/ui/components/shadcn/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Trash2 } from "lucide-react";
 
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import { bulkDeleteLeads, bulkUpdateLeads, type PipelineStage } from "../api";
@@ -41,7 +41,7 @@ export function LeadsBulkToolbar({
   onCleared: () => void;
 }) {
   const queryClient = useQueryClient();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["leads", "list"] });

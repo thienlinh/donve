@@ -1,4 +1,7 @@
 export type LocalizedString = import("../runtime.js").LocalizedString;
+export type Acceptinviteerrorbody3Inputs = {};
+export type Acceptinviteerrortitle3Inputs = {};
+export type Acceptinvitetitle2Inputs = {};
 export type Aiapikeylabel3Inputs = {};
 export type Aiconnectbutton2Inputs = {};
 export type Aiconnectdialogdescription3Inputs = {};
@@ -195,6 +198,8 @@ export type Domainsstatusactive2Inputs = {};
 export type Domainsstatusfailed2Inputs = {};
 export type Domainsstatuspending2Inputs = {};
 export type Domainstitle1Inputs = {};
+export type Domainsupgraderequireddescription3Inputs = {};
+export type Domainsupgraderequiredtitle3Inputs = {};
 export type Domainsverifybutton2Inputs = {};
 export type Domainsverifyerrortoast3Inputs = {};
 export type Entityimagedrophint3Inputs = {};
@@ -202,6 +207,8 @@ export type Entityimageremovelabel3Inputs = {};
 export type Entityimageuploadfailed3Inputs = {};
 export type Entityimageuploadlabel3Inputs = {};
 export type Entityimageuploadinglabel3Inputs = {};
+export type Featureupgradegenericdescription3Inputs = {};
+export type Featureupgradegenerictitle3Inputs = {};
 export type Forgotpasswordbody2Inputs = {};
 export type Forgotpasswordemaillabel3Inputs = {};
 export type Forgotpasswordsent2Inputs = {};
@@ -624,6 +631,19 @@ export type Platformrefundassistdescription3Inputs = {};
 export type Platformrefundassistdonetoast4Inputs = {};
 export type Platformrefundassisttitle3Inputs = {};
 export type Platformrefundorderidplaceholder4Inputs = {};
+export type Platformstaffaddaction3Inputs = {};
+export type Platformstaffaddemailplaceholder4Inputs = {};
+export type Platformstaffadderrortoast4Inputs = {};
+export type Platformstaffcolumnactions3Inputs = {};
+export type Platformstaffcolumncreated3Inputs = {};
+export type Platformstaffcolumnemail3Inputs = {};
+export type Platformstaffcolumnrole3Inputs = {};
+export type Platformstaffdescription2Inputs = {};
+export type Platformstaffemptytitle3Inputs = {};
+export type Platformstaffloaderrortitle4Inputs = {};
+export type Platformstaffloading2Inputs = {};
+export type Platformstaffremoveaction3Inputs = {};
+export type Platformstaffremoveerrortoast4Inputs = {};
 export type Platformstataicreditbalance4Inputs = {};
 export type Platformstataicreditspent4Inputs = {};
 export type Platformstatcampaigns2Inputs = {};
@@ -636,7 +656,9 @@ export type Platformsubscriptionsave2Inputs = {};
 export type Platformsubscriptiontitle2Inputs = {};
 export type Platformtabaudit2Inputs = {};
 export type Platformtabbilling2Inputs = {};
+export type Platformtaborgs2Inputs = {};
 export type Platformtaboverview2Inputs = {};
+export type Platformtabstaff2Inputs = {};
 export type Productsaddbutton2Inputs = {};
 export type Productsadddialogtitle3Inputs = {};
 export type Productscolumnactions2Inputs = {};
@@ -977,15 +999,29 @@ export type Studiorollbackerrortoast3Inputs = {};
 export type Studiorollbacksuccesstoast3Inputs = {};
 export type Studiosavebutton2Inputs = {};
 export type Studiosaveshortcuthint3Inputs = {};
+export type Studioseocanonicalurlhint4Inputs = {};
+export type Studioseocanonicalurllabel4Inputs = {};
 export type Studioseodescriptionlabel3Inputs = {};
+export type Studioseonofollowlabel3Inputs = {};
 export type Studioseonoindexhint3Inputs = {};
 export type Studioseonoindexlabel3Inputs = {};
 export type Studioseoogimagelabel4Inputs = {};
 export type Studioseopaneltitle3Inputs = {};
 export type Studioseosharepreviewlabel4Inputs = {};
 export type Studioseosharepreviewnoimage5Inputs = {};
+export type Studioseostructureddatatypearticle5Inputs = {};
+export type Studioseostructureddatatypeauto5Inputs = {};
+export type Studioseostructureddatatypecourse5Inputs = {};
+export type Studioseostructureddatatypelabel5Inputs = {};
+export type Studioseostructureddatatypelocalbusiness6Inputs = {};
+export type Studioseostructureddatatypeorganization5Inputs = {};
+export type Studioseostructureddatatypeproduct5Inputs = {};
+export type Studioseostructureddatatypewebpage6Inputs = {};
 export type Studioseotitlehint3Inputs = {};
 export type Studioseotitlelabel3Inputs = {};
+export type Studioseotwittercardlabel4Inputs = {};
+export type Studioseotwittercardsummary4Inputs = {};
+export type Studioseotwittercardsummarylargeimage6Inputs = {};
 export type Studioshare1Inputs = {};
 export type Studioshortcutcomment2Inputs = {};
 export type Studioshortcutdraw2Inputs = {};
@@ -1005,6 +1041,21 @@ export type Studioskillspopoverdescription3Inputs = {};
 export type Studioskillspopovertitle3Inputs = {};
 export type Studioskillstoggleerrortoast4Inputs = {};
 export type Studiotabdesignfiles3Inputs = {};
+export type Studiotokenscoloraccentforegroundlabel5Inputs = {};
+export type Studiotokenscoloraccentlabel4Inputs = {};
+export type Studiotokenscolorborderlabel4Inputs = {};
+export type Studiotokenscolorforegroundlabel4Inputs = {};
+export type Studiotokenscolormutedlabel4Inputs = {};
+export type Studiotokenscolorprimaryforegroundlabel5Inputs = {};
+export type Studiotokenscolorprimarylabel4Inputs = {};
+export type Studiotokenscolorsurfacelabel4Inputs = {};
+export type Studiotokensfontbodylabel4Inputs = {};
+export type Studiotokensfontcustomoption4Inputs = {};
+export type Studiotokensfontheadinglabel4Inputs = {};
+export type Studiotokenspaneltitle3Inputs = {};
+export type Studiotokensradiushint3Inputs = {};
+export type Studiotokensradiuslabel3Inputs = {};
+export type Studiotokensresetbutton3Inputs = {};
 export type Studiotoolbarcomment2Inputs = {};
 export type Studiotoolbardraw2Inputs = {};
 export type Studiotoolbaredit2Inputs = {};
@@ -1040,6 +1091,75 @@ export type Verifiedloginlink2Inputs = {};
 export type Verifiedtitle1Inputs = {};
 export type Verifyemailbody2Inputs = {};
 export type Verifyemailtitle2Inputs = {};
+/**
+ * | output |
+ * | --- |
+ * | "This invitation may have expired or already been used. Go to your dashboard to check your pending invitations." |
+ *
+ * @param {Acceptinviteerrorbody3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const acceptinviteerrorbody3: ((
+  inputs?: Acceptinviteerrorbody3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Acceptinviteerrorbody3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { acceptinviteerrorbody3 as "acceptInviteErrorBody" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't accept the invitation" |
+ *
+ * @param {Acceptinviteerrortitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const acceptinviteerrortitle3: ((
+  inputs?: Acceptinviteerrortitle3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Acceptinviteerrortitle3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { acceptinviteerrortitle3 as "acceptInviteErrorTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Joining organization…" |
+ *
+ * @param {Acceptinvitetitle2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const acceptinvitetitle2: ((
+  inputs?: Acceptinvitetitle2Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Acceptinvitetitle2Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { acceptinvitetitle2 as "acceptInviteTitle" };
 /**
  * | output |
  * | --- |
@@ -5229,6 +5349,52 @@ export { domainstitle1 as "domainsTitle" };
 /**
  * | output |
  * | --- |
+ * | "Connecting your own domain to a landing page is available on paid plans. Upgrade to unlock it." |
+ *
+ * @param {Domainsupgraderequireddescription3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const domainsupgraderequireddescription3: ((
+  inputs?: Domainsupgraderequireddescription3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Domainsupgraderequireddescription3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { domainsupgraderequireddescription3 as "domainsUpgradeRequiredDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "Custom domains need a plan upgrade" |
+ *
+ * @param {Domainsupgraderequiredtitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const domainsupgraderequiredtitle3: ((
+  inputs?: Domainsupgraderequiredtitle3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Domainsupgraderequiredtitle3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { domainsupgraderequiredtitle3 as "domainsUpgradeRequiredTitle" };
+/**
+ * | output |
+ * | --- |
  * | "Check verification status" |
  *
  * @param {Domainsverifybutton2Inputs} inputs
@@ -5387,6 +5553,52 @@ declare const entityimageuploadinglabel3: ((
     {}
   >;
 export { entityimageuploadinglabel3 as "entityImageUploadingLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Upgrade your plan to unlock this feature." |
+ *
+ * @param {Featureupgradegenericdescription3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const featureupgradegenericdescription3: ((
+  inputs?: Featureupgradegenericdescription3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Featureupgradegenericdescription3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { featureupgradegenericdescription3 as "featureUpgradeGenericDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "This feature needs a plan upgrade" |
+ *
+ * @param {Featureupgradegenerictitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const featureupgradegenerictitle3: ((
+  inputs?: Featureupgradegenerictitle3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Featureupgradegenerictitle3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { featureupgradegenerictitle3 as "featureUpgradeGenericTitle" };
 /**
  * | output |
  * | --- |
@@ -14199,6 +14411,305 @@ export { platformrefundorderidplaceholder4 as "platformRefundOrderIdPlaceholder"
 /**
  * | output |
  * | --- |
+ * | "Add" |
+ *
+ * @param {Platformstaffaddaction3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffaddaction3: ((
+  inputs?: Platformstaffaddaction3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffaddaction3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffaddaction3 as "platformStaffAddAction" };
+/**
+ * | output |
+ * | --- |
+ * | "Email" |
+ *
+ * @param {Platformstaffaddemailplaceholder4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffaddemailplaceholder4: ((
+  inputs?: Platformstaffaddemailplaceholder4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffaddemailplaceholder4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffaddemailplaceholder4 as "platformStaffAddEmailPlaceholder" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't add this staff member. Check the email is a real user." |
+ *
+ * @param {Platformstaffadderrortoast4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffadderrortoast4: ((
+  inputs?: Platformstaffadderrortoast4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffadderrortoast4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffadderrortoast4 as "platformStaffAddErrorToast" };
+/**
+ * | output |
+ * | --- |
+ * | "" |
+ *
+ * @param {Platformstaffcolumnactions3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffcolumnactions3: ((
+  inputs?: Platformstaffcolumnactions3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffcolumnactions3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffcolumnactions3 as "platformStaffColumnActions" };
+/**
+ * | output |
+ * | --- |
+ * | "Added" |
+ *
+ * @param {Platformstaffcolumncreated3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffcolumncreated3: ((
+  inputs?: Platformstaffcolumncreated3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffcolumncreated3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffcolumncreated3 as "platformStaffColumnCreated" };
+/**
+ * | output |
+ * | --- |
+ * | "Email" |
+ *
+ * @param {Platformstaffcolumnemail3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffcolumnemail3: ((
+  inputs?: Platformstaffcolumnemail3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffcolumnemail3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffcolumnemail3 as "platformStaffColumnEmail" };
+/**
+ * | output |
+ * | --- |
+ * | "Role" |
+ *
+ * @param {Platformstaffcolumnrole3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffcolumnrole3: ((
+  inputs?: Platformstaffcolumnrole3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffcolumnrole3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffcolumnrole3 as "platformStaffColumnRole" };
+/**
+ * | output |
+ * | --- |
+ * | "Cross-tenant access, granted by another platform admin." |
+ *
+ * @param {Platformstaffdescription2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffdescription2: ((
+  inputs?: Platformstaffdescription2Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffdescription2Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffdescription2 as "platformStaffDescription" };
+/**
+ * | output |
+ * | --- |
+ * | "No platform staff yet" |
+ *
+ * @param {Platformstaffemptytitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffemptytitle3: ((
+  inputs?: Platformstaffemptytitle3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffemptytitle3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffemptytitle3 as "platformStaffEmptyTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't load platform staff" |
+ *
+ * @param {Platformstaffloaderrortitle4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffloaderrortitle4: ((
+  inputs?: Platformstaffloaderrortitle4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffloaderrortitle4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffloaderrortitle4 as "platformStaffLoadErrorTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "Loading platform staff…" |
+ *
+ * @param {Platformstaffloading2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffloading2: ((
+  inputs?: Platformstaffloading2Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffloading2Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffloading2 as "platformStaffLoading" };
+/**
+ * | output |
+ * | --- |
+ * | "Remove" |
+ *
+ * @param {Platformstaffremoveaction3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffremoveaction3: ((
+  inputs?: Platformstaffremoveaction3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffremoveaction3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffremoveaction3 as "platformStaffRemoveAction" };
+/**
+ * | output |
+ * | --- |
+ * | "Couldn't remove this staff member." |
+ *
+ * @param {Platformstaffremoveerrortoast4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformstaffremoveerrortoast4: ((
+  inputs?: Platformstaffremoveerrortoast4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformstaffremoveerrortoast4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformstaffremoveerrortoast4 as "platformStaffRemoveErrorToast" };
+/**
+ * | output |
+ * | --- |
  * | "AI credit balance" |
  *
  * @param {Platformstataicreditbalance4Inputs} inputs
@@ -14475,6 +14986,29 @@ export { platformtabbilling2 as "platformTabBilling" };
 /**
  * | output |
  * | --- |
+ * | "Organizations" |
+ *
+ * @param {Platformtaborgs2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformtaborgs2: ((
+  inputs?: Platformtaborgs2Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformtaborgs2Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformtaborgs2 as "platformTabOrgs" };
+/**
+ * | output |
+ * | --- |
  * | "Overview" |
  *
  * @param {Platformtaboverview2Inputs} inputs
@@ -14495,6 +15029,29 @@ declare const platformtaboverview2: ((
     {}
   >;
 export { platformtaboverview2 as "platformTabOverview" };
+/**
+ * | output |
+ * | --- |
+ * | "Staff" |
+ *
+ * @param {Platformtabstaff2Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const platformtabstaff2: ((
+  inputs?: Platformtabstaff2Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Platformtabstaff2Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { platformtabstaff2 as "platformTabStaff" };
 /**
  * | output |
  * | --- |
@@ -22042,6 +22599,52 @@ export { studiosaveshortcuthint3 as "studioSaveShortcutHint" };
 /**
  * | output |
  * | --- |
+ * | "Overrides the default canonical link. Leave blank to use this page's own hostname." |
+ *
+ * @param {Studioseocanonicalurlhint4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseocanonicalurlhint4: ((
+  inputs?: Studioseocanonicalurlhint4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseocanonicalurlhint4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseocanonicalurlhint4 as "studioSeoCanonicalUrlHint" };
+/**
+ * | output |
+ * | --- |
+ * | "Canonical URL" |
+ *
+ * @param {Studioseocanonicalurllabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseocanonicalurllabel4: ((
+  inputs?: Studioseocanonicalurllabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseocanonicalurllabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseocanonicalurllabel4 as "studioSeoCanonicalUrlLabel" };
+/**
+ * | output |
+ * | --- |
  * | "Meta description" |
  *
  * @param {Studioseodescriptionlabel3Inputs} inputs
@@ -22062,6 +22665,29 @@ declare const studioseodescriptionlabel3: ((
     {}
   >;
 export { studioseodescriptionlabel3 as "studioSeoDescriptionLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Don't follow links on this page" |
+ *
+ * @param {Studioseonofollowlabel3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseonofollowlabel3: ((
+  inputs?: Studioseonofollowlabel3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseonofollowlabel3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseonofollowlabel3 as "studioSeoNofollowLabel" };
 /**
  * | output |
  * | --- |
@@ -22203,6 +22829,190 @@ export { studioseosharepreviewnoimage5 as "studioSeoSharePreviewNoImage" };
 /**
  * | output |
  * | --- |
+ * | "Article" |
+ *
+ * @param {Studioseostructureddatatypearticle5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypearticle5: ((
+  inputs?: Studioseostructureddatatypearticle5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypearticle5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypearticle5 as "studioSeoStructuredDataTypeArticle" };
+/**
+ * | output |
+ * | --- |
+ * | "Auto (from linked product)" |
+ *
+ * @param {Studioseostructureddatatypeauto5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypeauto5: ((
+  inputs?: Studioseostructureddatatypeauto5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypeauto5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypeauto5 as "studioSeoStructuredDataTypeAuto" };
+/**
+ * | output |
+ * | --- |
+ * | "Course" |
+ *
+ * @param {Studioseostructureddatatypecourse5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypecourse5: ((
+  inputs?: Studioseostructureddatatypecourse5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypecourse5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypecourse5 as "studioSeoStructuredDataTypeCourse" };
+/**
+ * | output |
+ * | --- |
+ * | "Structured data type" |
+ *
+ * @param {Studioseostructureddatatypelabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypelabel5: ((
+  inputs?: Studioseostructureddatatypelabel5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypelabel5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypelabel5 as "studioSeoStructuredDataTypeLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Local business" |
+ *
+ * @param {Studioseostructureddatatypelocalbusiness6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypelocalbusiness6: ((
+  inputs?: Studioseostructureddatatypelocalbusiness6Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypelocalbusiness6Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypelocalbusiness6 as "studioSeoStructuredDataTypeLocalBusiness" };
+/**
+ * | output |
+ * | --- |
+ * | "Organization" |
+ *
+ * @param {Studioseostructureddatatypeorganization5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypeorganization5: ((
+  inputs?: Studioseostructureddatatypeorganization5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypeorganization5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypeorganization5 as "studioSeoStructuredDataTypeOrganization" };
+/**
+ * | output |
+ * | --- |
+ * | "Product" |
+ *
+ * @param {Studioseostructureddatatypeproduct5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypeproduct5: ((
+  inputs?: Studioseostructureddatatypeproduct5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypeproduct5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypeproduct5 as "studioSeoStructuredDataTypeProduct" };
+/**
+ * | output |
+ * | --- |
+ * | "Web page" |
+ *
+ * @param {Studioseostructureddatatypewebpage6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseostructureddatatypewebpage6: ((
+  inputs?: Studioseostructureddatatypewebpage6Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseostructureddatatypewebpage6Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseostructureddatatypewebpage6 as "studioSeoStructuredDataTypeWebPage" };
+/**
+ * | output |
+ * | --- |
  * | "Shown as the browser tab title and the share-card headline. Defaults to the page name." |
  *
  * @param {Studioseotitlehint3Inputs} inputs
@@ -22246,6 +23056,75 @@ declare const studioseotitlelabel3: ((
     {}
   >;
 export { studioseotitlelabel3 as "studioSeoTitleLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Twitter card" |
+ *
+ * @param {Studioseotwittercardlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseotwittercardlabel4: ((
+  inputs?: Studioseotwittercardlabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseotwittercardlabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseotwittercardlabel4 as "studioSeoTwitterCardLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Summary" |
+ *
+ * @param {Studioseotwittercardsummary4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseotwittercardsummary4: ((
+  inputs?: Studioseotwittercardsummary4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseotwittercardsummary4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseotwittercardsummary4 as "studioSeoTwitterCardSummary" };
+/**
+ * | output |
+ * | --- |
+ * | "Summary with large image" |
+ *
+ * @param {Studioseotwittercardsummarylargeimage6Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studioseotwittercardsummarylargeimage6: ((
+  inputs?: Studioseotwittercardsummarylargeimage6Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studioseotwittercardsummarylargeimage6Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studioseotwittercardsummarylargeimage6 as "studioSeoTwitterCardSummaryLargeImage" };
 /**
  * | output |
  * | --- |
@@ -22683,6 +23562,351 @@ declare const studiotabdesignfiles3: ((
     {}
   >;
 export { studiotabdesignfiles3 as "studioTabDesignFiles" };
+/**
+ * | output |
+ * | --- |
+ * | "Accent text (on accent)" |
+ *
+ * @param {Studiotokenscoloraccentforegroundlabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscoloraccentforegroundlabel5: ((
+  inputs?: Studiotokenscoloraccentforegroundlabel5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscoloraccentforegroundlabel5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscoloraccentforegroundlabel5 as "studioTokensColorAccentForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Accent" |
+ *
+ * @param {Studiotokenscoloraccentlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscoloraccentlabel4: ((
+  inputs?: Studiotokenscoloraccentlabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscoloraccentlabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscoloraccentlabel4 as "studioTokensColorAccentLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Border" |
+ *
+ * @param {Studiotokenscolorborderlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolorborderlabel4: ((
+  inputs?: Studiotokenscolorborderlabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolorborderlabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolorborderlabel4 as "studioTokensColorBorderLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Text" |
+ *
+ * @param {Studiotokenscolorforegroundlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolorforegroundlabel4: ((
+  inputs?: Studiotokenscolorforegroundlabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolorforegroundlabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolorforegroundlabel4 as "studioTokensColorForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Muted text" |
+ *
+ * @param {Studiotokenscolormutedlabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolormutedlabel4: ((
+  inputs?: Studiotokenscolormutedlabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolormutedlabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolormutedlabel4 as "studioTokensColorMutedLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Primary text (on primary)" |
+ *
+ * @param {Studiotokenscolorprimaryforegroundlabel5Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolorprimaryforegroundlabel5: ((
+  inputs?: Studiotokenscolorprimaryforegroundlabel5Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolorprimaryforegroundlabel5Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolorprimaryforegroundlabel5 as "studioTokensColorPrimaryForegroundLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Primary" |
+ *
+ * @param {Studiotokenscolorprimarylabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolorprimarylabel4: ((
+  inputs?: Studiotokenscolorprimarylabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolorprimarylabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolorprimarylabel4 as "studioTokensColorPrimaryLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Surface" |
+ *
+ * @param {Studiotokenscolorsurfacelabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenscolorsurfacelabel4: ((
+  inputs?: Studiotokenscolorsurfacelabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenscolorsurfacelabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenscolorsurfacelabel4 as "studioTokensColorSurfaceLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Body font" |
+ *
+ * @param {Studiotokensfontbodylabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensfontbodylabel4: ((
+  inputs?: Studiotokensfontbodylabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensfontbodylabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensfontbodylabel4 as "studioTokensFontBodyLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Custom…" |
+ *
+ * @param {Studiotokensfontcustomoption4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensfontcustomoption4: ((
+  inputs?: Studiotokensfontcustomoption4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensfontcustomoption4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensfontcustomoption4 as "studioTokensFontCustomOption" };
+/**
+ * | output |
+ * | --- |
+ * | "Heading font" |
+ *
+ * @param {Studiotokensfontheadinglabel4Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensfontheadinglabel4: ((
+  inputs?: Studiotokensfontheadinglabel4Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensfontheadinglabel4Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensfontheadinglabel4 as "studioTokensFontHeadingLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Design tokens" |
+ *
+ * @param {Studiotokenspaneltitle3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokenspaneltitle3: ((
+  inputs?: Studiotokenspaneltitle3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokenspaneltitle3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokenspaneltitle3 as "studioTokensPanelTitle" };
+/**
+ * | output |
+ * | --- |
+ * | "CSS value, e.g. 0.5rem or 8px." |
+ *
+ * @param {Studiotokensradiushint3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensradiushint3: ((
+  inputs?: Studiotokensradiushint3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensradiushint3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensradiushint3 as "studioTokensRadiusHint" };
+/**
+ * | output |
+ * | --- |
+ * | "Corner radius" |
+ *
+ * @param {Studiotokensradiuslabel3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensradiuslabel3: ((
+  inputs?: Studiotokensradiuslabel3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensradiuslabel3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensradiuslabel3 as "studioTokensRadiusLabel" };
+/**
+ * | output |
+ * | --- |
+ * | "Reset to default" |
+ *
+ * @param {Studiotokensresetbutton3Inputs} inputs
+ * @param {{ locale?: "vi" | "en" }} options
+ * @returns {LocalizedString}
+ */
+declare const studiotokensresetbutton3: ((
+  inputs?: Studiotokensresetbutton3Inputs,
+  options?: {
+    locale?: "vi" | "en";
+  }
+) => LocalizedString) &
+  import("../runtime.js").MessageMetadata<
+    Studiotokensresetbutton3Inputs,
+    {
+      locale?: "vi" | "en";
+    },
+    {}
+  >;
+export { studiotokensresetbutton3 as "studioTokensResetButton" };
 /**
  * | output |
  * | --- |

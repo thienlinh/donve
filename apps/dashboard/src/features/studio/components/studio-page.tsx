@@ -51,7 +51,7 @@ import * as React from "react";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
 
 import { ConnectAiDialog } from "@/features/ai-connections/components/connect-ai-dialog";
-import { useSession } from "@/features/auth/auth-client";
+import { useSessionQuery } from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 import {
@@ -333,8 +333,9 @@ export function StudioPage() {
           landingPage={landingPage}
           html={null}
           canvasPlaceholder={
-            <div className="flex h-full items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
-              <Spinner /> Loading page…
+            <div className="flex h-full flex-col gap-3 p-6">
+              <Skeleton className="h-8 w-2/3" />
+              <Skeleton className="h-full w-full" />
             </div>
           }
         />
@@ -415,7 +416,7 @@ function StudioEditor({
 }) {
   useStudioModeHotkeys();
   const { mode, setMode } = useStudioMode();
-  const { data: session } = useSession();
+  const { data: session } = useSessionQuery();
   const userId = session?.user.id ?? "anon";
   // Below `lg` (matches the sidebar's `max-lg:`/`lg:` overlay classes), the canvas can't afford
   // to lose a fixed slice of width to either chat or the Layers/Inspect sidebar — both float

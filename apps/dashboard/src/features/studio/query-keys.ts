@@ -8,7 +8,9 @@ export const landingKeys = {
 export const pageVersionKeys = {
   list: (landingPageId: string) => ["page-versions", landingPageId] as const,
   html: (landingPageId: string, versionId: string) =>
-    ["page-versions", landingPageId, versionId, "html"] as const
+    ["page-versions", landingPageId, versionId, "html"] as const,
+  detail: (landingPageId: string, versionId: string) =>
+    ["page-versions", landingPageId, versionId] as const
 };
 
 export const pageAssetKeys = {

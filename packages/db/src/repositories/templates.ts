@@ -27,5 +27,24 @@ export const templatesRepository = {
   ) {
     const rows = await db.raw.insert(templates).values(entry).returning();
     return rows[0];
+  },
+
+  async update(
+    db: Db,
+    templateId: string,
+    patch: Partial<Omit<typeof templates.$inferInsert, "id" | "createdAt">>
+  ) {
+    const rows = await db.raw
+      .update(templates)
+      .set(patch)
+      .where(eq(templates.id, templateId))
+      .returning();
+    return rows[0];
+  },
+
+  /** Wipes the whole shared gallery — no soft-delete convention on this table (no `orgId`/RLS,
+   * see the doc comment above), used by `tooling/seed-templates` to fully replace it. */
+  async deleteAll(db: Db) {
+    await db.raw.delete(templates);
   }
 };

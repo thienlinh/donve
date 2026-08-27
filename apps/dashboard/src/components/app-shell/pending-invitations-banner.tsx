@@ -10,10 +10,10 @@ import { roleLabel } from "@/features/members/role-labels";
 import * as m from "@/paraglide/messages.js";
 
 /**
- * The org plugin has no `sendInvitationEmail` hook wired (packages/auth/src/config.ts) —
- * invited members currently discover an invite only by logging in and seeing it here,
- * not via email. Wiring an email notification is a Phase 1+ follow-up, not a blocker:
- * this list is the source of truth either way since it reflects live invitation status.
+ * An invite email is also sent (packages/auth/src/config.ts `sendInvitationEmail`) with a
+ * deep link into /accept-invite, which auto-accepts once the invitee is signed in. This
+ * banner stays the fallback/source of truth either way — it lists every pending invitation
+ * for the current user regardless of which one (if any) was clicked from email.
  */
 export function PendingInvitationsBanner() {
   const navigate = useNavigate();
@@ -42,7 +42,12 @@ export function PendingInvitationsBanner() {
               queryKey: ["organization", "user-invitations"]
             });
           }}
-          onAccepted={() => navigate({ to: "/landings" })}
+          onAccepted={async () => {
+            // Accepting adds a new org to this user's list — the cached auth/organizations
+            // query (org-switcher etc.) would otherwise still show the pre-accept list.
+            await queryClient.invalidateQueries();
+            await navigate({ to: "/landings" });
+          }}
         />
       ))}
     </div>
@@ -60,7 +65,7 @@ function InvitationRow({
     role: string;
   };
   onSettled: () => Promise<void>;
-  onAccepted: () => void;
+  onAccepted: () => Promise<void>;
 }) {
   const [isPending, setIsPending] = useState<"accept" | "reject" | null>(null);
 

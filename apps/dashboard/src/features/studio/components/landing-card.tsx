@@ -99,13 +99,18 @@ export function LandingCard({
 
   // 3 distinct editors: `custom_import` (raw HTML, no canvas), native (`isNative` — a PageSpec
   // canvas, whether AI- or hand-authored; `source` alone can't tell since a native-AI page keeps
-  // `source: "ai"` forever), or the legacy srcmap editor for everything else.
+  // `source: "ai"` forever), or the legacy srcmap editor for everything else. An `ai`-sourced,
+  // not-yet-native page with no version is the business→strategy→architecture wizard abandoned
+  // mid-flow (e.g. navigated away before finishing) — the legacy editor has no prompt to
+  // generate from and dead-ends, so send it back to resume the wizard instead.
   const studioRoute =
     landingPage.source === "custom_import"
       ? ("/landings/$id/custom-import" as const)
       : landingPage.isNative
         ? ("/landings/$id/studio-native" as const)
-        : ("/landings/$id/studio" as const);
+        : landingPage.source === "ai" && landingPage.currentVersionId === null
+          ? ("/landings/$id/business" as const)
+          : ("/landings/$id/studio" as const);
 
   return (
     <Card className="group/landing-card overflow-hidden py-0">

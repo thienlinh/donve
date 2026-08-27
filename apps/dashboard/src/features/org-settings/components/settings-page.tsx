@@ -16,7 +16,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntityImageField } from "@/components/entity-image-field";
 import { QueryState } from "@/components/query-state";
 import { SettingsForbidden } from "@/components/settings-forbidden";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import { useCanManageOrg } from "@/hooks/use-can-manage-org";
 import * as m from "@/paraglide/messages.js";
 
@@ -26,7 +26,7 @@ import { AuditLogCard } from "./audit-log-card";
 import { BrandKitCard } from "./brand-kit-card";
 
 export function SettingsPage() {
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const canManage = useCanManageOrg();
 
   const {

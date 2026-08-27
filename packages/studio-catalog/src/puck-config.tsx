@@ -3,6 +3,7 @@ import type { BaseComponentProps } from "@json-render/react";
 import type { Config } from "@puckeditor/core";
 import type { ReactNode } from "react";
 
+import { applyElementStyle } from "./apply-element-style.js";
 import { catalog } from "./catalog.js";
 import { AnnouncementBarRender } from "./components/announcement-bar.js";
 import { ComparisonTableRender } from "./components/comparison-table.js";
@@ -99,11 +100,12 @@ function toPuckRender(Render: (ctx: BaseComponentProps<any>) => ReactNode) {
     const { id: _id, puck: _puck, editMode: _editMode, ...props } = allProps;
     // Published/edited markup is static SSR-first output — no component reads `emit`/`on`, but
     // BaseComponentProps requires them, so these are unused no-op stubs.
-    return Render({
+    const rendered = Render({
       props,
       emit: () => undefined,
       on: () => ({}) as AnyField
     });
+    return applyElementStyle(rendered, props.style);
   };
 }
 

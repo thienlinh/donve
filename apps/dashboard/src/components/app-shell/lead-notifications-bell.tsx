@@ -4,7 +4,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import * as m from "@/paraglide/messages.js";
 
 const UNREAD_DISPLAY_CAP = 99;
@@ -16,7 +16,7 @@ const LEADS_PATH = "/leads";
  * SSE feed with no request body to stream — `withCredentials` covers the cross-origin cookie. */
 export function LeadNotificationsBell() {
   const [unread, setUnread] = useState(0);
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 

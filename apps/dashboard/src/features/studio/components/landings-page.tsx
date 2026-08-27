@@ -32,6 +32,7 @@ import { Bot, FolderInput, Wrench } from "lucide-react";
 import type { ComponentType } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CardGridSkeleton } from "@/components/card-grid-skeleton";
 import { CustomImportDialog } from "@/features/custom-import/components/custom-import-dialog";
 import * as m from "@/paraglide/messages.js";
 
@@ -101,11 +102,7 @@ export function LandingsPage() {
   }
 
   if (isPending) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner /> {m.commonLoading()}
-      </div>
-    );
+    return <CardGridSkeleton count={8} />;
   }
 
   if (error) {

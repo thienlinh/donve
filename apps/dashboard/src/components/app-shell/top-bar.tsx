@@ -21,8 +21,10 @@ import { SidebarTrigger } from "@dv/ui/components/shadcn/sidebar";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 
-import { authClient, useSession } from "@/features/auth/auth-client";
+import { authClient } from "@/features/auth/auth-client";
+import { useSessionQuery } from "@/features/auth/queries";
 import { OrgSwitcher } from "@/features/org-switcher/components/org-switcher";
+import { queryClient } from "@/lib/query-client";
 import * as m from "@/paraglide/messages.js";
 
 import { DataSubjectRequestIndicator } from "./data-subject-request-indicator";
@@ -50,14 +52,20 @@ function useCurrentNavCrumb() {
 
 export function TopBar() {
   const navigate = useNavigate();
-  const { data: session } = useSession();
+  const { data: session } = useSessionQuery();
   const email = session?.user.email ?? "";
   const initial = email.slice(0, 1).toUpperCase();
   const crumb = useCurrentNavCrumb();
 
   const handleLogout = async () => {
     await authClient.signOut();
+    // Navigate first so the shell (org-switcher, bell, ...) unmounts and its query observers
+    // unsubscribe — clearing first would still have live observers for the just-removed
+    // queries, each seeing "no data" and immediately refetching against an already-signed-out
+    // session (a benign but noisy 401). Clearing after still runs before this tab's next login,
+    // which is the case that actually matters (see login-form.tsx).
     await navigate({ to: "/login" });
+    queryClient.clear();
   };
 
   return (

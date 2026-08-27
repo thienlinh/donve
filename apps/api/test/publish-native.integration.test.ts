@@ -44,6 +44,8 @@ let deploymentsDir: string;
 const tokens: DesignTokens = {
   colorPrimary: "#2563eb",
   colorPrimaryForeground: "#ffffff",
+  colorAccent: "#4f46e5",
+  colorAccentForeground: "#ffffff",
   colorSurface: "#ffffff",
   colorForeground: "#111827",
   colorMuted: "#6b7280",
@@ -299,10 +301,10 @@ it("publishes a PageSpec that was round-tripped through the Puck adapter, with n
 /**
  * Studio SEO tab (`architecture-and-data-model.md` §Publish · Domain · SEO): `seo.title`
  * overrides the rendered `<title>`/`og:title` (the page name is only the fallback) and
- * `seo.noindex` both tags the document and ships a deployment-local robots.txt/sitemap.xml
+ * `seo.robots.noindex` both tags the document and ships a deployment-local robots.txt/sitemap.xml
  * for edge-router to serve instead of its generated, indexable default.
  */
-it("applies seo.title and seo.noindex to the published artifacts", async () => {
+it("applies seo.title and seo.robots.noindex to the published artifacts", async () => {
   const db = createDbFromEnv(bindings);
   const orgId = crypto.randomUUID();
 
@@ -332,7 +334,7 @@ it("applies seo.title and seo.noindex to the published artifacts", async () => {
       seo: {
         title: "SEO title wins",
         description: "SEO tab integration test",
-        noindex: true
+        robots: { noindex: true }
       }
     }
   });
@@ -370,7 +372,7 @@ it("applies seo.title and seo.noindex to the published artifacts", async () => {
 
   expect(html).toContain("<title>SEO title wins</title>");
   expect(html).not.toContain("Page name that must not win");
-  expect(html).toContain('name="robots" content="noindex"');
+  expect(html).toContain('content="noindex" name="robots"');
   expect(readFileSync(path.join(deployDir, "robots.txt"), "utf8")).toContain(
     "Disallow: /"
   );

@@ -8,7 +8,7 @@ import { Check, X } from "lucide-react";
 
 import { fetchAiConnections } from "@/features/ai-connections/api";
 import { aiConnectionKeys } from "@/features/ai-connections/query-keys";
-import { useActiveOrganization } from "@/features/auth/auth-client";
+import { useActiveOrganizationQuery } from "@/features/auth/queries";
 import { fetchPaymentConnections } from "@/features/payment-connections/api";
 import { paymentConnectionKeys } from "@/features/payment-connections/query-keys";
 import * as m from "@/paraglide/messages.js";
@@ -24,7 +24,7 @@ export function OnboardingChecklist({
 }: {
   landingPages: LandingPageListItem[];
 }) {
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: activeOrganization } = useActiveOrganizationQuery();
   const orgId = activeOrganization?.id ?? "anon";
   const [dismissed, setDismissed] = usePersistentState(
     `onboarding:dismissed:${orgId}`,

@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <SidebarPrimitive collapsible="icon">
       <SidebarHeader className="items-start px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="grid place-items-center">
+        <Link to="/" className="grid place-items-center">
           <Logo
             variant="full"
             className="col-start-1 row-start-1 h-9 w-[130px] opacity-100 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0"
@@ -29,7 +29,7 @@ export function Sidebar() {
             variant="mark"
             className="col-start-1 row-start-1 h-8 w-8 opacity-0 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-100"
           />
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="gap-1 px-1">
         {navGroups.map((group) => (
