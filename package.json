@@ -137,8 +137,8 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "oxlint --type-aware --fix .",
-    "fmt": "oxfmt --write .",
+    "lint": "oxlint --type-aware --fix",
+    "fmt": "oxfmt --write",
     "prepare": "lefthook install",
     "clean": "turbo run clean && rm -rf node_modules"
   },

@@ -1,7 +1,6 @@
 no_tty: true
 
 pre-commit:
-  parallel: true
   jobs:
     - run: bun run lint {staged_files}
       glob:
@@ -29,4 +28,4 @@ pre-commit:
 
 pre-push:
   jobs:
-    - run: bunx turbo run typecheck --affected
+    - run: bunx turbo run typecheck test --affected
