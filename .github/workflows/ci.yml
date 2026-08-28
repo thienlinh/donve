@@ -32,6 +32,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # apps/api's integration tests each spin up their own Postgres via
+      # testcontainers in beforeAll, and vitest runs test files in parallel —
+      # without this, ~7 containers cold-pull the same image at once on a
+      # fresh runner and blow the 60s testTimeout. Pre-pulling once here lets
+      # every parallel container start hit local cache instead.
+      - name: Pre-pull Postgres image for testcontainers
+        run: docker pull postgres:18-alpine
+
       # oxlint/oxfmt run once at the repo root (not per-package, see
       # .claude/rules/tech-stack.md) — not turbo tasks, no --affected here.
       - name: Lint
