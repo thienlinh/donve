@@ -592,4 +592,43 @@
     background: color-mix(in oklch, var(--brand) 25%, transparent);
     color: var(--foreground);
   }
+
+  input[type="color"] {
+    -webkit-appearance: none; /* Removes default Chrome/Safari styles */
+    -moz-appearance: none; /* Removes default Firefox styles */
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    background: transparent; /* Removes default background box */
+    border: none;
+    flex-shrink: 0;
+  }
+
+  /* 2. Webkit (Chrome, Safari, Edge, Opera) Wrapper */
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0; /* Removes inner padding */
+  }
+
+  /* 3. Webkit Inner Swatch (The actual color block) */
+  input[type="color"]::-webkit-color-swatch {
+    border: 2px solid #ccc;
+    border-radius: 50%; /* Makes it a perfect circle */
+  }
+
+  /* 4. Firefox Inner Swatch */
+  input[type="color"]::-moz-color-swatch {
+    border: 2px solid #ccc;
+    border-radius: 50%; /* Makes it a perfect circle */
+  }
+
+  input[type="color"]:hover {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+  }
+
+  input[type="color"]:focus-visible {
+    outline: 2px solid #0076ff;
+    outline-offset: 2px;
+  }
 }

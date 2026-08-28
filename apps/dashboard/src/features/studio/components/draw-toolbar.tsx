@@ -87,7 +87,6 @@ export function DrawToolbar({
           type="color"
           value={color}
           onChange={(e) => onColorChange(e.target.value)}
-          className="size-7 cursor-pointer rounded border bg-transparent p-0.5"
         />
       </label>
 

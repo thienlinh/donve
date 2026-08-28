@@ -386,7 +386,9 @@ function escapeHtml(value: string): string {
  * URL (not `window.open("", ...)` + `document.write`) keeps this a single synchronous write with
  * no deprecated API and no cross-document XSS surface for the one piece of user data that lands
  * in raw HTML here (the `<title>`, escaped below) — everything else is React-escaped markup or
- * same-origin stylesheet hrefs.
+ * same-origin stylesheet hrefs. Cloning `link[rel="stylesheet"]` already picks up the current
+ * `#lp-google-fonts` link the design-tokens `useEffect` below keeps in sync with every font in
+ * use (page-level + per-element overrides) — no separate `googleFontsHref` call needed here.
  */
 function openLivePreview(doc: EditableDocument, title: string) {
   const bodyHtml = renderSpecToHtml(doc.pageSpec);
@@ -398,10 +400,8 @@ function openLivePreview(doc: EditableDocument, title: string) {
   const inlineStyles = Array.from(document.querySelectorAll("style"))
     .map((style) => `<style>${style.textContent ?? ""}</style>`)
     .join("");
-  const fontHref = googleFontsHref(doc.tokens);
-  const fontLink = fontHref ? `<link rel="stylesheet" href="${fontHref}">` : "";
   const tokenCss = `${designTokensToCss(doc.tokens)}body{background-color:var(--lp-color-surface);color:var(--lp-color-foreground);}`;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>${styleLinks}${inlineStyles}${fontLink}<style>${tokenCss}</style></head><body>${bodyHtml}</body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>${styleLinks}${inlineStyles}<style>${tokenCss}</style></head><body>${bodyHtml}</body></html>`;
 
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
@@ -904,21 +904,22 @@ export function StudioNativePage() {
     // Mirrors the `<link>` `packages/studio-render`'s `renderPageArtifact` emits for a published
     // page, so a chosen Google Font actually renders in this preview instead of silently falling
     // back — without this the editor would look right (assuming the font happened to already be
-    // loaded elsewhere) while the real published page didn't, or vice versa.
-    const href = googleFontsHref(activeDoc.tokens);
-    let linkEl = document.getElementById(
-      "lp-google-fonts"
-    ) as HTMLLinkElement | null;
+    // loaded elsewhere) while the real published page didn't, or vice versa. Passing `pageSpec`
+    // also picks up per-element font overrides set from the block Inspector's "Font chữ" field
+    // (`apply-element-style.tsx`), not just the page-level `fontHeading`/`fontBody`.
+    // Puck's iframe-mirroring observer (`AutoFrame`/`CopyHostStyles`) only watches for nodes
+    // being added/removed from `<head>`, not attribute changes on existing ones — so flipping
+    // `linkEl.href` in place on a font change is invisible to it and the iframe keeps showing
+    // whichever font was loaded at mount. Removing and recreating the element on every change
+    // (rather than reusing it) forces the childList mutation the observer actually reacts to.
+    const href = googleFontsHref(activeDoc.tokens, activeDoc.pageSpec);
+    document.getElementById("lp-google-fonts")?.remove();
     if (href) {
-      if (!linkEl) {
-        linkEl = document.createElement("link");
-        linkEl.id = "lp-google-fonts";
-        linkEl.rel = "stylesheet";
-        document.head.appendChild(linkEl);
-      }
+      const linkEl = document.createElement("link");
+      linkEl.id = "lp-google-fonts";
+      linkEl.rel = "stylesheet";
       linkEl.href = href;
-    } else {
-      linkEl?.remove();
+      document.head.appendChild(linkEl);
     }
   }, [activeDoc]);
 

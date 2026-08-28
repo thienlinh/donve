@@ -152,7 +152,6 @@ function TokenColorField({
             setDraft(e.target.value);
             onCommit(e.target.value);
           }}
-          className="h-8 w-9 shrink-0 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
         />
         <Input
           value={draft}

@@ -195,49 +195,31 @@ function ColorValue({
   value: string | undefined;
   onCommit: (value: string) => void;
 }) {
-  const [draft, setDraft] = React.useState(value ?? "");
-
-  function commit() {
-    if (draft && draft !== value) onCommit(draft);
-  }
-
   return (
-    <span className="flex min-w-0 items-center gap-2">
-      <input
-        type="color"
-        value={toHexColor(value)}
-        onChange={(e) => onCommit(e.target.value)}
-        className="size-4 shrink-0 cursor-pointer rounded-sm border border-input bg-transparent p-0"
-      />
-      <input
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-        }}
-        className="w-full min-w-0 bg-transparent text-end outline-none"
-      />
-    </span>
+    <input
+      type="color"
+      value={toHexColor(value)}
+      onChange={(e) => onCommit(e.target.value)}
+    />
   );
 }
 
 // Same curated allowlist as `packages/studio-catalog/src/tokens.ts`'s `GOOGLE_FONTS` (kept as a
 // literal copy, not an import: `@dv/studio-catalog` already depends on `@dv/studio-ui` for
 // `InspectorValues`, so importing back would be a package cycle). This list rarely changes: if
-// it does, update both. Only fonts already loaded site-wide via the page's design tokens
-// (`fontHeading`/`fontBody`) actually render as chosen here — picking a curated font that isn't
-// one of those two loads no stylesheet of its own, same pre-existing gap the free-text field had.
+// it does, update both. `googleFontsHref(tokens, spec)` scans every element's `style["font-family"]`
+// (not just the page-level `fontHeading`/`fontBody`), so picking a curated font here does load its
+// stylesheet — a free-text stack (the "Khác…" escape hatch below) still renders unstyled, same as
+// a free-text page-level font, since arbitrary text can't safely become a `<link href>`.
 const CURATED_FONTS = [
   "Inter",
   "Roboto",
   "Open Sans",
-  "Lato",
   "Montserrat",
-  "Poppins",
   "Work Sans",
   "Nunito",
-  "DM Sans",
+  "Manrope",
+  "Be Vietnam Pro",
   "Space Grotesk",
   "Playfair Display",
   "Merriweather"
@@ -353,7 +335,7 @@ export function InspectorPanel({
         </h3>
         <FieldBox
           label="Font"
-          hint="Phông chữ của khối. Chỉ hiển thị đúng nếu phông đã được tải sẵn cho trang (theo Design tokens) — chọn phông khác có thể không đổi giao diện."
+          hint="Phông chữ riêng cho khối này. Chọn 'Khác…' để nhập một phông tuỳ chỉnh không có trong danh sách — phông tuỳ chỉnh chỉ hiển thị đúng nếu trình duyệt đã có sẵn (không tự tải như các phông trong danh sách)."
         >
           <FontValue
             value={values["font-family"]}

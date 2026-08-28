@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "generate:css": "bun run scripts/generate-catalog-css.ts",
     "e2e:generate": "bun run e2e/generate-previews.ts",
     "e2e": "bun run e2e:generate && playwright test",
     "clean": "rm -rf dist node_modules"
@@ -16,16 +17,16 @@
   "dependencies": {
     "@dv/studio-catalog": "workspace:*",
     "@dv/studio-core": "workspace:*",
-    "@json-render/core": "catalog:ui",
-    "@tailwindcss/postcss": "catalog:content",
-    "postcss": "catalog:content",
-    "tailwindcss": "catalog:react"
+    "@json-render/core": "catalog:ui"
   },
   "devDependencies": {
     "@axe-core/playwright": "catalog:",
     "@dv/config": "workspace:*",
     "@playwright/test": "catalog:",
+    "@tailwindcss/postcss": "catalog:content",
     "@types/bun": "catalog:",
+    "postcss": "catalog:content",
+    "tailwindcss": "catalog:react",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

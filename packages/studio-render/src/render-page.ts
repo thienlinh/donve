@@ -54,7 +54,7 @@ export async function renderPageArtifact(
     compileCatalogCss()
   ]);
   const tokenCss = designTokensToCss(tokens);
-  const fontsHref = googleFontsHref(tokens);
+  const fontsHref = googleFontsHref(tokens, spec);
 
   const html = [
     "<!doctype html>",
@@ -66,7 +66,7 @@ export async function renderPageArtifact(
     description
       ? `<meta name="description" content="${escapeHtml(description)}">`
       : "",
-    // Without this, `fontHeading`/`fontBody` picking a Google Font (e.g. "Poppins, sans-serif")
+    // Without this, `fontHeading`/`fontBody` picking a Google Font (e.g. "Manrope, sans-serif")
     // never actually loads it on the published page — the browser silently falls back to its
     // default sans-serif, and the editor preview (which does load it, see the Puck iframe's own
     // `<link>` injection) would then look wrong compared to what visitors actually see.

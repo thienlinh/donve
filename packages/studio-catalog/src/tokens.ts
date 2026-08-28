@@ -1,4 +1,5 @@
 import type { DesignTokens } from "@dv/contracts";
+import type { Spec } from "@json-render/core";
 
 export { designTokensSchema, type DesignTokens } from "@dv/contracts";
 
@@ -46,17 +47,23 @@ export function designTokensToCss(tokens: DesignTokens): string {
  * would let arbitrary strings flow into a `<link href>` on the published page. Matching against
  * this list is also what decides whether a stylesheet gets injected at all — a custom/system
  * font stack (e.g. "Georgia, serif") is skipped, not silently pointed at Google Fonts.
+ *
+ * Every entry here must cover Google Fonts' `vietnamese` glyph subset — every published page
+ * renders `lang="vi"` (see `render-page.ts`), so a font missing that subset silently drops
+ * diacritics (tone marks, ơ/ư, etc.) for Vietnamese copy. Verified against
+ * `fonts.google.com/metadata/fonts/<family>`'s `coverage` field: Lato, Poppins, and DM Sans were
+ * previously listed here but only cover `latin`/`latin-ext` (Poppins also has `devanagari`), so
+ * they were dropped in favor of Be Vietnam Pro and Manrope, which do cover `vietnamese`.
  */
 export const GOOGLE_FONTS = [
   "Inter",
   "Roboto",
   "Open Sans",
-  "Lato",
   "Montserrat",
-  "Poppins",
   "Work Sans",
   "Nunito",
-  "DM Sans",
+  "Manrope",
+  "Be Vietnam Pro",
   "Space Grotesk",
   "Playfair Display",
   "Merriweather"
@@ -71,19 +78,36 @@ function fontFamilyName(fontStack: string): string {
 }
 
 /**
- * Google Fonts stylesheet URL for whichever of `fontHeading`/`fontBody` match the curated
- * allowlist above, deduped, or `null` if neither does (a page using only system fonts loads no
- * external stylesheet). Used both for the live editor preview and — the part that actually
- * matters — the published page's own `<head>` (`packages/studio-render`), since a chosen Google
- * Font that's never loaded on the real site silently falls back to the browser default.
+ * Google Fonts stylesheet URL for every curated font actually in use on the page: `fontHeading`/
+ * `fontBody` plus, when `spec` is passed, any per-element `style["font-family"]` override set
+ * from the block Inspector (`packages/studio-catalog/src/apply-element-style.tsx`) — those are
+ * stored as a loose prop on each `PageSpec` element (`settings-tab.tsx`), not through the design
+ * tokens, so without this scan a per-component font choice silently fell back to the browser
+ * default (no stylesheet ever loaded it), even though the CSS applied the right `font-family`.
+ * `spec` is optional since some callers (e.g. the AI brand-kit form) only ever have tokens, not
+ * a page to scan. Names are deduped and, same as before, filtered against the curated allowlist
+ * above before reaching a `<link href>`. Returns `null` if nothing in use matches the allowlist
+ * (a page using only system fonts loads no external stylesheet).
  */
-export function googleFontsHref(tokens: DesignTokens): string | null {
-  const families = new Set(
-    [
-      fontFamilyName(tokens.fontHeading),
-      fontFamilyName(tokens.fontBody)
-    ].filter((name) => GOOGLE_FONT_SET.has(name))
-  );
+export function googleFontsHref(
+  tokens: DesignTokens,
+  spec?: Spec
+): string | null {
+  const families = new Set<string>();
+  for (const stack of [tokens.fontHeading, tokens.fontBody]) {
+    const name = fontFamilyName(stack);
+    if (GOOGLE_FONT_SET.has(name)) families.add(name);
+  }
+  if (spec) {
+    for (const element of Object.values(spec.elements)) {
+      const style = (element.props as Record<string, unknown> | undefined)
+        ?.style as Record<string, unknown> | undefined;
+      const fontFamily = style?.["font-family"];
+      if (typeof fontFamily !== "string") continue;
+      const name = fontFamilyName(fontFamily);
+      if (GOOGLE_FONT_SET.has(name)) families.add(name);
+    }
+  }
   if (families.size === 0) return null;
   const params = Array.from(families)
     .map((name) => `family=${encodeURIComponent(name)}:wght@400;500;600;700`)

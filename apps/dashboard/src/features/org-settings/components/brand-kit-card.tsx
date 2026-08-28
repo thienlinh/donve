@@ -29,15 +29,17 @@ const brandKitDefaults = {
   bodyFont: "Inter"
 };
 
-/** Curated, professional, Google-Fonts-safe names — the AI only needs the font
- * name as a token to reference in generated CSS, not an actual loaded font. */
+/** Curated, professional, Google-Fonts-safe names — must stay a subset of
+ * `packages/studio-catalog/src/tokens.ts`'s `GOOGLE_FONTS`, since these become a published
+ * page's `fontHeading`/`fontBody`: any name outside that list loads no stylesheet at all and
+ * silently falls back to the browser default. */
 const brandKitFontOptions = [
   "Inter",
   "Roboto",
   "Open Sans",
   "Montserrat",
-  "Poppins",
-  "Lato",
+  "Manrope",
+  "Be Vietnam Pro",
   "Merriweather",
   "Playfair Display",
   "Nunito"
@@ -159,7 +161,6 @@ function BrandColorField({
             setDraft(e.target.value);
             onCommit(e.target.value);
           }}
-          className="h-8 w-10 shrink-0 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
         />
         <Input
           value={draft}

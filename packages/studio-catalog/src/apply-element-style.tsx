@@ -51,6 +51,17 @@ export function applyElementStyle(
     const camelKey = CSS_KEY_TO_CAMEL[key as keyof StyleProps] ?? key;
     camelStyle[camelKey] = value;
   }
+  // A plain `fontFamily` here only reaches descendants that inherit it — powerless against one
+  // that already declares its own `font-family` (e.g. `hero.tsx`'s heading/body text binds
+  // directly to `font-family:var(--lp-font-heading)`/`var(--lp-font-body)`, which as a literal
+  // property on that element always wins over anything set on an ancestor). CSS custom
+  // properties are different: they still cascade through such a `var(...)` reference, so
+  // redefining the two variables here on this root reaches those elements too — a no-op
+  // wherever nothing underneath references either variable.
+  if (style["font-family"] !== undefined && style["font-family"] !== null) {
+    camelStyle["--lp-font-heading"] = style["font-family"];
+    camelStyle["--lp-font-body"] = style["font-family"];
+  }
   const element = node as React.ReactElement<{ style?: React.CSSProperties }>;
   return cloneElement(element, {
     style: { ...element.props.style, ...camelStyle }
