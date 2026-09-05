@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { applyElementStyle } from "./apply-element-style.js";
 import { catalog } from "./catalog.js";
 import { AnnouncementBarRender } from "./components/announcement-bar.js";
+import { BlogArticleGridRender } from "./components/blog-article-grid.js";
 import { ComparisonTableRender } from "./components/comparison-table.js";
 import { CountdownTimerRender } from "./components/countdown-timer.js";
 import { CtaAppDownloadRender } from "./components/cta-app-download.js";
@@ -32,10 +33,12 @@ import { HeroCenteredSignupRender } from "./components/hero-centered-signup.js";
 import { HeroCenteredRender } from "./components/hero-centered.js";
 import { HeroSplitImageRender } from "./components/hero-split-image.js";
 import { HeroSplitSignupRender } from "./components/hero-split-signup.js";
+import { HeroVideoRender } from "./components/hero-video.js";
 import { HeroRender } from "./components/hero.js";
 import { HowItWorksRender } from "./components/how-it-works.js";
 import { LeadFormRender } from "./components/lead-form.js";
 import { LogoWallRender } from "./components/logo-wall.js";
+import { MapLocationRender } from "./components/map-location.js";
 import { MediaRender } from "./components/media.js";
 import { MetricProofRender } from "./components/metric-proof.js";
 import { NavBarRender } from "./components/nav-bar.js";
@@ -91,6 +94,7 @@ export const { registry } = defineRegistry(catalog, {
     hero_split_image: HeroSplitImageRender,
     hero_centered_signup: HeroCenteredSignupRender,
     hero_split_signup: HeroSplitSignupRender,
+    hero_video: HeroVideoRender,
     nav_bar: NavBarRender,
     nav_centered_links: NavCenteredLinksRender,
     nav_centered_logo: NavCenteredLogoRender,
@@ -131,6 +135,8 @@ export const { registry } = defineRegistry(catalog, {
     rich_text_block: RichTextBlockRender,
     gallery: GalleryRender,
     media: MediaRender,
+    blog_article_grid: BlogArticleGridRender,
+    map_location: MapLocationRender,
     countdown_timer: CountdownTimerRender,
     team_grid: TeamGridRender,
     team_bordered_cards: TeamBorderedCardsRender,

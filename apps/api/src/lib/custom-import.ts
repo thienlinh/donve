@@ -1,4 +1,6 @@
 import type { CustomChatEdit, CustomChatEditResult } from "@dv/contracts";
+import type { storage } from "@dv/drivers";
+import { autoNameLayers, srcmapToJson, stampSrcmap } from "@dv/studio-core";
 import { parseHTML } from "linkedom";
 
 import { ApiError } from "./errors.js";
@@ -29,6 +31,14 @@ function formIndexFromSelector(selector: string): number {
   return index;
 }
 
+/** AI-generated/hand-rolled HTML very commonly identifies inputs by `id` alone, with no `name`
+ * attribute at all — `name` is only load-bearing for native form-encoded submits, which these
+ * pages' own JS usually bypasses. Fall back to `id` so those fields are still detectable/mappable
+ * instead of silently disappearing from the wizard. */
+function fieldIdentifier(el: Element): string {
+  return el.getAttribute("name") ?? el.getAttribute("id") ?? "";
+}
+
 /** `page-system/custom-import.md` §Integrate wizard step 1 — every `<form>` in the imported
  * HTML, with its own input/textarea/select field names so the wizard can offer a mapping to
  * the canonical lead fields (`fullName`/`phone`/`email`/`persona`). */
@@ -38,7 +48,7 @@ export function detectImportForms(html: string): DetectedImportForm[] {
     selector: `${SELECTOR_PREFIX}${index}`,
     fields: [...form.querySelectorAll("input, textarea, select")]
       .map((el) => ({
-        name: el.getAttribute("name") ?? "",
+        name: fieldIdentifier(el),
         type: el.getAttribute("type") ?? el.tagName.toLowerCase()
       }))
       .filter((f) => f.name.length > 0)
@@ -75,7 +85,7 @@ export function wireLeadForm(
   const fields = [...form.querySelectorAll("input, textarea, select")];
   for (const [canonical, originalName] of Object.entries(fieldMapping)) {
     if (!originalName) continue;
-    const field = fields.find((el) => el.getAttribute("name") === originalName);
+    const field = fields.find((el) => fieldIdentifier(el) === originalName);
     if (field) field.setAttribute("name", canonical);
   }
 
@@ -106,28 +116,6 @@ export function wireLeadForm(
   return (document as unknown as { toString(): string }).toString();
 }
 
-/** `page-system/custom-import.md` §Convert sang native — direct children of `<body>` (skipping
- * non-content tags) are the "section thô" the classifier prompt reasons about; each becomes
- * exactly 1 `PageSpec` element (a matched catalog component, or `raw_html_block` verbatim). */
-const NON_CONTENT_TAGS = new Set(["script", "style", "link", "noscript"]);
-
-export interface RawSection {
-  index: number;
-  html: string;
-}
-
-export function splitIntoSections(html: string): RawSection[] {
-  const { document } = parseHTML(html);
-  const body = document.querySelector("body");
-  if (!body) return [];
-  return [...body.children]
-    .filter((el) => !NON_CONTENT_TAGS.has(el.tagName.toLowerCase()))
-    .map((el, index) => ({
-      index,
-      html: (el as unknown as { outerHTML: string }).outerHTML
-    }));
-}
-
 function countOccurrences(haystack: string, needle: string): number {
   if (needle.length === 0) return 0;
   let count = 0;
@@ -139,6 +127,35 @@ function countOccurrences(haystack: string, needle: string): number {
     pos = idx + needle.length;
   }
   return count;
+}
+
+/**
+ * Best-effort `stampSrcmap` + `autoNameLayers` on freshly-imported/reuploaded HTML so the page
+ * becomes editable in the same canvas editor AI-generated pages get (`data-cc-id`s + friendly
+ * `data-cc-name`s + a srcmap JSON companion object, same R2 key convention
+ * `generate.routes.ts`'s `persistFirstGeneratedVersion` uses). Unlike AI output, custom-import
+ * HTML comes from hand-authored/external-tool sources, so a broad catch here (not just
+ * `InvalidGeneratedHtmlError`) is deliberate — any stamp/naming failure just falls back to
+ * `srcmapKey: null` (today's behavior, chat-diff-only) instead of failing the import.
+ */
+export async function tryStampForCanvas(
+  storageDriver: storage.StorageDriver,
+  landingPageId: string,
+  seq: number,
+  html: string
+): Promise<{ html: string; srcmapKey: string | null }> {
+  try {
+    const stamped = autoNameLayers(stampSrcmap(html)).html;
+    const srcmapKey = `landing-pages/${landingPageId}/v${seq}/index.html.srcmap.json`;
+    await storageDriver.put({
+      key: srcmapKey,
+      body: JSON.stringify(srcmapToJson(stamped), null, 2),
+      contentType: "application/json"
+    });
+    return { html: stamped, srcmapKey };
+  } catch {
+    return { html, srcmapKey: null };
+  }
 }
 
 /** `page-system/custom-import.md` §Comment mode + AI chat — applies each edit only if its

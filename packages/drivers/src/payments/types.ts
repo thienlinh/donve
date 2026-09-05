@@ -86,6 +86,6 @@ export interface PaymentsDriver {
   matchTransaction(
     input: MatchTransactionInput
   ): Promise<MatchTransactionResult>;
-  /** Content for the dashboard's step-by-step "connect this provider" guide (FR-D-15). */
+  /** Content for the app's step-by-step "connect this provider" guide (FR-D-15). */
   getConnectionGuide(): PaymentConnectionGuide;
 }

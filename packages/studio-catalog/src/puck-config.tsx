@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { applyElementStyle } from "./apply-element-style.js";
 import { catalog } from "./catalog.js";
 import { AnnouncementBarRender } from "./components/announcement-bar.js";
+import { BlogArticleGridRender } from "./components/blog-article-grid.js";
 import { ComparisonTableRender } from "./components/comparison-table.js";
 import { CountdownTimerRender } from "./components/countdown-timer.js";
 import { CtaBannerRender } from "./components/cta-banner.js";
@@ -17,10 +18,12 @@ import { FeatureGridRender } from "./components/feature-grid.js";
 import { FeatureTabsRender } from "./components/feature-tabs.js";
 import { FooterRender } from "./components/footer.js";
 import { GalleryRender } from "./components/gallery.js";
+import { HeroVideoRender } from "./components/hero-video.js";
 import { HeroRender } from "./components/hero.js";
 import { HowItWorksRender } from "./components/how-it-works.js";
 import { LeadFormRender } from "./components/lead-form.js";
 import { LogoWallRender } from "./components/logo-wall.js";
+import { MapLocationRender } from "./components/map-location.js";
 import { MediaRender } from "./components/media.js";
 import { MetricProofRender } from "./components/metric-proof.js";
 import { NavBarRender } from "./components/nav-bar.js";
@@ -62,6 +65,7 @@ const RENDER_BY_ID: Record<
   (ctx: BaseComponentProps<any>) => ReactNode
 > = {
   hero: HeroRender,
+  hero_video: HeroVideoRender,
   nav_bar: NavBarRender,
   logo_wall: LogoWallRender,
   testimonial: TestimonialRender,
@@ -82,6 +86,8 @@ const RENDER_BY_ID: Record<
   rich_text_block: RichTextBlockRender,
   gallery: GalleryRender,
   media: MediaRender,
+  blog_article_grid: BlogArticleGridRender,
+  map_location: MapLocationRender,
   countdown_timer: CountdownTimerRender,
   team_grid: TeamGridRender,
   footer: FooterRender,

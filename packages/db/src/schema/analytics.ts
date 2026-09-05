@@ -1,4 +1,11 @@
-import { index, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  jsonb,
+  pgTable,
+  text,
+  uniqueIndex,
+  uuid
+} from "drizzle-orm/pg-core";
 
 import { id, timestamps } from "./columns.js";
 import { orgIsolationPolicy, platformReadPolicy } from "./rls.js";
@@ -28,6 +35,31 @@ export const events = pgTable(
     orgIsolationPolicy(),
     // traffic-spike monitoring reads cross-org via withPlatformScope
     // (eventsRepository.countByHostnameInRange)
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+export const sourceLinks = pgTable(
+  "source_links",
+  {
+    id: id(),
+    orgId: uuid("org_id").notNull(),
+    campaignId: uuid("campaign_id").notNull(),
+    landingPageId: uuid("landing_page_id"),
+    name: text("name").notNull(),
+    key: text("key").notNull(),
+    utmSource: text("utm_source").notNull(),
+    utmMedium: text("utm_medium").notNull(),
+    utmCampaign: text("utm_campaign").notNull(),
+    utmContent: text("utm_content").notNull(),
+    utmTerm: text("utm_term"),
+    targetUrl: text("target_url").notNull(),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_source_link_campaign_key").on(t.campaignId, t.key),
+    index("ix_source_links_campaign").on(t.orgId, t.campaignId),
+    orgIsolationPolicy(),
     platformReadPolicy()
   ]
 ).enableRLS();

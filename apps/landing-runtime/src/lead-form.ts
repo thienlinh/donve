@@ -116,8 +116,8 @@ async function submitLead(
 
     form.reset();
     showRegisteredPopup(config, result.order);
-    // "submit" kept for the legacy campaign-analytics dashboard's `submits` bucket;
-    // "form_submitted" is the new conversion-hierarchy name (`tracking-and-attribution.md`).
+    // "submit" kept for the legacy campaign analytics bucket; "form_submitted" is the new
+    // conversion-hierarchy name (`tracking-and-attribution.md`).
     sendEvent(config, "submit", { campaignId: config.campaignId });
     sendEvent(config, "form_submitted", { campaignId: config.campaignId });
   } catch {

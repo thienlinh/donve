@@ -1,6 +1,7 @@
 import { catalogComponents } from "./catalog.js";
 import type { ComponentMeta } from "./component-meta.js";
 import { announcementBarMeta } from "./components/announcement-bar.js";
+import { blogArticleGridMeta } from "./components/blog-article-grid.js";
 import { comparisonTableMeta } from "./components/comparison-table.js";
 import { countdownTimerMeta } from "./components/countdown-timer.js";
 import { ctaAppDownloadMeta } from "./components/cta-app-download.js";
@@ -28,10 +29,12 @@ import { heroCenteredSignupMeta } from "./components/hero-centered-signup.js";
 import { heroCenteredMeta } from "./components/hero-centered.js";
 import { heroSplitImageMeta } from "./components/hero-split-image.js";
 import { heroSplitSignupMeta } from "./components/hero-split-signup.js";
+import { heroVideoMeta } from "./components/hero-video.js";
 import { heroMeta } from "./components/hero.js";
 import { howItWorksMeta } from "./components/how-it-works.js";
 import { leadFormMeta } from "./components/lead-form.js";
 import { logoWallMeta } from "./components/logo-wall.js";
+import { mapLocationMeta } from "./components/map-location.js";
 import { mediaMeta } from "./components/media.js";
 import { metricProofMeta } from "./components/metric-proof.js";
 import { navBarMeta } from "./components/nav-bar.js";
@@ -67,6 +70,7 @@ export const componentMetadata: readonly ComponentMeta[] = [
   heroSplitImageMeta,
   heroCenteredSignupMeta,
   heroSplitSignupMeta,
+  heroVideoMeta,
   navBarMeta,
   navCenteredLinksMeta,
   navCenteredLogoMeta,
@@ -107,6 +111,8 @@ export const componentMetadata: readonly ComponentMeta[] = [
   richTextBlockMeta,
   galleryMeta,
   mediaMeta,
+  blogArticleGridMeta,
+  mapLocationMeta,
   countdownTimerMeta,
   teamGridMeta,
   teamBorderedCardsMeta,
@@ -130,8 +136,8 @@ export const componentMetaById = new Map(
 /**
  * The catalog as the AI agents see it (`@dv/studio-ai`'s `CatalogComponentSummary`) — plain
  * data, so `studio-ai` never has to import this React-flavoured package. `page_root` (never
- * chosen, it's the container) and `raw_html_block` (convert-to-native's own fallback target)
- * are excluded: neither is something an agent may propose.
+ * chosen, it's the container) and `raw_html_block` (verbatim-markup fallback, not a real
+ * taxonomy component) are excluded: neither is something an agent may propose.
  */
 export const architectCatalogSummary = componentMetadata
   .filter(

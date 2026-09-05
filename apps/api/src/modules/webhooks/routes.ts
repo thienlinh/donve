@@ -167,7 +167,7 @@ async function recordMatch(
     status: "paid",
     paidAt: new Date()
   });
-  // architecture.md §5.3: pushes the paid transition to the dashboard SSE hub instead of
+  // architecture.md §5.3: pushes the paid transition to the app SSE hub instead of
   // making sales wait on the next poll/refresh.
   if (updated) await publishOrderUpdate(env, orgId, updated);
 }

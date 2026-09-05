@@ -20,9 +20,11 @@ import { organizationsRoutes } from "./modules/organizations/routes.js";
 import { paymentsRoutes } from "./modules/payments/routes.js";
 import { platformRoutes } from "./modules/platform/routes.js";
 import { productsRoutes } from "./modules/products/routes.js";
+import { promptLibraryRoutes } from "./modules/prompt-library/routes.js";
 import { publicRoutes } from "./modules/public/routes.js";
 import { studioNativeChatRoutes } from "./modules/studio/native-chat.js";
 import { studioRoutes } from "./modules/studio/routes.js";
+import { telemetryRoutes } from "./modules/telemetry/routes.js";
 import { webhooksRoutes } from "./modules/webhooks/routes.js";
 import type { AppEnv } from "./types.js";
 
@@ -35,18 +37,18 @@ export function createApp() {
   const app = new Hono<AppEnv>();
 
   app.use("*", requestContext);
-  // The dashboard SPA runs on a different origin in dev (Vite) and prod (CF Pages) — its
+  // The DonVe app runs on a different origin in dev (Vite) and prod (CF Pages) — its
   // session cookie makes this a credentialed request, so the origin must be echoed exactly
-  // (not `*`), and only the one known dashboard origin is ever legitimate here.
-  const dashboardCors = cors({
-    origin: (_origin, c) => c.env.DASHBOARD_URL,
+  // (not `*`), and only the known app origin is legitimate here.
+  const appCors = cors({
+    origin: (_origin, c) => c.env.APP_URL,
     credentials: true
   });
-  app.use("/api/*", dashboardCors);
-  app.use("/platform/*", dashboardCors);
+  app.use("/api/*", appCors);
+  app.use("/platform/*", appCors);
   // `/public/*` is called from `apps/landing-runtime`'s browser JS, which runs on WHATEVER
   // domain a tenant's landing page is published to (subdomain today, any custom domain via
-  // FR-G-04) — that set is dynamic and can't be enumerated ahead of time, unlike the dashboard's
+  // FR-G-04) — that set is dynamic and can't be enumerated ahead of time, unlike the app's
   // one fixed origin above. Wildcard + no credentials is correct and safe here specifically
   // because this surface never reads a session cookie: `orgId`/`campaignId` in the request body
   // pick the tenant, and Turnstile (`POST /public/leads`) is the anti-abuse gate, not origin
@@ -87,6 +89,8 @@ export function createApp() {
   app.use("/api/leads/*", requireOrgSession);
   app.use("/api/organizations/*", requireOrgSession);
   app.use("/api/payments/*", requireOrgSession);
+  app.use("/api/prompt-library/*", requireOrgSession);
+  app.use("/api/telemetry/*", requireOrgSession);
 
   app.onError(errorHandler);
   app.notFound(notFoundHandler);
@@ -111,6 +115,8 @@ export function createApp() {
   app.route("/api/leads", leadsRoutes);
   app.route("/api/organizations", organizationsRoutes);
   app.route("/api/payments", paymentsRoutes);
+  app.route("/api/prompt-library", promptLibraryRoutes);
+  app.route("/api/telemetry", telemetryRoutes);
   app.route("/public", publicRoutes);
   app.route("/webhooks", webhooksRoutes);
   // multi-source lead ingestion (Facebook Lead Ads / Zalo OA) — same `/webhooks/*` prefix as

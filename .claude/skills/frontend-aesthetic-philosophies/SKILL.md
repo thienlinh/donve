@@ -29,4 +29,4 @@ Explore the existing codebase first: component library (`@dv/ui`), CSS tokens (`
 
 ## For this project specifically
 
-A DonVe dashboard page should default to the existing token system (functionally closest to Scandinavian-with-brand-accents per `packages/ui/README.md`) unless the user explicitly asks for a different philosophy on a specific surface (e.g. landing pages can diverge more than internal dashboard screens).
+A DonVe app page should default to the existing token system (functionally closest to Scandinavian-with-brand-accents per `packages/ui/README.md`) unless the user explicitly asks for a different philosophy on a specific surface (e.g. landing pages can diverge more than internal app screens).

@@ -37,7 +37,7 @@ import type { AppEnv } from "@/types.js";
  * `/platform/*` routes (docs/architecture/platform-admin.md §7/§11). Every handler that reads
  * tenant data records a `platform_audit_logs` row before responding — not optional
  * (platform-admin.md §4). `/whoami` is exempt: it exposes no tenant data, just confirms staff
- * identity, and the dashboard calls it on every navigation to `/platform` — logging that would
+ * identity, and the app calls it on every navigation to `/platform` — logging that would
  * just be noise diluting the audit trail for actual cross-tenant reads.
  *
  * The whole group is already gated at `support` level in app.ts; the write endpoints re-apply

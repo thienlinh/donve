@@ -1,7 +1,6 @@
 import {
   auditResultSchema,
   computeCategoryScore,
-  convertToNativeResultSchema,
   customChatApplyInputSchema,
   customChatApplyResultSchema,
   customChatProposeInputSchema,
@@ -19,21 +18,10 @@ import {
   landingPagesRepository,
   pageVersionsRepository
 } from "@dv/db";
-import {
-  compileClassifySectionsPrompt,
-  compileCustomImportChatPrompt,
-  compileExtractContentPrompt
-} from "@dv/studio-ai";
-import {
-  architectCatalogSummary,
-  catalogComponents,
-  componentMetaById,
-  DEFAULT_DESIGN_TOKENS
-} from "@dv/studio-catalog";
+import { compileCustomImportChatPrompt } from "@dv/studio-ai";
 import { detectFunnelGaps, InvalidGeneratedHtmlError } from "@dv/studio-core";
 import { sanitizeLandingHtml } from "@dv/studio-core/sanitize";
 import { Hono } from "hono";
-import { z } from "zod";
 
 import {
   resolveGenerateConnectionId,
@@ -42,12 +30,11 @@ import {
 import {
   applyCustomChatEdits,
   detectImportForms,
-  splitIntoSections,
+  tryStampForCanvas,
   wireLeadForm
 } from "@/lib/custom-import.js";
 import { createDbFromEnv } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
-import { syncEventDefinitions } from "@/lib/event-definitions.js";
 import { extractInlineImportAssets } from "@/lib/import-assets.js";
 import { resolveImportPayload } from "@/lib/import-payload.js";
 import { runLighthouseSandbox } from "@/lib/lighthouse-sandbox.js";
@@ -66,11 +53,13 @@ import {
 export const customImportRoutes = new Hono<AppEnv>();
 
 // --- Custom Import (`page-system/custom-import.md`) — raw HTML+asset pages, no Component
-// Library, no srcmap patch editor. The srcmap-editable `/import` mode that used to live here
-// has been retired in favor of this one (`roadmap.md` §Migration dữ liệu cũ folds any
-// pre-existing page still in that shape into `custom_import` too, via
-// `runLegacyImportMigration`) — sanitize-only (no `stampSrcmap`), `source: "custom_import"`,
-// tracked in `customPageBundles`. ---
+// Library. The srcmap-editable `/import` mode that used to live here has been retired in favor
+// of this one (`roadmap.md` §Migration dữ liệu cũ folds any pre-existing page still in that
+// shape into `custom_import` too, via `runLegacyImportMigration`), `source: "custom_import"`,
+// tracked in `customPageBundles`. Editing here is chat-diff (`applyCustomChatEdits`) by default;
+// `tryStampForCanvas` best-effort stamps `data-cc-id`s at import/reupload time so the SAME
+// canvas editor AI-generated pages get (Legacy Studio) also works here once `srcmapKey` is
+// non-null — both editing modes coexist on the same stamped HTML. ---
 
 async function requireCustomImportVersion(
   db: ReturnType<typeof createDbFromEnv>,
@@ -134,9 +123,15 @@ customImportRoutes.post("/import-custom", async (c) => {
   const storage = createStorageFromEnv(c.env);
   const seq = 1;
   const htmlKey = `landing-pages/${landingPage.id}/v${seq}/index.html`;
+  const { html: canvasHtml, srcmapKey } = await tryStampForCanvas(
+    storage,
+    landingPage.id,
+    seq,
+    finalHtml
+  );
   await storage.put({
     key: htmlKey,
-    body: finalHtml,
+    body: canvasHtml,
     contentType: "text/html"
   });
 
@@ -144,7 +139,7 @@ customImportRoutes.post("/import-custom", async (c) => {
     landingPageId: landingPage.id,
     seq,
     htmlKey,
-    srcmapKey: null,
+    srcmapKey,
     origin: "import",
     patch: null,
     chatMessageId: null,
@@ -161,7 +156,7 @@ customImportRoutes.post("/import-custom", async (c) => {
   );
   if (!updated) throw new ApiError(500, "landing_page_create_failed");
 
-  const detectedForms = detectImportForms(finalHtml);
+  const detectedForms = detectImportForms(canvasHtml);
   await customPageBundlesRepository.insert(db, orgId, {
     landingPageId: landingPage.id,
     sourceKind,
@@ -175,7 +170,7 @@ customImportRoutes.post("/import-custom", async (c) => {
     importCustomPageResponseSchema.parse({
       ...updated,
       currentVersion: version,
-      funnelGaps: detectFunnelGaps(finalHtml),
+      funnelGaps: detectFunnelGaps(canvasHtml),
       detectedForms
     }),
     201
@@ -237,7 +232,10 @@ customImportRoutes.post("/:id/wire-lead-form", async (c) => {
 
   const newVersion = await insertVersionAndActivate(db, orgId, id, seq, {
     htmlKey,
-    srcmapKey: null,
+    // Carries over unchanged — this route only tags/renames form fields, it never adds/removes
+    // the elements `stampSrcmap` tagged, so whatever the current version's srcmap validity is
+    // stays true here too (mirrors `versions.routes.ts`'s revert-version carry-over).
+    srcmapKey: version.srcmapKey,
     origin: "manual",
     patch: null,
     chatMessageId: null,
@@ -297,15 +295,21 @@ customImportRoutes.post("/:id/reupload-custom", async (c) => {
   );
   const seq = (versions[0]?.seq ?? 0) + 1;
   const htmlKey = `landing-pages/${id}/v${seq}/index.html`;
+  const { html: canvasHtml, srcmapKey } = await tryStampForCanvas(
+    storage,
+    id,
+    seq,
+    finalHtml
+  );
   await storage.put({
     key: htmlKey,
-    body: finalHtml,
+    body: canvasHtml,
     contentType: "text/html"
   });
 
   const version = await insertVersionAndActivate(db, orgId, id, seq, {
     htmlKey,
-    srcmapKey: null,
+    srcmapKey,
     origin: "import",
     patch: null,
     chatMessageId: null,
@@ -313,7 +317,7 @@ customImportRoutes.post("/:id/reupload-custom", async (c) => {
     createdBy: null
   });
 
-  const detectedForms = detectImportForms(finalHtml);
+  const detectedForms = detectImportForms(canvasHtml);
   const bundle = await customPageBundlesRepository.findByLandingPage(
     db,
     orgId,
@@ -334,7 +338,7 @@ customImportRoutes.post("/:id/reupload-custom", async (c) => {
     importCustomPageResponseSchema.parse({
       ...(await landingPagesRepository.findById(db, orgId, id)),
       currentVersion: version,
-      funnelGaps: detectFunnelGaps(finalHtml),
+      funnelGaps: detectFunnelGaps(canvasHtml),
       detectedForms
     }),
     201
@@ -431,209 +435,6 @@ customImportRoutes.post("/:id/custom-chat/apply", async (c) => {
 
   return c.json(
     customChatApplyResultSchema.parse({ version: newVersion, results })
-  );
-});
-
-// `page-system/custom-import.md` §Editing "Convert sang native" — 1-way. Splits the raw HTML
-// into sections, classifies each against the real catalog (1 batched call — classification
-// benefits from seeing every section together), then extracts content per matched section in
-// parallel (Content-Agent-style, narrow/independent). Anything unmatched, or that fails its own
-// component's Zod validation after extraction, becomes `raw_html_block` instead of blocking the
-// whole conversion or forcing a bad fit.
-customImportRoutes.post("/:id/convert-to-native", async (c) => {
-  const db = createDbFromEnv(c.env);
-  const orgId = requireOrgId(c);
-  const id = c.req.param("id");
-  const { version } = await requireCustomImportVersion(db, orgId, id);
-
-  const storage = createStorageFromEnv(c.env);
-  const object = await storage.get(version.htmlKey as string);
-  if (!object) throw new ApiError(404, "html_not_found");
-  const html = await new Response(object.body).text();
-
-  const sections = splitIntoSections(html);
-  if (sections.length === 0) throw new ApiError(409, "no_sections_to_convert");
-
-  const connectionId = await resolveGenerateConnectionId(db, orgId);
-  const classifySystem = compileClassifySectionsPrompt({
-    catalog: architectCatalogSummary,
-    sections
-  });
-  const classifyResult = await runModelCompletion(
-    db,
-    c.env,
-    orgId,
-    connectionId,
-    "generate",
-    [
-      { role: "system", content: classifySystem },
-      { role: "user", content: "Phân loại từng section ở trên." }
-    ]
-  );
-  const classifySchema = z.object({
-    sections: z.array(
-      z.object({
-        index: z.number().int(),
-        componentId: z.string().nullable(),
-        variant: z.string().nullable(),
-        reason: z.string()
-      })
-    )
-  });
-  const classified = extractJson(classifyResult.text, classifySchema);
-  const classificationByIndex = new Map(
-    classified.sections.map((s) => [s.index, s])
-  );
-
-  const converted = await Promise.all(
-    sections.map(async (section) => {
-      const classification = classificationByIndex.get(section.index);
-      const componentId = classification?.componentId ?? null;
-      const meta = componentId ? componentMetaById.get(componentId) : undefined;
-      const variant = classification?.variant ?? undefined;
-      const componentEntry = componentId
-        ? catalogComponents[componentId]
-        : undefined;
-
-      const confidentMatch =
-        componentId &&
-        meta &&
-        componentEntry &&
-        (meta.variants.length === 0 ||
-          (variant && meta.variants.includes(variant)));
-
-      if (!confidentMatch) {
-        return {
-          index: section.index,
-          elementId: `raw_html_block-${crypto.randomUUID().slice(0, 8)}`,
-          element: {
-            type: "raw_html_block",
-            props: { html: section.html },
-            children: [] as string[]
-          },
-          fallback: true
-        };
-      }
-
-      const extractSystem = compileExtractContentPrompt({
-        componentId,
-        variant: variant ?? "",
-        sectionHtml: section.html,
-        propsJsonSchema: componentEntry.props.toJSONSchema()
-      });
-      const extractResult = await runModelCompletion(
-        db,
-        c.env,
-        orgId,
-        connectionId,
-        "patch",
-        [
-          { role: "system", content: extractSystem },
-          {
-            role: "user",
-            content: `Trích xuất nội dung cho ${componentId}.`
-          }
-        ]
-      );
-      const rawProps = extractJson(
-        extractResult.text,
-        z.record(z.string(), z.unknown())
-      );
-      const validated = componentEntry.props.safeParse(rawProps);
-      const elementId = `${componentId}-${crypto.randomUUID().slice(0, 8)}`;
-      if (validated.success) {
-        return {
-          index: section.index,
-          elementId,
-          element: {
-            type: componentId,
-            props: validated.data as Record<string, unknown>,
-            children: [] as string[]
-          },
-          fallback: false
-        };
-      }
-      return {
-        index: section.index,
-        elementId,
-        element: {
-          type: "raw_html_block",
-          props: { html: section.html },
-          children: [] as string[]
-        },
-        fallback: true
-      };
-    })
-  );
-  converted.sort((a, b) => a.index - b.index);
-
-  const elements: Record<
-    string,
-    { type: string; props: Record<string, unknown>; children: string[] }
-  > = {};
-  const rootChildren: string[] = [];
-  let sectionsConverted = 0;
-  let sectionsFallback = 0;
-  for (const entry of converted) {
-    elements[entry.elementId] = entry.element;
-    rootChildren.push(entry.elementId);
-    if (entry.fallback) sectionsFallback++;
-    else sectionsConverted++;
-  }
-  elements["page-root"] = {
-    type: "page_root",
-    props: {},
-    children: rootChildren
-  };
-
-  const versions = await pageVersionsRepository.listByLandingPage(
-    db,
-    orgId,
-    id
-  );
-  const seq = (versions[0]?.seq ?? 0) + 1;
-  const newVersion = await pageVersionsRepository.insert(db, orgId, {
-    landingPageId: id,
-    seq,
-    htmlKey: null,
-    srcmapKey: null,
-    origin: "ai_full",
-    patch: null,
-    chatMessageId: null,
-    label: "convert-to-native",
-    createdBy: c.get("userId") ?? null,
-    spec: {
-      pageSpec: { root: "page-root", elements },
-      tokens: DEFAULT_DESIGN_TOKENS
-    }
-  });
-  if (!newVersion) throw new ApiError(500, "page_version_create_failed");
-
-  const updatedLandingPage = await landingPagesRepository.update(
-    db,
-    orgId,
-    id,
-    { currentVersionId: newVersion.id, source: "manual" }
-  );
-  if (!updatedLandingPage)
-    throw new ApiError(500, "landing_page_create_failed");
-  await syncEventDefinitions(
-    db,
-    orgId,
-    id,
-    newVersion.id,
-    elements,
-    rootChildren
-  );
-
-  return c.json(
-    convertToNativeResultSchema.parse({
-      landingPage: updatedLandingPage,
-      version: newVersion,
-      sectionsConverted,
-      sectionsFallback
-    }),
-    201
   );
 });
 

@@ -51,7 +51,7 @@ async function requireOwnedRef(
 }
 
 /** Authenticated byte stream — same pattern as `/api/landings/:id/assets/:assetId/file`
- * (no R2 presign infra); the dashboard renders it directly as an `<img src>`. */
+ * (no R2 presign infra); the app renders it directly as an `<img src>`. */
 entityImagesRoutes.get("/:ownerType/:ownerId/:kind", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);

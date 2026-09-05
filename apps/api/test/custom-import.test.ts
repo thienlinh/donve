@@ -1,11 +1,22 @@
-import { describe, expect, it } from "vitest";
+import type { storage } from "@dv/drivers";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   applyCustomChatEdits,
   detectImportForms,
-  splitIntoSections,
+  tryStampForCanvas,
   wireLeadForm
 } from "../src/lib/custom-import.js";
+
+function fakeStorage() {
+  const put = vi.fn().mockResolvedValue({ key: "x", size: 0 });
+  const driver: storage.StorageDriver = {
+    put,
+    get: vi.fn().mockResolvedValue(null),
+    delete: vi.fn().mockResolvedValue(undefined)
+  };
+  return { driver, put };
+}
 
 describe("detectImportForms", () => {
   it("finds every form and its named fields", () => {
@@ -19,6 +30,15 @@ describe("detectImportForms", () => {
     expect(forms[0]?.selector).toBe("import-form-0");
     expect(forms[0]?.fields.map((f) => f.name)).toEqual(["Name", "Phone"]);
     expect(forms[1]?.fields).toEqual([]);
+  });
+
+  it("falls back to id when a field has no name attribute", () => {
+    const html = `<html><body>
+      <form><input id="f-name" type="text"/><input id="f-phone"/></form>
+    </body></html>`;
+
+    const forms = detectImportForms(html);
+    expect(forms[0]?.fields.map((f) => f.name)).toEqual(["f-name", "f-phone"]);
   });
 });
 
@@ -36,6 +56,18 @@ describe("wireLeadForm", () => {
     expect(result).toContain('name="fullName"');
     expect(result).toContain('name="phone"');
     expect(result).not.toContain('name="Name"');
+  });
+
+  it("wires an id-only field (no name attribute) by matching on id", () => {
+    const idOnlyHtml = `<html><body>
+      <form><input id="f-name" type="text"/><input id="f-phone"/></form>
+    </body></html>`;
+    const result = wireLeadForm(idOnlyHtml, "import-form-0", {
+      fullName: "f-name",
+      phone: "f-phone"
+    });
+    expect(result).toContain('name="fullName"');
+    expect(result).toContain('name="phone"');
   });
 
   it("injects consent and honeypot fields when missing", () => {
@@ -58,21 +90,37 @@ describe("wireLeadForm", () => {
   });
 });
 
-describe("splitIntoSections", () => {
-  it("returns 1 entry per direct body child, skipping non-content tags", () => {
-    const html = `<html><body>
-      <script>void 0;</script>
-      <section id="a">A</section>
-      <div id="b">B</div>
-    </body></html>`;
+describe("tryStampForCanvas", () => {
+  it("stamps data-cc-ids, writes a srcmap JSON object, and returns a non-null srcmapKey", async () => {
+    const { driver, put } = fakeStorage();
+    const html = "<html><body><h1>Hello</h1></body></html>";
 
-    const sections = splitIntoSections(html);
-    expect(sections).toHaveLength(2);
-    expect(sections[0]).toEqual({
-      index: 0,
-      html: '<section id="a">A</section>'
-    });
-    expect(sections[1]).toEqual({ index: 1, html: '<div id="b">B</div>' });
+    const result = await tryStampForCanvas(driver, "lp-1", 1, html);
+
+    expect(result.srcmapKey).toBe(
+      "landing-pages/lp-1/v1/index.html.srcmap.json"
+    );
+    expect(result.html).toContain("data-cc-id");
+    // autoNameLayers runs after stampSrcmap — a heading gets a friendly data-cc-name, not just
+    // a raw data-cc-id.
+    expect(result.html).toContain('data-cc-name="Heading: Hello"');
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(put).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: "landing-pages/lp-1/v1/index.html.srcmap.json",
+        contentType: "application/json"
+      })
+    );
+  });
+
+  it("falls back to srcmapKey: null on genuinely unparseable input, without throwing", async () => {
+    const { driver, put } = fakeStorage();
+
+    const result = await tryStampForCanvas(driver, "lp-1", 1, "");
+
+    expect(result.srcmapKey).toBeNull();
+    expect(result.html).toBe("");
+    expect(put).not.toHaveBeenCalled();
   });
 });
 

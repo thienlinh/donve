@@ -17,7 +17,7 @@ Visitor ──▶ Cloudflare edge-router Worker (*.donve.vn)
               KV: hostname → deployment_id | R2: deployments/<id>/{html,assets}
               Cache API (edge cache) | /e/* event beacon
                                           │
-Tenant ──▶ dashboard (Vite SPA, CF Pages) │ HTTPS/JSON + SSE
+Tenant ──▶ DonVe app (Vite SPA, CF Pages)          │ HTTPS/JSON + SSE
                                           ▼
                  api (Hono) — CF Workers or Bun/VPS
                    modules: auth, orgs, studio, campaigns, products,
@@ -34,7 +34,7 @@ Tenant ──▶ dashboard (Vite SPA, CF Pages) │ HTTPS/JSON + SSE
 
 Full details and package-manager rules in `.claude/rules/tech-stack.md`. Summary:
 
-- `apps/dashboard` — Vite SPA (TanStack Router/Query), talks to `api` over HTTPS/SSE.
+- `apps/donve` — Vite SPA (TanStack Router/Query), talks to `api` over HTTPS/SSE.
 - `apps/api` — Hono, two entrypoints (`workers.ts` CF / `bun.ts` VPS), same business code.
 - `apps/edge-router` — CF Worker serving published landings (KV+R2+Cache), never touches Postgres.
 - `apps/landing-runtime` — the one compiled package (IIFE via tsdown), injected into published HTML.
@@ -67,11 +67,11 @@ Primary keys are native Postgres 18 `uuid` columns, default `uuidv7()` (`package
 - **`platform_staff` table** (`packages/db/src/schema/platform.ts`) — platform-level roles (`support`, `billing_ops`, `platform_admin`), deliberately _not_ a column on `memberships`: staff aren't scoped to one org. Granted via CLI (`bun run grant-platform-staff <email>`), not self-service.
 - **Cross-tenant read via RLS, never write:** a second _permissive_ policy, `platformReadPolicy()`, ORs onto the same tables as `orgIsolationPolicy()` but is `for: "select"` only — `current_setting('app.is_platform_admin') = 'true'` unlocks reading every org's rows, while INSERT/UPDATE/DELETE still only ever pass through the org-scoped policy. There is no "write as platform admin" bypass — writing on behalf of a tenant still goes through `withOrgScope(targetOrgId, ...)` like any normal tenant write, from a specific business endpoint (disable org, refund-assist), always audited to `platform_audit_logs`.
 - **`withPlatformScope`** (`packages/db/src/platform-scope.ts`) mirrors `withOrgScope` — same same-transaction requirement, sets `app.is_platform_admin` instead of `app.current_org`. Read-only use.
-- Routes live at `/platform/*` in the existing `apps/api`/`apps/dashboard` (hidden route, no nav entry) — no separate `apps/admin` app; only split out if a real isolation need shows up later.
+- Routes live at `/platform/*` in the existing `apps/api`/`apps/donve` (hidden route, no nav entry) — no separate `apps/admin` app; only split out if a real isolation need shows up later.
 
 ## 7. Key request flows
 
-**AI edit** — `dashboard → POST /ai/chat` (stream) → api loads org's AI connection, compiles system prompt (base + skills + srcmap context), streams from provider → on tool call `apply_patch`: api validates ops via `studio-core` server-side, applies to current HTML, creates a `page_version`, returns the patch over SSE → client applies the same patch to the DOM (optimistic) and pushes to the undo stack.
+**AI edit** — `DonVe app → POST /ai/chat` (stream) → api loads org's AI connection, compiles system prompt (base + skills + srcmap context), streams from provider → on tool call `apply_patch`: api validates ops via `studio-core` server-side, applies to current HTML, creates a `page_version`, returns the patch over SSE → client applies the same patch to the DOM (optimistic) and pushes to the undo stack.
 
 **Publish** — Postgres (source of truth for state) and KV (source of truth for serving) are separate stores kept in sync via an **outbox pattern**: `POST /publish` creates a `deployments` row (`status=building`) → build job sanitizes/minifies/hashes assets, uploads to R2 (immutable), writes a `publish_outbox` row → a worker applies the KV hostname pointer → on success, both `deployments.status=live` and `publish_outbox.status=applied` flip together. A partial unique index on `deployments(hostname) WHERE status='live'` prevents two "live" rows for the same hostname under concurrent publishes. Rollback reuses the same outbox path (new row pointing `targetDeployId` at the old deployment) rather than a direct KV write, so reconciliation/audit stay consistent. Root-document HTML is never cached at the edge (`Cache-Control: no-store`) so rollback takes effect immediately without a purge step; content-hashed assets cache forever.
 

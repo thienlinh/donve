@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "fulfillment_config" jsonb DEFAULT '{}'::jsonb NOT NULL;

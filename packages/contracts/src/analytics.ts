@@ -3,7 +3,7 @@ import { z } from "zod";
 import { orgIdSchema, idSchema } from "./common.js";
 
 export const eventTypeValues = [
-  // Legacy beacon types (existing campaign-analytics dashboard buckets on these — kept, not
+  // Legacy beacon types (existing campaign-analytics buckets depend on these — kept, not
   // renamed, so already-published pages/cached runtime bundles keep working).
   "view",
   "submit",
@@ -22,9 +22,11 @@ export const eventTypeValues = [
   "pricing_viewed",
   "faq_opened",
   "outbound_link_clicked",
-  // Offline conversion loop (`tracking-and-attribution.md` §Conversion hierarchy) — written
-  // server-side when a lead's CRM stage changes, not from the client beacon.
-  "lead_stage_changed"
+  "lead_stage_changed",
+  "share_link_created",
+  "offer_published",
+  "test_lead_submitted",
+  "source_compared"
 ] as const;
 export const eventTypeSchema = z.enum(eventTypeValues);
 export type EventType = z.infer<typeof eventTypeSchema>;
@@ -36,13 +38,18 @@ export const utmSourceValues = [
   "google",
   "meta",
   "linkedin",
-  "newsletter"
+  "newsletter",
+  "tiktok",
+  "facebook",
+  "zalo",
+  "direct"
 ] as const;
 export const utmMediumValues = [
   "cpc",
   "paid_social",
   "email",
-  "organic"
+  "organic",
+  "referral"
 ] as const;
 
 export const landingUtmSchema = z.strictObject({
@@ -136,3 +143,45 @@ export const campaignAnalyticsSchema = z.object({
   bySource: z.array(campaignAnalyticsSourceSchema)
 });
 export type CampaignAnalytics = z.infer<typeof campaignAnalyticsSchema>;
+
+export const sourceLinkSchema = z.object({
+  id: idSchema,
+  orgId: orgIdSchema,
+  campaignId: idSchema,
+  landingPageId: idSchema.nullable(),
+  name: z.string().min(1).max(80),
+  key: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9-]*$/)
+    .max(60),
+  utmSource: z.enum(utmSourceValues),
+  utmMedium: z.enum(utmMediumValues),
+  utmCampaign: z.string().min(1).max(120),
+  utmContent: z.string().min(1).max(120),
+  utmTerm: z.string().max(120).nullable(),
+  targetUrl: z.url(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date()
+});
+export type SourceLink = z.infer<typeof sourceLinkSchema>;
+
+export const createSourceLinkSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  key: z
+    .string()
+    .trim()
+    .min(1)
+    .max(60)
+    .regex(/^[a-z0-9][a-z0-9-]*$/),
+  landingPageId: idSchema.optional(),
+  utmSource: z.enum(utmSourceValues),
+  utmMedium: z.enum(utmMediumValues),
+  utmCampaign: z.string().trim().min(1).max(120),
+  utmContent: z.string().trim().min(1).max(120),
+  utmTerm: z.string().trim().max(120).optional()
+});
+export type CreateSourceLinkInput = z.infer<typeof createSourceLinkSchema>;
+
+export const sourceLinkListResponseSchema = z.object({
+  links: z.array(sourceLinkSchema)
+});

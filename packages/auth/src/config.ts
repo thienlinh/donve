@@ -34,7 +34,7 @@ export interface AuthConfig {
    */
   email?: {
     sender: email.EmailSender;
-    /** dashboard origin — verify/reset links redirect here after the backend handles the token. */
+    /** App origin — verify/reset links redirect here after the backend handles the token. */
     appURL: string;
   };
 }
@@ -135,7 +135,7 @@ export function createAuth(config: AuthConfig) {
         // `advanced.backgroundTasks.handler` is configured, which we don't set) — same as
         // sendResetPassword/sendVerificationEmail above, so a Resend failure here surfaces the
         // same way those do (caught below, logged, response still succeeds since invite creation
-        // already committed). The link deep-links into /accept-invite (apps/dashboard), which
+        // already committed). The link deep-links into /accept-invite (apps/donve), which
         // sends an unauthenticated visitor through /login (or /signup) first and resumes the
         // accept once a session exists.
         sendInvitationEmail: async (data) => {

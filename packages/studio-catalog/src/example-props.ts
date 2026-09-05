@@ -48,6 +48,14 @@ export const exampleProps: Record<string, Record<string, unknown>> = {
     image,
     variant: "image_right"
   },
+  hero_video: {
+    headline: "Xem sản phẩm hoạt động trong 60 giây",
+    subheadline: "Demo nhanh các tính năng chính trước khi đăng ký",
+    ctaLabel: "Bắt đầu",
+    ctaHref: "/signup",
+    embedUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    variant: "youtube"
+  },
   nav_bar: {
     logoText: "DonVe",
     links: [{ label: "Giá", href: "#pricing" }],
@@ -364,6 +372,37 @@ export const exampleProps: Record<string, Record<string, unknown>> = {
     image,
     caption: "Ảnh sản phẩm",
     variant: "image"
+  },
+  blog_article_grid: {
+    heading: "Bài viết mới nhất",
+    articles: [
+      {
+        title: "5 mẹo tối ưu landing page",
+        excerpt: "Những thay đổi nhỏ giúp tăng tỉ lệ chuyển đổi.",
+        image,
+        href: "/blog/toi-uu-landing-page",
+        tag: "Mẹo",
+        date: "12/08/2026"
+      },
+      {
+        title: "So sánh AI content agent và tự viết tay",
+        excerpt: "Khi nào nên để AI viết, khi nào cần con người.",
+        image,
+        href: "/blog/ai-vs-tu-viet",
+        tag: "Sản phẩm",
+        date: "01/08/2026"
+      }
+    ],
+    variant: "grid_3col"
+  },
+  map_location: {
+    heading: "Ghé thăm chúng tôi",
+    address: "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
+    mapEmbedUrl: "https://www.google.com/maps/embed?pb=example",
+    hours: ["Thứ 2 - Thứ 6: 8:00 - 18:00", "Thứ 7: 8:00 - 12:00"],
+    phone: "0901234567",
+    email: "hi@donve.com",
+    variant: "side_by_side"
   },
   countdown_timer: {
     headline: "Ưu đãi kết thúc sau",

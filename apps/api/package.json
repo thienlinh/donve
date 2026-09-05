@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/bun.ts",
+    "dev": "bun --env-file=.env.local --hot src/bun.ts",
     "dev:workers": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "seed:accounts": "bun run src/seed-accounts.ts",

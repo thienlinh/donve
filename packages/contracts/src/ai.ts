@@ -91,8 +91,8 @@ export type ConnectAiConnectionInput = z.infer<
  * the key the user just typed, before they've committed to connecting it. Same shape as
  * `connectAiConnectionSchema` minus `defaultModel` (that's what this call is choosing).
  * `apiKey` is optional because OpenRouter's and NVIDIA NIM's model catalogs are public
- * (verified: both return 200 with no Authorization header at all) — the dashboard fetches
- * those the moment the provider is picked, before the user has typed any key.
+ * (verified: both return 200 with no Authorization header at all) — the app fetches those the
+ * moment the provider is picked, before the user has typed any key.
  */
 export const listAiModelsSchema = z.object({
   provider: byokProviderSchema,

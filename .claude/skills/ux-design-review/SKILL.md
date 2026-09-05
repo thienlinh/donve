@@ -11,7 +11,7 @@ State a verdict first: **Solid** (minor refinements), **Needs work** (usability 
 
 ## Pick the strongest lens for the context
 
-- **Usability & conversion** — existing UI/flows (most dashboard pages, any landing page CTA flow).
+- **Usability & conversion** — existing app flows, any landing page CTA flow.
 - **Visual craft** — already-polished interfaces needing a final pass.
 - **Accessibility** — WCAG-specific concerns (pair with `ai-friendly-web-design` skill).
 - **Research & framing** — ambiguous/new feature, use the Double Diamond (Discover/Define/Develop/Deliver) to locate which phase the work is in.

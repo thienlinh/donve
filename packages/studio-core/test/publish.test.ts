@@ -36,6 +36,39 @@ describe("buildPublishArtifacts", () => {
     expect(out.html).toContain("window.__DV__");
   });
 
+  it("rewrites both <video src> and <video poster>, not just poster", async () => {
+    const videoBytes = new TextEncoder().encode("fake-mp4-bytes");
+    const posterBytes = new TextEncoder().encode("fake-poster-bytes");
+    const html =
+      `<html><head><title>T</title></head><body>` +
+      `<video src="/original/clip.mp4" poster="/original/poster.webp"></video>` +
+      `</body></html>`;
+
+    const out = await buildPublishArtifacts({
+      html,
+      assets: [
+        {
+          originalUrl: "/original/clip.mp4",
+          bytes: videoBytes,
+          mime: "video/mp4"
+        },
+        {
+          originalUrl: "/original/poster.webp",
+          bytes: posterBytes,
+          mime: "image/webp"
+        }
+      ],
+      hostname: "x.donve.vn",
+      title: "T",
+      runtimeConfig: { orgId: "org_1", campaignId: null, deployId: "dep_1" }
+    });
+
+    expect(out.html).not.toContain("/original/clip.mp4");
+    expect(out.html).not.toContain("/original/poster.webp");
+    expect(out.html).toMatch(/<video src="\/assets\/[0-9a-f]{16}\.mp4"/);
+    expect(out.html).toMatch(/poster="\/assets\/[0-9a-f]{16}\.webp"/);
+  });
+
   it("uploads the runtime bundle as a content-hashed, deferred script when provided", async () => {
     const runtimeBytes = new TextEncoder().encode("console.log('runtime')");
     const out = await buildPublishArtifacts({

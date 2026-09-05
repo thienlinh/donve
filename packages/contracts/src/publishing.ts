@@ -117,7 +117,7 @@ const RESERVED_SUBDOMAINS = new Set([
   "static",
   "assets",
   "blog",
-  "dashboard",
+  "app",
   "dev",
   "test",
   "ns1",

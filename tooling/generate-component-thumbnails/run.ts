@@ -2,8 +2,8 @@
 /**
  * Generates a static palette thumbnail PNG per catalog component (`@dv/studio-catalog`'s
  * `registry`) for the Puck editor's drag-drop block palette
- * (`apps/dashboard/src/features/studio-native/components/studio-native-page.tsx`, `drawerItem`
- * override) — one-off, convention-based output (`apps/dashboard/public/component-thumbnails/
+ * (`apps/donve/src/features/studio-native/components/studio-native-page.tsx`, `drawerItem`
+ * override) — one-off, convention-based output (`apps/donve/public/component-thumbnails/
  * {componentId}.png`), not a DB/schema field.
  *
  * Reuses `tooling/seed-templates/run.ts`'s render+screenshot recipe: `@dv/studio-render`'s
@@ -20,7 +20,7 @@ import { renderPageArtifact } from "@dv/studio-render";
 import { chromium } from "@playwright/test";
 
 const OUTPUT_DIR = fileURLToPath(
-  new URL("../../apps/dashboard/public/component-thumbnails/", import.meta.url)
+  new URL("../../apps/donve/public/component-thumbnails/", import.meta.url)
 );
 
 // Small palette tile, not a full-page screenshot — wide enough for the component's own layout

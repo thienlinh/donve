@@ -9,9 +9,10 @@ export {
 export { pickMaxOutputTokens, pickModel } from "./model-tiering.js";
 export type { AiUseCase } from "./model-tiering.js";
 export { getProvider } from "./providers/registry.js";
-export { collectStream } from "./providers/shared.js";
+export { AiStreamError, collectStream } from "./providers/shared.js";
 export type {
   AIProvider,
+  AiErrorCode,
   ByokProviderId,
   ChatMessage,
   ChatRequest,

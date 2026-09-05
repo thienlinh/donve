@@ -8,7 +8,7 @@ Source: https://github.com/ianho7/ai-friendly-web-design-skill
 ## Principles
 
 - Semantic HTML before ARIA; native elements before custom widgets.
-- Map user tasks before proposing components — explicitly design loading, error, empty, and success states for every data view (relevant across nearly every `apps/dashboard/src/features/*` list/table page).
+- Map user tasks before proposing components — explicitly design loading, error, empty, and success states for every data view (relevant across nearly every `apps/donve/src/features/*` list/table page).
 
 ## Non-negotiables
 
@@ -20,7 +20,7 @@ Source: https://github.com/ianho7/ai-friendly-web-design-skill
 
 ## Review output format
 
-Severity-labeled (High/Medium/Low), explain the accessibility/automation impact, give a concrete fix — not abstract advice. Use this format when reviewing dashboard pages post-redesign.
+Severity-labeled (High/Medium/Low), explain the accessibility/automation impact, give a concrete fix — not abstract advice. Use this format when reviewing app pages post-redesign.
 
 ## Refactor mode
 

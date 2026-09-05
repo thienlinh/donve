@@ -1,6 +1,6 @@
 # Donve — Content-Ops CRM Platform
 
-CRM Dashboard + AI Landing Page Studio + Checkout/Payment Automation cho non-tech creator VN. Kiến trúc/quyết định sản phẩm: [`docs/architecture/architecture.md`](docs/architecture/architecture.md) + [`docs/product/business.md`](docs/product/business.md) — đọc trước nếu cần hiểu bức tranh lớn. File này chỉ để **chạy dự án trên máy bạn và tự verify việc đã làm**.
+DonVe là nền tảng vận hành phễu bán hàng cho creator Việt Nam: AI tạo trang bán hàng, gom lead, đối soát thanh toán và theo dõi việc giao sản phẩm. Kiến trúc: [`docs/architecture/architecture.md`](docs/architecture/architecture.md). Định hướng sản phẩm: [`docs/product/thesis.md`](docs/product/thesis.md) · [`docs/product/roadmap.md`](docs/product/roadmap.md) · [`docs/product/decisions.md`](docs/product/decisions.md). File này chỉ để **chạy dự án trên máy bạn và tự verify việc đã làm**.
 
 ## Yêu cầu môi trường
 
@@ -20,16 +20,16 @@ Stack local dùng docker-compose (Postgres + Redis container trên máy bạn) �
 ```bash
 docker compose up -d        # postgres:18 (đã wired) + valkey (chuẩn bị cho sau này, xem ghi chú dưới)
 cp apps/api/.env.example apps/api/.env.local
-cp apps/dashboard/.env.example apps/dashboard/.env.local
+cp apps/donve/.env.example apps/donve/.env.local
 # DATABASE_URL=postgres://donve:donve@localhost:5432/donve  (đúng user/pass/db mặc định trong docker-compose.yml)
 # BETTER_AUTH_SECRET: chuỗi random bất kỳ (openssl rand -hex 32)
 # RESEND_API_KEY: để trống là được — flow verify/invite email sẽ log ra console thay vì gửi thật
 DATABASE_URL=postgres://donve:donve@localhost:5432/donve bun run --filter=@dv/db db:migrate
 # ^ packages/db đọc thẳng process.env.DATABASE_URL (drizzle.config.ts) — không tự đọc apps/api/.env.local, nên phải set inline như trên
-bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + apps/dashboard (:5173) + apps/edge-router (wrangler dev, :8787)
+bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + apps/donve (:5173) + apps/edge-router (wrangler dev, :8787)
 ```
 
-> `apps/edge-router` chạy qua `wrangler dev` (local simulated KV/R2, không cần tài khoản CF) — `src/index.ts` hiện mới là placeholder (KV lookup + R2 serve + Cache API + `/e/*` beacon chưa implement, xem `docs/architecture/architecture.md` §5), nên request thật sẽ chưa trả gì cho tới khi route được viết. `wrangler.jsonc` dùng binding id giả (`dev-placeholder`) chỉ để `wrangler dev` boot được — không cần thay cho tới khi bắt đầu implement routing thật.
+> `apps/edge-router` chạy qua `wrangler dev` (local simulated KV/R2). Worker hiện phục vụ landing đã publish, SEO files và event beacon; các binding id giả (`dev-placeholder`) chỉ để `wrangler dev` boot được local.
 
 > `packages/db` có 2 driver: `neon-http` (dùng khi deploy CF Workers, đọc `DATABASE_URL` dạng Neon) và `postgres-js` (dùng cho Bun/VPS/local, đọc `DATABASE_URL` Postgres thường) — driver được chọn qua env, không đổi code khi đổi môi trường. Container Postgres ở trên đã đủ để chạy toàn bộ flow auth/org (`/api/auth/*`, không rate-limit) hoàn toàn offline, không cần Neon/Upstash.
 >
@@ -37,7 +37,7 @@ bun run dev                 # turbo chạy song song apps/api (bun.ts, :3000) + 
 
 ## Debug lỗi thường gặp khi chạy local
 
-- **Request từ dashboard trả 404, URL có dạng `localhost:5173/api/...`**: `apps/dashboard/.env.local` sai `VITE_API_URL` (đang trỏ vào chính Vite dev server thay vì API `:3000`). Sửa lại `VITE_API_URL=http://localhost:3000` rồi restart `bun run dev` — Vite không luôn hot-reload biến `import.meta.env` giữa chừng.
+- **Request từ app web trả 404, URL có dạng `localhost:5173/api/...`**: `apps/donve/.env.local` sai `VITE_API_URL` (đang trỏ vào chính Vite dev server thay vì API `:3000`). Sửa lại `VITE_API_URL=http://localhost:3000` rồi restart `bun run dev` — Vite không luôn hot-reload biến `import.meta.env` giữa chừng.
 - **API log `password authentication failed for user "<tên máy bạn>"`**: `apps/api/.env.local` chưa tồn tại hoặc `DATABASE_URL` để trống — driver `postgres-js` fallback về user hệ điều hành thay vì user `donve` trong docker-compose. Tạo file từ `cp apps/api/.env.example apps/api/.env.local` và điền `DATABASE_URL=postgres://donve:donve@localhost:5432/donve`.
 - **`bun run --filter=@dv/db db:migrate` báo `url: undefined`**: `packages/db/drizzle.config.ts` đọc thẳng `process.env.DATABASE_URL`, không tự đọc `apps/api/.env.local` — phải set inline như lệnh ở mục "Chạy local dev" trên.
 - **`apps/edge-router` (`wrangler dev`) báo "Missing entry-point"**: thiếu `wrangler.jsonc` — đã có sẵn trong repo, nếu vẫn gặp nghĩa là file bị xoá/chưa pull.

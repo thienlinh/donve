@@ -103,7 +103,22 @@ Output ONLY the complete raw HTML document — starting with <!DOCTYPE html>, en
 code fences, no commentary before or after, no explanation of what you did.
 
 The document must be a single self-contained file: inline all CSS in one <style> tag inside <head> (or inline
-"style" attributes) — no external stylesheets, no <script> tags, no CSS/JS frameworks or CDN links.
+"style" attributes) — no external stylesheets, no <script> tags, no CSS/JS frameworks or CDN links. The one
+exception: a single Google Fonts stylesheet link (plus its two required preconnect links) to load a real,
+deliberately chosen typeface instead of the browser default — e.g.
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=...&display=swap" rel="stylesheet">
+Only one such link is allowed (matches \`cwv-budget\`'s "không quá 1 web font" budget) and it must be a Google
+Fonts family that ships a Vietnamese subset (Vietnamese diacritics must render correctly) — e.g. Be Vietnam
+Pro, Inter, Sora, Manrope, Plus Jakarta Sans, Montserrat, Playfair Display, Lora, Nunito Sans.
+
+Design a real, specific visual system before writing any markup — do not default to a generic gradient hero,
+a grid of identical icon cards, or the browser's default font. Lock a concrete palette (4-6 named hex
+colors), the one Google Fonts family above for headings plus a system-safe fallback stack for body text if a
+second web font isn't worth the budget, and a consistent border/shadow/corner-radius treatment that matches
+the brand's actual personality. See the \`Thiết kế trực quan — tránh giao diện AI chung chung\` skill (loaded
+below when enabled) for the full technique and the specific don'ts.
 
 Image sourcing rules, in strict priority order (FR-B-32/33/34):
 1. If a tenant-uploaded image listed below fits the context, reference its exact URL directly in "src".
@@ -111,7 +126,21 @@ Image sourcing rules, in strict priority order (FR-B-32/33/34):
    <img data-cc-need-image="short description of the image needed, in the page's language" alt="...">
    (no "src" attribute). A human will be asked to confirm a licensed stock photo (Unsplash/Pexels) for each
    placeholder before one is ever inserted — that confirmation step happens outside this generation, not here.
-3. Never generate images yourself — AI image generation is disabled in this product for v1.`;
+3. Never generate images yourself — AI image generation is disabled in this product for v1.
+
+Lead capture (required on every page): always include exactly one lead-capture form so the platform's own
+runtime script can bind a submit handler to it — without this, the page silently cannot record leads. Kept
+in sync by hand with \`packages/db/src/seed.ts\`'s \`PROMPT_CONSTRAINTS\` (the prompt-library gallery's own
+copy of this same requirement) — update both together if this ever changes.
+1. Tag the <form> with the attribute data-dv-form="lead", e.g. <form data-dv-form="lead">.
+2. Give its inputs these exact "name" attributes: "fullName" (text), "phone" (tel), "email" (email). A
+   "persona" field (e.g. a select for role/segment) is optional — include it only where it fits the page's
+   actual content.
+3. Include a "consent" checkbox input named "consent" (e.g. "Tôi đồng ý cho phép liên hệ") — required before
+   the runtime will submit the form.
+Do not add a "name" attribute other than these to the same form's fields, and do not attach any onsubmit/
+JavaScript handler to it yourself — the platform's runtime script binds the submit behavior automatically
+based on this markup alone.`;
 
 export interface TenantImage {
   url: string;

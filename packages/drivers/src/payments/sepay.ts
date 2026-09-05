@@ -90,7 +90,7 @@ export function createSepayPaymentsDriver(
           },
           {
             title: "Dán API Key vào nền tảng",
-            body: "Vào Cài đặt > Thanh toán > SePay trên dashboard, dán API Key cùng số tài khoản và mã ngân hàng (BIN)."
+            body: "Vào Cài đặt > Thanh toán > SePay trên ứng dụng, dán API Key cùng số tài khoản và mã ngân hàng (BIN)."
           },
           {
             title: "Kiểm tra kết nối",

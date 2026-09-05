@@ -3,6 +3,8 @@ import { can } from "@dv/auth";
 import {
   connectPaymentConnectionSchema,
   createRefundRequestSchema,
+  executeFulfillmentSchema,
+  fulfillmentTaskResponseSchema,
   orderSearchResponseSchema,
   paymentConnectionGuideSchema,
   publicPaymentConnectionSchema,
@@ -18,13 +20,16 @@ import {
 } from "@dv/contracts";
 import {
   auditLogsRepository,
+  fulfillmentTasksRepository,
   leadActivitiesRepository,
   ordersRepository,
   paymentConnectionsRepository,
   paymentsRepository,
+  productsRepository,
   refundRequestsRepository,
   unmatchedTransactionsRepository
 } from "@dv/db";
+import type { Db } from "@dv/db";
 import { payments } from "@dv/drivers";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
@@ -88,6 +93,159 @@ function importPaymentsMasterKey(env: AppEnv["Bindings"]): Promise<CryptoKey> {
 // read `transferPrefix` (that's campaign-level, only used by `matchTransaction`), so an
 // empty placeholder here is fine.
 const sepayDriver = payments.createSepayPaymentsDriver({ transferPrefix: "" });
+
+async function ensureFulfillmentTask(db: Db, orgId: string, orderId: string) {
+  const order = await ordersRepository.findById(db, orgId, orderId);
+  if (!order) throw new ApiError(404, "order_not_found");
+  if (order.status !== "paid" && order.status !== "fulfilled") {
+    throw new ApiError(400, "order_not_ready_for_fulfillment");
+  }
+
+  const existing = await fulfillmentTasksRepository.findForOrder(
+    db,
+    orgId,
+    orderId
+  );
+  if (existing) return { order, task: existing };
+
+  const snapshot =
+    order.fulfillmentConfig &&
+    typeof order.fulfillmentConfig === "object" &&
+    !Array.isArray(order.fulfillmentConfig)
+      ? (order.fulfillmentConfig as Record<string, unknown>)
+      : {};
+  const product =
+    Object.keys(snapshot).length === 0 && order.productId
+      ? await productsRepository.findById(db, orgId, order.productId)
+      : undefined;
+  const attributes =
+    Object.keys(snapshot).length > 0
+      ? snapshot
+      : product?.attributes &&
+          typeof product.attributes === "object" &&
+          !Array.isArray(product.attributes)
+        ? (product.attributes as Record<string, unknown>)
+        : {};
+  const type = z
+    .enum(["link", "zalo", "schedule", "manual"])
+    .catch("manual")
+    .parse(attributes.fulfillmentType ?? attributes.deliveryType);
+  const config = {
+    ...(typeof attributes.resourceUrl === "string"
+      ? { resourceUrl: attributes.resourceUrl }
+      : {}),
+    ...(typeof attributes.zaloGroupUrl === "string"
+      ? { zaloGroupUrl: attributes.zaloGroupUrl }
+      : {}),
+    ...(typeof attributes.instructions === "string"
+      ? { instructions: attributes.instructions }
+      : typeof attributes.activationInstructions === "string"
+        ? { instructions: attributes.activationInstructions }
+        : {}),
+    ...(typeof attributes.scheduledAt === "string"
+      ? { scheduledAt: attributes.scheduledAt }
+      : typeof attributes.startsAt === "string"
+        ? { scheduledAt: attributes.startsAt }
+        : {})
+  };
+  const task = await fulfillmentTasksRepository.ensureForOrder(db, orgId, {
+    orderId,
+    type,
+    status: order.status === "fulfilled" ? "completed" : "pending",
+    config,
+    attempts: 0,
+    lastError: null,
+    completedAt: order.status === "fulfilled" ? order.fulfilledAt : null
+  });
+  if (!task) throw new ApiError(500, "fulfillment_task_create_failed");
+  return { order, task };
+}
+/** Fulfillment is an explicit seller confirmation. A paid order never becomes fulfilled merely because a task exists. */
+paymentsRoutes.get("/orders/:orderId/fulfillment", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const { task } = await ensureFulfillmentTask(
+    db,
+    orgId,
+    c.req.param("orderId")
+  );
+  return c.json(fulfillmentTaskResponseSchema.parse({ task }));
+});
+
+paymentsRoutes.post("/orders/:orderId/fulfillment/execute", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const userId = c.get("userId");
+  requireRefundPermission(c);
+  const orderId = c.req.param("orderId");
+  const body = executeFulfillmentSchema.parse(await c.req.json());
+  const { order, task } = await ensureFulfillmentTask(db, orgId, orderId);
+
+  if (task.status === "completed") {
+    return c.json(fulfillmentTaskResponseSchema.parse({ task }));
+  }
+  const claimed = await fulfillmentTasksRepository.claimForExecution(
+    db,
+    orgId,
+    task.id,
+    task.attempts + 1
+  );
+  if (!claimed) throw new ApiError(409, "fulfillment_in_progress");
+
+  try {
+    const completed = await fulfillmentTasksRepository.markCompleted(
+      db,
+      orgId,
+      claimed.id
+    );
+    if (!completed) throw new ApiError(500, "fulfillment_task_update_failed");
+
+    const updatedOrder =
+      order.status === "paid"
+        ? await ordersRepository.update(db, orgId, order.id, {
+            status: "fulfilled",
+            fulfilledAt: new Date()
+          })
+        : order;
+    if (updatedOrder) await publishOrderUpdate(c.env, orgId, updatedOrder);
+
+    await leadActivitiesRepository.insert(db, orgId, {
+      leadId: order.leadId,
+      type: "system",
+      body: null,
+      meta: {
+        orderId: order.id,
+        fulfillmentTaskId: claimed.id,
+        confirmationNote: body.confirmationNote ?? null
+      },
+      actorId: userId
+    });
+    await auditLogsRepository.insert(db, orgId, {
+      actorId: userId,
+      action: "fulfillment.complete",
+      targetType: "fulfillment_task",
+      targetId: claimed.id,
+      meta: { orderId: order.id, type: claimed.type }
+    });
+
+    return c.json(fulfillmentTaskResponseSchema.parse({ task: completed }));
+  } catch (error) {
+    await fulfillmentTasksRepository.markFailed(
+      db,
+      orgId,
+      claimed.id,
+      error instanceof Error ? error.message : "fulfillment_failed"
+    );
+    await auditLogsRepository.insert(db, orgId, {
+      actorId: userId,
+      action: "fulfillment.failed",
+      targetType: "fulfillment_task",
+      targetId: claimed.id,
+      meta: { orderId: order.id }
+    });
+    throw error;
+  }
+});
 
 paymentsRoutes.get("/connections", async (c) => {
   const db = createDbFromEnv(c.env);
@@ -472,4 +630,44 @@ paymentsRoutes.post("/refund-requests/:id/complete", async (c) => {
   });
 
   return c.json(refundRequestSchema.parse(completed));
+});
+
+/** Tenant declines the refund (e.g. investigation showed nothing is owed) — no money moved, so
+ * unlike /complete the order keeps its current status; this only closes the tracking record. */
+paymentsRoutes.post("/refund-requests/:id/reject", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  requireRefundPermission(c);
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  const existing = await refundRequestsRepository.findById(db, orgId, id);
+  if (!existing) throw new ApiError(404, "refund_request_not_found");
+  if (existing.status === "completed" || existing.status === "rejected") {
+    throw new ApiError(409, "refund_request_already_settled");
+  }
+  const order = await ordersRepository.findById(db, orgId, existing.orderId);
+  if (!order) throw new ApiError(404, "order_not_found");
+
+  const rejected = await refundRequestsRepository.update(db, orgId, id, {
+    status: "rejected"
+  });
+
+  await leadActivitiesRepository.insert(db, orgId, {
+    leadId: order.leadId,
+    type: "system",
+    body: null,
+    meta: { orderId: order.id, refundRequestId: id },
+    actorId: userId
+  });
+
+  await auditLogsRepository.insert(db, orgId, {
+    actorId: userId,
+    action: "refund_request.reject",
+    targetType: "refund_request",
+    targetId: id,
+    meta: { orderId: existing.orderId }
+  });
+
+  return c.json(refundRequestSchema.parse(rejected));
 });

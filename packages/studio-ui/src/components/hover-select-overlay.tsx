@@ -4,6 +4,9 @@ import { cn } from "@dv/ui/lib/utils";
 export type OverlayTarget = {
   srcmapId: string;
   tag: string;
+  /** Friendly `data-cc-name` label (`autoNameLayers`/AI naming pass), when the element has one —
+   * preferred over `tag` in the badge. */
+  name?: string | null;
   /** Already-truncated label text, e.g. first 20 chars of the element's text. */
   text: string;
   /** Screen-space rect — the consumer measures `getBoundingClientRect() × canvas transform`. */
@@ -44,7 +47,8 @@ function OverlayBox({
         variant="secondary"
         className="absolute -top-6 left-0 max-w-full gap-1 truncate bg-popover text-popover-foreground shadow-sm"
       >
-        {target.tag} [{target.srcmapId}] &ldquo;{target.text}&rdquo;
+        {target.name ?? target.tag} [{target.srcmapId}] &ldquo;{target.text}
+        &rdquo;
       </Badge>
     </div>
   );

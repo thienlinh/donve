@@ -16,7 +16,7 @@ export interface ResendEmailSenderConfig {
   apiKey: string;
   /**
    * FR-I-05/06: locked sending domain — isolated subdomain so a deliverability
-   * incident here never touches `donve.vn` (landing/dashboard/`info@`).
+   * incident here never touches `donve.vn` (landing/app/`info@`).
    * Override only for local/staging testing against a different verified domain.
    */
   from?: string;

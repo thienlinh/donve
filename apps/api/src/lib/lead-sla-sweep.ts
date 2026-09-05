@@ -129,7 +129,7 @@ async function applyBreach(
   rule: AssignmentRule,
   lead: Lead,
   orgNotify: OrgNotifyTarget | null,
-  dashboardUrl: string
+  appUrl: string
 ): Promise<void> {
   const orgId = org.id;
   if (rule.onSlaBreach === "reassign_next_in_pool") {
@@ -174,10 +174,9 @@ async function applyBreach(
     return;
   }
 
-  // `notify_manager` — activity-timeline entry (dashboard trail) plus an actual push via the
-  // channel-agnostic notify dispatcher (packages/drivers/src/notify) — email, Zalo ZNS, or SMS
-  // per the org's own `notifyChannel` setting (resolved once per org by
-  // `resolveOrgNotifyTarget`, not per lead).
+  // `notify_manager` — activity-timeline entry plus an actual push via the channel-agnostic
+  // notify dispatcher (packages/drivers/src/notify) — email, Zalo ZNS, or SMS per the org's
+  // own `notifyChannel` setting (resolved once per org by `resolveOrgNotifyTarget`, not per lead).
   await leadActivitiesRepository.insert(db, orgId, {
     leadId: lead.id,
     type: "system",
@@ -201,7 +200,7 @@ async function applyBreach(
       type: "sla_breach",
       props: {
         orgName: org.name,
-        dashboardUrl,
+        appUrl,
         leadFullName: lead.fullName,
         slaHours: rule.slaHours ?? 0
       }
@@ -213,7 +212,7 @@ async function sweepOrg(
   db: Db,
   org: OrgRow,
   env: Bindings,
-  dashboardUrl: string
+  appUrl: string
 ): Promise<number> {
   const rules = await assignmentRulesRepository.listActive(db, org.id);
   if (!rules.some((rule) => rule.slaHours != null)) return 0;
@@ -241,7 +240,7 @@ async function sweepOrg(
         );
         if (alreadyHandled) return false;
 
-        await applyBreach(db, org, rule, lead, orgNotify, dashboardUrl);
+        await applyBreach(db, org, rule, lead, orgNotify, appUrl);
         return true;
       } catch (err) {
         log("error", {
@@ -269,12 +268,12 @@ export async function runLeadSlaSweep(
 ): Promise<{ orgsProcessed: number; leadsBreached: number }> {
   const db = createDbFromEnv(env);
   const orgs = await organizationsRepository.listAll(db);
-  const dashboardUrl = `${env.DASHBOARD_URL}/leads`;
+  const appUrl = `${env.APP_URL}/leads`;
 
   const perOrg = await Promise.all(
     orgs.map(async (org) => {
       try {
-        return await sweepOrg(db, org, env, dashboardUrl);
+        return await sweepOrg(db, org, env, appUrl);
       } catch (err) {
         log("error", {
           requestId: "lead-sla-sweep",

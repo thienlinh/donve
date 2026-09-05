@@ -20,7 +20,7 @@ export function createAuthFromEnv(env: Bindings) {
     db: db.raw,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: [env.DASHBOARD_URL],
-    email: sender ? { sender, appURL: env.DASHBOARD_URL } : undefined
+    trustedOrigins: [env.APP_URL],
+    email: sender ? { sender, appURL: env.APP_URL } : undefined
   });
 }

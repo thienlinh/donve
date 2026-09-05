@@ -2,6 +2,7 @@ import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 
 import { announcementBarPropsSchema } from "./components/announcement-bar.js";
+import { blogArticleGridPropsSchema } from "./components/blog-article-grid.js";
 import { comparisonTablePropsSchema } from "./components/comparison-table.js";
 import { countdownTimerPropsSchema } from "./components/countdown-timer.js";
 import { ctaAppDownloadPropsSchema } from "./components/cta-app-download.js";
@@ -29,10 +30,12 @@ import { heroCenteredSignupPropsSchema } from "./components/hero-centered-signup
 import { heroCenteredPropsSchema } from "./components/hero-centered.js";
 import { heroSplitImagePropsSchema } from "./components/hero-split-image.js";
 import { heroSplitSignupPropsSchema } from "./components/hero-split-signup.js";
+import { heroVideoPropsSchema } from "./components/hero-video.js";
 import { heroPropsSchema } from "./components/hero.js";
 import { howItWorksPropsSchema } from "./components/how-it-works.js";
 import { leadFormPropsSchema } from "./components/lead-form.js";
 import { logoWallPropsSchema } from "./components/logo-wall.js";
+import { mapLocationPropsSchema } from "./components/map-location.js";
 import { mediaPropsSchema } from "./components/media.js";
 import { metricProofPropsSchema } from "./components/metric-proof.js";
 import { navBarPropsSchema } from "./components/nav-bar.js";
@@ -102,6 +105,13 @@ export const catalog = defineCatalog(schema, {
       description:
         "Hero 2 cột kèm form đăng ký nhanh (1 field) cạnh headline, ảnh minh hoạ bên còn lại.",
       example: exampleProps.hero_split_signup
+    },
+    hero_video: {
+      props: heroVideoPropsSchema,
+      slots: [],
+      description:
+        "Hero 2 cột: nội dung + CTA một bên, video (upload/YouTube/Vimeo) một bên.",
+      example: exampleProps.hero_video
     },
     nav_bar: {
       props: navBarPropsSchema,
@@ -349,6 +359,19 @@ export const catalog = defineCatalog(schema, {
         "Single image or video (upload / YouTube / Vimeo) — not a multi-image grid.",
       example: exampleProps.media
     },
+    blog_article_grid: {
+      props: blogArticleGridPropsSchema,
+      slots: [],
+      description: "Grid or list of blog/resource article cards.",
+      example: exampleProps.blog_article_grid
+    },
+    map_location: {
+      props: mapLocationPropsSchema,
+      slots: [],
+      description:
+        "Address, hours/contact and embedded map — for local businesses.",
+      example: exampleProps.map_location
+    },
     countdown_timer: {
       props: countdownTimerPropsSchema,
       slots: [],
@@ -430,13 +453,14 @@ export const catalog = defineCatalog(schema, {
       description: "Top-of-page announcement/promo strip.",
       example: exampleProps.announcement_bar
     },
-    // Pseudo-component (custom-import.md §Convert sang native) — no `example`, same reasoning
-    // as `page_root`: not one of the ~25 taxonomy components offered for AI/manual insertion.
+    // Pseudo-component escape hatch — no `example`, same reasoning as `page_root`: not one of
+    // the ~25 taxonomy components offered for AI/manual insertion. Holds verbatim markup when
+    // nothing in the real catalog fits (e.g. an unmatched section, or AI-authored raw HTML).
     raw_html_block: {
       props: rawHtmlBlockPropsSchema,
       slots: [],
       description:
-        "Convert-to-native fallback: original markup preserved verbatim, no typed content fields."
+        "Original markup preserved verbatim, no typed content fields."
     }
   },
   // No json-render `actions` (state-mutating, editor-only) — publish-time interactivity is
@@ -449,7 +473,7 @@ export type StudioCatalog = typeof catalog;
 /**
  * Per-component props schema + description, keyed by componentId. `catalog.data` isn't part of
  * `Catalog<...>`'s public TS surface (same reason `features/studio-native`'s Inspector casts it
- * on the dashboard side) — the shape is real at runtime, just not typed that way. Cast once
+ * on the app side) — the shape is real at runtime, just not typed that way. Cast once
  * here so every consumer (spec-ops validation, AI prompt JSON Schemas, Content Agent) shares it.
  */
 export const catalogComponents = catalog.data.components as Record<

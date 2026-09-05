@@ -12,6 +12,11 @@ const IMAGE_EXT_MIME: Record<string, string> = {
   svg: "image/svg+xml"
 };
 
+const VIDEO_EXT_MIME: Record<string, string> = {
+  mp4: "video/mp4",
+  webm: "video/webm"
+};
+
 function extOf(path: string): string {
   return (path.split(".").pop() ?? "").toLowerCase();
 }
@@ -27,8 +32,9 @@ export interface ParsedZipImport {
 const MAX_UNZIPPED_BYTES = 100 * 1024 * 1024;
 
 /** FR-B-30 "upload .zip": picks `index.html` (or the first `.html` entry, for an export whose
- * root file has a different name) as the page, and every image entry as an inline-asset
- * candidate `extractInlineImportAssets` can resolve relative `<img src>` paths against. */
+ * root file has a different name) as the page, and every image/video entry as an inline-asset
+ * candidate `extractInlineImportAssets` can resolve relative `<img src>`/`<video src/poster>`
+ * paths against. */
 export function parseZipImport(bytes: Uint8Array): ParsedZipImport {
   const entries = unzipSync(bytes);
   const paths = Object.keys(entries);
@@ -47,7 +53,8 @@ export function parseZipImport(bytes: Uint8Array): ParsedZipImport {
   const assets: ZipAsset[] = [];
   for (const path of paths) {
     if (path === htmlPath) continue;
-    const mime = IMAGE_EXT_MIME[extOf(path)];
+    const ext = extOf(path);
+    const mime = IMAGE_EXT_MIME[ext] ?? VIDEO_EXT_MIME[ext];
     if (!mime) continue;
     assets.push({ path, bytes: entries[path]!, mime });
     // Imported HTML often references assets by a path relative to the html file

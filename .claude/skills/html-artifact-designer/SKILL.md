@@ -1,6 +1,6 @@
 ---
 name: html-artifact-designer
-description: Expert-designer workflow for standalone HTML artifacts (landing pages, prototypes, posters, decks) — verify facts before designing around a named brand, gather real assets before defaulting to generic colors/fonts, declare the design system before building, offer 3 differentiated directions when the brief is vague. Use for landing-page concepting/mockups and any one-off visual artifact outside the main dashboard app.
+description: Expert-designer workflow for standalone HTML artifacts (landing pages, prototypes, posters, decks) — verify facts before designing around a named brand, gather real assets before defaulting to generic colors/fonts, declare the design system before building, offer 3 differentiated directions when the brief is vague. Use for landing-page concepting/mockups and any one-off visual artifact outside the main DonVe app.
 ---
 
 Source: https://github.com/jiji262/claude-design-skill

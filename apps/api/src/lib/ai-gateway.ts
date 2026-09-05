@@ -1,4 +1,5 @@
 import {
+  AiStreamError,
   collectStream,
   createWorkersAiProvider,
   decryptApiKey,
@@ -7,6 +8,7 @@ import {
   pickMaxOutputTokens,
   pickModel,
   WORKERS_AI_TRIAL_MODEL,
+  type AiErrorCode,
   type AiUseCase,
   type ByokProviderId,
   type ChatMessage
@@ -19,9 +21,29 @@ import {
   organizationsRepository,
   type Db
 } from "@dv/db";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 import type { Bindings } from "../types.js";
 import { ApiError } from "./errors.js";
+
+const AI_ERROR_STATUS: Record<AiErrorCode, ContentfulStatusCode> = {
+  rate_limited: 429,
+  overloaded: 503,
+  model_unavailable: 422,
+  no_output: 422
+};
+
+/** Converts a classified `AiStreamError` into a real `ApiError` (specific status + `ai_<code>`,
+ * e.g. `ai_rate_limited`) so the client gets an actionable code/message instead of the generic
+ * masked 500 every other uncaught `Error` collapses into (`error-handler.ts`). An unclassified
+ * `AiStreamError` (or any other error) is rethrown as-is and falls through to that same generic
+ * masking — deliberately: we only special-case failures we can say something specific about. */
+function rethrowClassifiedAiError(err: unknown): never {
+  if (err instanceof AiStreamError && err.code) {
+    throw new ApiError(AI_ERROR_STATUS[err.code], `ai_${err.code}`);
+  }
+  throw err;
+}
 
 /** `importMasterKey` is cheap (one `crypto.subtle.importKey` call) — no need to cache across requests. */
 export function importAiMasterKeyFromEnv(env: Bindings): Promise<CryptoKey> {
@@ -87,7 +109,7 @@ export async function runModelCompletion(
         { apiKey: "" }
       ),
       onTextDelta
-    );
+    ).catch(rethrowClassifiedAiError);
     const debit = await debitTrialUseAndRecordUsage(db, {
       orgId,
       connectionId: "trial",
@@ -114,7 +136,7 @@ export async function runModelCompletion(
         { apiKey: env.PLATFORM_OPENROUTER_API_KEY }
       ),
       onTextDelta
-    );
+    ).catch(rethrowClassifiedAiError);
     const creditCost = provider.countCost(usage, model);
     const debit = await debitAiCreditsAndRecordUsage(db, {
       orgId,
@@ -159,7 +181,7 @@ export async function runModelCompletion(
       { apiKey }
     ),
     onTextDelta
-  );
+  ).catch(rethrowClassifiedAiError);
   const creditCost = provider.countCost(usage, model);
   // BYOK usage is billed on the tenant's own provider account, not `aiCreditBalance` — record only, no debit.
   await aiUsageRepository.insert(db, orgId, {

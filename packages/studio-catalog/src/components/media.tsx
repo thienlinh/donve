@@ -23,15 +23,16 @@ export const mediaPropsSchema = z.object({
 });
 export type MediaProps = z.infer<typeof mediaPropsSchema>;
 
-/** Accepts whatever a user pastes — watch, share, shorts or an already-embed URL. */
-function youtubeEmbedUrl(url: string): string | null {
+/** Accepts whatever a user pastes — watch, share, shorts or an already-embed URL. Exported for
+ * reuse by other video-capable components (e.g. `hero-video.tsx`) so the parsing lives once. */
+export function youtubeEmbedUrl(url: string): string | null {
   const id = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})/.exec(
     url
   )?.[1];
   return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
 }
 
-function vimeoEmbedUrl(url: string): string | null {
+export function vimeoEmbedUrl(url: string): string | null {
   const id = /vimeo\.com\/(?:video\/)?(\d+)/.exec(url)?.[1];
   return id ? `https://player.vimeo.com/video/${id}` : null;
 }

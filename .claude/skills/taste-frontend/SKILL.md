@@ -1,6 +1,6 @@
 ---
 name: taste-frontend
-description: Anti-AI-slop design discipline for landing pages, dashboards, and redesigns — three dials (variance/motion/density), a pre-flight checklist banning generic LLM design tells (purple gradients, three-equal-card grids, em-dashes, warm-beige premium palette). Use when designing or redesigning any visual surface, especially landing pages and marketing UI.
+description: Anti-AI-slop design discipline for landing pages, operational apps, and redesigns — three dials (variance/motion/density), a pre-flight checklist banning generic LLM design tells (purple gradients, three-equal-card grids, em-dashes, warm-beige premium palette). Use when designing or redesigning any visual surface, especially landing pages and marketing UI.
 ---
 
 Source: https://github.com/Leonxlnx/taste-skill
@@ -12,7 +12,7 @@ Source: https://github.com/Leonxlnx/taste-skill
    - **Variance** — how far to deviate from the safe default layout.
    - **Motion intensity** — how much animation is justified.
    - **Visual density** — how much content per viewport.
-3. **Pick one design system per project, don't mix.** For dashboards this repo already has one: `@dv/ui` (shadcn "base-nova" + DonVe tokens in `packages/ui/src/styles/globals.css`). For net-new landing-page aesthetics without an official package, build with Tailwind + honestly-labeled approximations.
+3. **Pick one design system per project, don't mix.** For the DonVe app this repo already has one: `@dv/ui` (shadcn "base-nova" + DonVe tokens in `packages/ui/src/styles/globals.css`). For net-new landing-page aesthetics without an official package, build with Tailwind + honestly-labeled approximations.
 
 ## Hard bans (pre-flight checklist)
 
@@ -30,6 +30,6 @@ Source: https://github.com/Leonxlnx/taste-skill
 - Long lists/specs/testimonials get card grids or grouped chunks, never a bare `<ul>` + `divide-y`.
 - Real imagery or honest placeholders (`[image: 16:9, product screenshot]`) — never fake it.
 
-## Redesign audit protocol (for existing pages, e.g. this dashboard)
+## Redesign audit protocol (for existing app pages)
 
 Before restyling an existing feature: extract its current brand tokens and information architecture first (what data/actions does the page actually need to expose), then design visuals — don't restyle blind.

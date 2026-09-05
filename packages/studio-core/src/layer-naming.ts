@@ -23,10 +23,14 @@ function collapseText(text: string, max = 24): string {
   return trimmed.length > max ? `${trimmed.slice(0, max)}…` : trimmed;
 }
 
-/** Heuristic label for one element — tag semantics + its own short text first, class as a
- * last resort. Returns `null` (a "generic" element) when nothing better than "Group" applies,
- * so the caller can hand just those srcmap ids to an AI naming pass. */
-function heuristicName(el: Element): string | null {
+/** Inline text-styling tags (span/b/strong/em/i/u): named after their own text, same as `p`. */
+const INLINE_TEXT_TAGS = new Set(["span", "b", "strong", "em", "i", "u"]);
+
+/** Heuristic label for one element — tag semantics + its own short text first, then a generic
+ * "Group"/"Group: …" wrapper name for anything left (bare layout divs, empty decorative spans).
+ * Always returns a name; `genericTargets` in `autoNameLayers` below is kept for any future tag
+ * this function genuinely can't label, but in practice every element now gets one. */
+function heuristicName(el: Element): string {
   const tag = el.tagName.toLowerCase();
   const ownText = collapseText(el.textContent ?? "");
 
@@ -44,13 +48,19 @@ function heuristicName(el: Element): string | null {
   if (tag === "section" || tag === "article") {
     const heading = el.querySelector("h1, h2, h3, h4, h5, h6");
     const headingText = heading ? collapseText(heading.textContent ?? "") : "";
-    return headingText
-      ? `Section: ${headingText}`
-      : (SEMANTIC_LABELS[tag] ?? null);
+    if (headingText) return `Section: ${headingText}`;
   }
+  if (INLINE_TEXT_TAGS.has(tag) && ownText) return `Text: ${ownText}`;
 
-  // div/span/other generic containers: no confident heuristic name.
-  return null;
+  // Generic structural fallback (div/span/section/article with no confident name above): a
+  // wrapper that holds a heading or paragraph gets named after it, a bare layout/spacer
+  // element gets the plain "Group" label — either way beats a raw "div 3"/"span 1".
+  const meaningfulChild = el.querySelector("h1, h2, h3, h4, h5, h6, p");
+  if (meaningfulChild) {
+    const childText = collapseText(meaningfulChild.textContent ?? "");
+    if (childText) return `Group: ${childText}`;
+  }
+  return SEMANTIC_LABELS[tag] ?? "Group";
 }
 
 export interface AutoNameResult {

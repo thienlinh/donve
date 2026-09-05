@@ -85,7 +85,7 @@ async function runSlaCheckForOrg(
         template: "data_subject_request_sla",
         props: {
           orgName: org.name,
-          dashboardUrl: `${env.DASHBOARD_URL}/leads`,
+          appUrl: `${env.APP_URL}/leads`,
           requests
         }
       });

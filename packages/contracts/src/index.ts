@@ -12,3 +12,7 @@ export * from "./email.js";
 export * from "./analytics.js";
 export * from "./optimization.js";
 export * from "./platform.js";
+export * from "./prompt-library.js";
+export * from "./telemetry.js";
+export * from "./operations.js";
+export * from "./fulfillment.js";

@@ -76,7 +76,7 @@ beforeAll(async () => {
     DATABASE_URL: connectionUri,
     BETTER_AUTH_SECRET: "test-secret-at-least-32-chars-long!!",
     BETTER_AUTH_URL: "http://localhost:3000",
-    DASHBOARD_URL: "http://localhost:5173",
+    APP_URL: "http://localhost:5173",
     RESEND_API_KEY: "test-key",
     RUNTIME: "bun",
     PUBLISH_BASE_DOMAIN: "test.local",
@@ -185,12 +185,11 @@ it("publishes a hand-written native PageSpec through the shared R2/outbox/KV pip
 /**
  * Studio-native's canvas/layers/inspector is now Puck (`@puckeditor/core`) instead of the old
  * hand-built panels — but PageSpec stays the canonical, DB-persisted shape (`puck-adapter.ts`'s
- * header comment): the dashboard only ever converts PageSpec ⇄ Puck's own `Data` shape at the
- * UI edge, round-tripping back to plain PageSpec before it's ever saved. This proves that round
- * trip end to end: a PageSpec edited "through Puck" (simulated here, since there's no browser)
- * publishes through the exact same pipeline with identical output — no Puck-only artifact
- * (its own CSS classes, `data-puck`/`_Puck` attributes, or an injected `id` prop) leaks into the
- * published HTML.
+ * header comment): the app only ever converts PageSpec ⇄ Puck's own `Data` shape at the UI edge,
+ * round-tripping back to plain PageSpec before it's ever saved. This proves that round trip end
+ * to end: a PageSpec edited "through Puck" (simulated here, since there's no browser) publishes
+ * through the exact same pipeline with identical output — no Puck-only artifact (its own CSS
+ * classes, `data-puck`/`_Puck` attributes, or an injected `id` prop) leaks into the published HTML.
  */
 it("publishes a PageSpec that was round-tripped through the Puck adapter, with no Puck artifacts in the output", async () => {
   const db = createDbFromEnv(bindings);
@@ -226,7 +225,7 @@ it("publishes a PageSpec that was round-tripped through the Puck adapter, with n
     }
   };
 
-  // Simulates what the dashboard does on load (`pageSpecToPuckData`) and on every edit
+  // Simulates what the app does on load (`pageSpecToPuckData`) and on every edit
   // (`puckDataToPageSpec`) — no browser/Puck runtime involved, just the same pure adapter
   // functions the Studio page calls.
   const puckData = pageSpecToPuckData(originalSpec);

@@ -31,7 +31,7 @@ export type LeadFormProps = z.infer<typeof leadFormPropsSchema>;
  * `form_started`/`form_submitted` are both wired live in `apps/landing-runtime/src/lead-form.ts`
  * (`bindLeadForms`) — `form_started` on first focus inside this form, `form_submitted` after a
  * real API success (a superset of the plain `submit` beacon it already fired, kept for the
- * legacy campaign-analytics dashboard's `submits` bucket).
+ * legacy campaign-analytics `submits` bucket).
  */
 function LeadFormFields({ props }: BaseComponentProps<LeadFormProps>) {
   return (

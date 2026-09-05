@@ -57,7 +57,7 @@ async function main() {
     db: db.raw,
     baseURL: requiredEnv("BETTER_AUTH_URL"),
     secret: requiredEnv("BETTER_AUTH_SECRET"),
-    trustedOrigins: [requiredEnv("DASHBOARD_URL")]
+    trustedOrigins: [requiredEnv("APP_URL")]
   });
 
   // No email sender is passed to `createAuth` here, so verify/reset emails are

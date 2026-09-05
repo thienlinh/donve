@@ -4,7 +4,6 @@ import { orgIdSchema, idSchema } from "./common.js";
 import {
   funnelGapsSchema,
   landingPageDetailSchema,
-  landingPageSchema,
   pageVersionSchema
 } from "./studio.js";
 
@@ -100,7 +99,7 @@ export const customChatEditResultSchema = customChatEditSchema.extend({
 export type CustomChatEditResult = z.infer<typeof customChatEditResultSchema>;
 
 /** `POST /:id/custom-chat` — dry run: proposes edits against the current HTML, doesn't persist
- * anything yet (the dashboard shows the diff, user approves, then `POST
+ * anything yet (the app shows the diff, user approves, then `POST
  * /:id/custom-chat/apply` with these same edits re-validates + lands a new version). */
 export const customChatProposeInputSchema = z.object({
   message: z.string().min(1)
@@ -121,14 +120,3 @@ export const customChatApplyResultSchema = z.object({
   results: z.array(customChatEditResultSchema)
 });
 export type CustomChatApplyResult = z.infer<typeof customChatApplyResultSchema>;
-
-/** `page-system/custom-import.md` §Editing "Convert sang native" — 1-way; the page keeps its
- * id/history, only `source` (→ `manual`, same "has a full canvas editor now" meaning the doc
- * uses for `native_manual`) and the current version (→ has `spec`) change. */
-export const convertToNativeResultSchema = z.object({
-  landingPage: landingPageSchema,
-  version: pageVersionSchema,
-  sectionsConverted: z.number().int().nonnegative(),
-  sectionsFallback: z.number().int().nonnegative()
-});
-export type ConvertToNativeResult = z.infer<typeof convertToNativeResultSchema>;

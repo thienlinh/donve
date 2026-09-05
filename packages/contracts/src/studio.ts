@@ -226,9 +226,9 @@ export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 /**
  * Per-tenant brand tokens for a published native landing page — deliberately separate from
- * the dashboard's own theme (`packages/ui`). Canonical definition lives here (not
+ * the app's own theme (`packages/ui`). Canonical definition lives here (not
  * `@dv/studio-catalog`, which depends on this package, not the other way around) since both
- * the dashboard (Inspector/canvas) and the API (`pageVersions.spec` validation) need it.
+ * the app (Inspector/canvas) and the API (`pageVersions.spec` validation) need it.
  */
 export const designTokensSchema = z.object({
   colorPrimary: z.string(),

@@ -51,10 +51,18 @@ export interface TokenUsage {
 /** Integer credits, matching `aiUsage.creditCost` (database-schema.md). */
 export type Credits = number;
 
+/** Transient/model-shaped failure a caller can show the user a specific message for, instead
+ * of a generic "something went wrong" — see `classifyAiStreamError` in shared.ts. */
+export type AiErrorCode =
+  | "rate_limited"
+  | "overloaded"
+  | "model_unavailable"
+  | "no_output";
+
 export type StreamPart =
   | { type: "text-delta"; text: string }
   | { type: "finish"; usage: TokenUsage; finishReason: string }
-  | { type: "error"; error: string };
+  | { type: "error"; error: string; code?: AiErrorCode };
 
 /** One selectable model, with a short human-readable hint when the provider's `/models`
  * response actually carries one (OpenRouter: pricing + context; others: `owned_by`/

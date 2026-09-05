@@ -14,13 +14,13 @@
   // are secrets — set directly with
   // `wrangler secret put <KEY> --env staging|production` (or `wrangler secret bulk`). Cloudflare
   // is the only place these live; nothing local or in CI holds a copy — see
-  // docs/runbooks/env-management.md. Top-level vars below are only the default used by bare
+  // docs/runbooks/setup-deployment.md. Top-level vars below are only the default used by bare
   // `wrangler dev` (local CF Workers simulation); real deploys always pass --env and use the
   // blocks under "env" instead.
   "vars": {
     "RUNTIME": "workers",
     "BETTER_AUTH_URL": "http://localhost:8787",
-    "DASHBOARD_URL": "http://localhost:5173",
+    "APP_URL": "http://localhost:5173",
     "PUBLISH_BASE_DOMAIN": "donve.vn",
     "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
     // Cloudflare's documented always-passes test sitekey (dev only) — replace with the real
@@ -81,15 +81,15 @@
   // Domains below are placeholders (donve.vn is used as working domain
   // throughout docs/ but "Chốt tên miền nền tảng" is still an open backlog
   // item) — update once the domain is locked and the CF custom domain is
-  // attached to each Worker (manual step, CF dashboard → Workers → Custom
-  // Domains, see ci-cd-setup.md).
+  // attached to each Worker (manual step, Cloudflare console → Workers → Custom
+  // Domains, see the deployment runbook).
   "env": {
     "staging": {
       "name": "dv-api-staging",
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api-staging.donve.vn",
-        "DASHBOARD_URL": "https://app-staging.donve.vn",
+        "APP_URL": "https://app-staging.donve.vn",
         "PUBLISH_BASE_DOMAIN": "donve.vn",
         "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
         // Real Turnstile widget ("Donve Staging", invisible mode, domain donve.vn) created via
@@ -139,11 +139,11 @@
       "vars": {
         "RUNTIME": "workers",
         "BETTER_AUTH_URL": "https://api.donve.vn",
-        "DASHBOARD_URL": "https://app.donve.vn",
+        "APP_URL": "https://app.donve.vn",
         "PUBLISH_BASE_DOMAIN": "donve.vn",
         "CF_CUSTOM_DOMAIN_TARGET": "cname.donve.vn",
         // Placeholder — replace with the real Turnstile site key for the production zone
-        // (Cloudflare dashboard → Turnstile → widget for api.donve.vn / *.donve.vn).
+        // (Cloudflare console → Turnstile → widget for api.donve.vn / *.donve.vn).
         "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         "FOUNDER_ALERT_EMAIL": "founder@donve.vn"
       },

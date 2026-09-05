@@ -1,0 +1,1 @@
+ALTER TABLE "prompt_library_entries" ADD COLUMN "template_id" uuid;

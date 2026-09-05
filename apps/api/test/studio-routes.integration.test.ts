@@ -76,7 +76,7 @@ beforeAll(async () => {
     DATABASE_URL: connectionUri,
     BETTER_AUTH_SECRET: "test-secret-at-least-32-chars-long!!",
     BETTER_AUTH_URL: "http://localhost:3000",
-    DASHBOARD_URL: "http://localhost:5173",
+    APP_URL: "http://localhost:5173",
     RESEND_API_KEY: "test-key",
     RUNTIME: "bun",
     LOCAL_STORAGE_DIR: storageDir,

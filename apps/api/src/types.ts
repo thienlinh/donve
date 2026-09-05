@@ -25,8 +25,8 @@ export interface Bindings {
   DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
-  /** dashboard origin — CORS allow-list + invite/verify/reset link target. */
-  DASHBOARD_URL: string;
+  /** App origin — CORS allow-list + invite/verify/reset link target. */
+  APP_URL: string;
   RESEND_API_KEY: string;
   /** picks the DB driver in `lib/db.ts` (neon-http vs postgres-js, architecture.md §3). */
   RUNTIME: "workers" | "bun";

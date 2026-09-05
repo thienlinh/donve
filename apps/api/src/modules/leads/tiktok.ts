@@ -233,7 +233,7 @@ export const tiktokWebhooksRoutes = new Hono<AppEnv>();
  * before showing the "Connect TikTok Ads" link (no session exists here; TikTok's own servers
  * make this GET after the advertiser approves). Not mounted under `requireOrgSession` for the
  * same reason the other `/webhooks/*` routes aren't — this is TikTok redirecting the
- * advertiser's browser, not a dashboard-authenticated request.
+ * advertiser's browser, not an app-authenticated request.
  */
 tiktokWebhooksRoutes.get("/tiktok-oauth-callback", async (c) => {
   const state = c.req.query("state") ?? "";
@@ -275,7 +275,7 @@ tiktokWebhooksRoutes.get("/tiktok-oauth-callback", async (c) => {
   });
 
   return c.redirect(
-    `${c.env.DASHBOARD_URL}/leads/webhook-settings?tiktokConnected=1`
+    `${c.env.APP_URL}/leads/webhook-settings?tiktokConnected=1`
   );
 });
 

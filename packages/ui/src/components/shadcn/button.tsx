@@ -8,7 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default:
+          "bg-primary text-primary-foreground shadow-[0_1px_2px_var(--brand-glow)] hover:bg-primary/90 hover:shadow-[0_4px_14px_-2px_var(--brand-glow)]",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -44,11 +45,19 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
+  render,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
     <ButtonPrimitive
       data-slot="button"
+      // Base UI's own default (`nativeButton: true`) assumes the rendered root really is a
+      // `<button>` — true unless `render` swaps it for something else (e.g. `render={<Link/>}`
+      // for a nav item styled as a button), which then warns/misapplies button semantics to an
+      // `<a>`. Every other caller keeps native-button behavior unchanged.
+      nativeButton={nativeButton ?? render === undefined}
+      render={render}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

@@ -30,6 +30,7 @@ const CSS_KEY_TO_CAMEL: Record<keyof StyleProps, string> = {
   "border-color": "borderColor",
   "border-radius": "borderRadius",
   "background-color": "backgroundColor",
+  "background-image": "backgroundImage",
   "box-shadow": "boxShadow",
   display: "display"
 };

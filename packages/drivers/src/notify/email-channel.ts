@@ -9,7 +9,7 @@ function toSendEmailInput(to: string, event: NotifyEvent) {
         template: "sla_breach_alert" as const,
         props: {
           orgName: event.props.orgName,
-          dashboardUrl: event.props.dashboardUrl,
+          appUrl: event.props.appUrl,
           leadFullName: event.props.leadFullName,
           slaHours: event.props.slaHours
         }

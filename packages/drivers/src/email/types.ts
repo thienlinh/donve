@@ -33,7 +33,7 @@ export interface LeadDigestItem {
 /** FR-I-03 — one batched email per assignee/owner instead of one per lead. */
 export interface LeadDigestProps {
   orgName: string;
-  dashboardUrl: string;
+  appUrl: string;
   leads: LeadDigestItem[];
 }
 
@@ -85,7 +85,7 @@ export interface DataSubjectRequestSlaItem {
 
 export interface DataSubjectRequestSlaProps {
   orgName: string;
-  dashboardUrl: string;
+  appUrl: string;
   requests: DataSubjectRequestSlaItem[];
 }
 
@@ -94,7 +94,7 @@ export interface DataSubjectRequestSlaProps {
  * entry `lead-sla-sweep.ts` already writes. */
 export interface SlaBreachAlertProps {
   orgName: string;
-  dashboardUrl: string;
+  appUrl: string;
   leadFullName: string;
   slaHours: number;
 }

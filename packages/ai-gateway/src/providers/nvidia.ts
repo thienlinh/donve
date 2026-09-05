@@ -1,11 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 
-import type { ModelPricing } from "../usage/pricing.js";
-import {
-  countCostFromPricing,
-  streamViaAiSdk,
-  validateKeyViaModelsEndpoint
-} from "./shared.js";
+import { streamViaAiSdk, validateKeyViaModelsEndpoint } from "./shared.js";
 import type {
   AIProvider,
   ChatRequest,
@@ -17,11 +12,6 @@ import type {
 const BASE_URL = "https://integrate.api.nvidia.com/v1";
 
 /** NVIDIA NIM's OpenAI-compatible endpoint — free-tier dev keys, no billing to the platform. */
-const PRICING: Record<string, ModelPricing> = {
-  "meta/llama-3.1-8b-instruct": { inputPerMTok: 0, outputPerMTok: 0 },
-  "meta/llama-3.3-70b-instruct": { inputPerMTok: 0, outputPerMTok: 0 }
-};
-
 export function createNvidiaProvider(): AIProvider {
   return {
     id: "nvidia",
@@ -58,8 +48,13 @@ export function createNvidiaProvider(): AIProvider {
       );
     },
 
-    countCost(usage: TokenUsage, model: string) {
-      return countCostFromPricing(PRICING, usage, model);
+    countCost(_usage: TokenUsage, _model: string) {
+      // Every model in NVIDIA's live catalog is free-tier dev pricing here (module docstring)
+      // — unlike the paid providers' `countCostFromPricing`, which must hard-fail on an
+      // unlisted model to avoid silently under-counting real billing, there's no real cost to
+      // under-count for NVIDIA, so a flat 0 covers the full catalog instead of a hardcoded
+      // subset that breaks the moment the user picks a model not in that list.
+      return 0;
     }
   };
 }

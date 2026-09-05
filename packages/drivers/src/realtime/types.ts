@@ -4,7 +4,7 @@ export interface RealtimeMessage<T = unknown> {
 }
 
 /**
- * Pub/sub hub feeding the dashboard's SSE stream (architecture.md §5.3: "Upstash pub/sub → SSE";
+ * Pub/sub hub feeding the app's SSE stream (architecture.md §5.3: "Upstash pub/sub → SSE";
  * VPS swaps in Redis pub/sub). `subscribe` yields an async iterable so an Hono route can pipe it
  * straight into an SSE response regardless of which transport is behind it.
  */

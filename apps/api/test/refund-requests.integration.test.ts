@@ -61,7 +61,7 @@ beforeAll(async () => {
     DATABASE_URL: connectionUri,
     BETTER_AUTH_SECRET: "test-secret-at-least-32-chars-long!!",
     BETTER_AUTH_URL: "http://localhost:3000",
-    DASHBOARD_URL: "http://localhost:5173",
+    APP_URL: "http://localhost:5173",
     RESEND_API_KEY: "test-key",
     RUNTIME: "bun",
     AI_KEY_MASTER_SECRET: "test-ai-key-master-secret-32-chars!!",
@@ -73,8 +73,8 @@ beforeAll(async () => {
     PUBLISH_BASE_DOMAIN: "test.example.com"
   };
 
-  // refund completion publishes to the dashboard SSE hub via the real `@upstash/redis` REST
-  // client (packages/drivers) — stub its HTTP calls the same way webhooks-sepay's suite does.
+  // refund completion publishes to the app SSE hub via the real `@upstash/redis` REST client
+  // (packages/drivers) — stub its HTTP calls the same way webhooks-sepay's suite does.
   globalThis.fetch = async (input, init) => {
     const url =
       typeof input === "string"
@@ -312,6 +312,52 @@ describe("POST/PATCH /api/payments/orders/:orderId/refund-requests (FR-D-11..13)
     );
     expect(list).toHaveLength(1);
     expect(list[0]?.status).toBe("completed");
+  });
+
+  it("reject: order keeps its status, request can't be settled twice", async () => {
+    const order = await seedOrder("paid");
+
+    const createRes = await authed(
+      cookie,
+      `/api/payments/orders/${order.id}/refund-requests`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reason: "wrong_match" })
+      }
+    );
+    expect(createRes.status).toBe(201);
+    const created = (await createRes.json()) as { id: string };
+
+    const rejectRes = await authed(
+      cookie,
+      `/api/payments/refund-requests/${created.id}/reject`,
+      { method: "POST" }
+    );
+    expect(rejectRes.status).toBe(200);
+    const rejected = (await rejectRes.json()) as { status: string };
+    expect(rejected.status).toBe("rejected");
+
+    // no money moved, so unlike /complete the order's own status is untouched
+    const untouchedOrder = await ordersRepository.findById(
+      db,
+      org.id,
+      order.id
+    );
+    expect(untouchedOrder?.status).toBe("paid");
+
+    const secondReject = await authed(
+      cookie,
+      `/api/payments/refund-requests/${created.id}/reject`,
+      { method: "POST" }
+    );
+    expect(secondReject.status).toBe(409);
+
+    const secondComplete = await authed(
+      cookie,
+      `/api/payments/refund-requests/${created.id}/complete`,
+      { method: "POST" }
+    );
+    expect(secondComplete.status).toBe(409);
   });
 
   it("edge case: an unauthenticated request is rejected before any org check", async () => {

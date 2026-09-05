@@ -79,7 +79,7 @@ export async function resolveGeneratedApiKey(
 /**
  * Multi-source lead ingestion (module E follow-up) — Facebook Lead Ads / Zalo OA webhooks.
  * Mounted at `/webhooks/*` in app.ts (NOT `/api/leads/*`), which has no `requireOrgSession` —
- * these are called by Facebook/Zalo's own servers, which can never hold a dashboard session.
+ * these are called by Facebook/Zalo's own servers, which can never hold an app session.
  * The signature check below (HMAC-SHA256 for Facebook, plain SHA-256 for Zalo — different
  * schemes, see each verify function) is the only auth; there is no session to fall back on.
  *

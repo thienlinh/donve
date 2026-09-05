@@ -1,6 +1,6 @@
 ---
 name: web-design-guidelines
-description: Audit UI code against Vercel's Web Interface Guidelines (accessibility, interaction, layout, forms, performance). Use when asked to "review my UI", "check accessibility", or "audit design" on apps/dashboard components.
+description: Audit UI code against Vercel's Web Interface Guidelines (accessibility, interaction, layout, forms, performance). Use when asked to "review my UI", "check accessibility", or "audit design" on `apps/donve` components.
 ---
 
 Source: https://github.com/vercel-labs/agent-skills (skill: web-design-guidelines), guidelines pulled from https://github.com/vercel-labs/web-interface-guidelines

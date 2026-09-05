@@ -1,6 +1,6 @@
 # Tech stack — locked decisions
 
-Source of truth: `docs/architecture/tech-stack.md` and `docs/architecture/architecture.md`. Do not re-derive these from scratch or re-ask the user — they are settled.
+Source of truth: `.claude/rules/tech-stack.md` and `docs/architecture/architecture.md`. Do not re-derive these from scratch or re-ask the user — they are settled.
 
 ## Runtime & package manager
 
@@ -10,12 +10,12 @@ Source of truth: `docs/architecture/tech-stack.md` and `docs/architecture/archit
 
 ## No Next.js
 
-- This platform explicitly does **not** use Next.js anywhere. The dashboard is a Vite 8 + React 19 SPA (`@tanstack/react-router`), not SSR — reasoning is in `docs/architecture/architecture.md` §4. Never suggest Next.js, `next.config.*`, or App Router patterns. `packages/config/nextjs.json` was deleted for this reason — don't recreate it.
+- This platform explicitly does **not** use Next.js anywhere. The DonVe app is a Vite 8 + React 19 SPA (`@tanstack/react-router`), not SSR — reasoning is in `docs/architecture/architecture.md` §4. Never suggest Next.js, `next.config.*`, or App Router patterns. `packages/config/nextjs.json` was deleted for this reason — don't recreate it.
 
 ## Monorepo layout (must match docs/architecture/architecture.md §3)
 
 ```
-apps/dashboard        Vite 8 + React 19 + TanStack Router/Query, Tailwind v4
+apps/donve            Vite 8 + React 19 + TanStack Router/Query, Tailwind v4
 apps/api              Hono — workers.ts (CF) / bun.ts (VPS) entrypoints
 apps/edge-router      CF Worker: landing serving (KV+R2+Cache), event beacon
 apps/landing-runtime  Vanilla TS, built as IIFE via tsdown (the one compiled package)
@@ -56,11 +56,11 @@ Per docs/architecture/architecture.md: internal packages are consumed as TS sour
 - Both configs run **once at the repo root**, not per-package — there are no per-package `lint`/`format` scripts. Don't add them back.
 - VS Code default formatter is `oxc.oxc-vscode` for all languages (was `esbenp.prettier-vscode` — already fixed in `.vscode/settings.json` and `.vscode/extensions.json`).
 - **`bun run lint` must be run and fully clean after every implementation task, before reporting it done.** Fix real issues in the code. Only reach for `.oxlintrc.json` (rule `off`, or narrower `overrides`) when a rule is genuinely wrong for this project after analysis — e.g. structurally conflicts with a locked decision — not just because it's inconvenient. Prefer fixing the code or a scoped inline disable-with-reason first; disabling a rule repo-wide is for cases where the rule would misfire on every idiomatic use of a locked pattern.
-- Rules already turned off repo-wide, and why: `react/refs` and `react/set-state-in-effect` (oxlint's React Compiler diagnostics) misfire on two idioms used deliberately and pervasively throughout the dashboard: (1) writing `xRef.current = value` at the top of a render body to keep a ref fresh for a long-lived DOM/event listener set up once (avoids re-subscribing every render and the stale-closure bug that comes with it — see the extensive comments in `canvas.tsx`, `code-block.tsx`, `speech-input.tsx`, `jsx-preview.tsx`), and (2) a `useEffect` that synchronizes React state with an external system (`window.matchMedia`, the Web Speech API, embla-carousel, Rive, cross-panel prop joins) — exactly what effects are for, per React's own docs, even though the compiler linter can't distinguish that from deriving state from props. Where an external-store sync could be expressed more precisely, prefer `useSyncExternalStore` instead (see `packages/ui/src/hooks/use-media-query.ts`, `use-mobile.ts`) — but don't rewrite every effect into that shape just to silence the rule when the effect is already correct. `react/jsx-no-constructed-context-values` and `react-perf/jsx-no-new-object-as-prop` are permanently in conflict with React Compiler (below) — both exist to push developers toward manual `useMemo`/`useCallback` for object literals passed as context value/props, which is exactly what `react-doctor/react-compiler-no-manual-memoization` tells you to remove since the compiler handles it. With React Compiler wired in, they'd fire on every idiomatic component. If a _function_ (not object) shows up as a fresh dependency in a `useEffect`/`useMemo` array (`react-hooks/exhaustive-deps`, `react-doctor/no-effect-with-fresh-deps`), prefer inlining the function inside the effect/memo callback over disabling the rule — that resolves the conflict without losing the check. `react-perf/jsx-no-new-function-as-prop` is off for the same React Compiler reason (function identity memoization, not just object literals). `react-perf/jsx-no-jsx-as-prop` is off because Base UI's composition API (`@base-ui/react`, used throughout `packages/ui`'s shadcn "base-nova" components) requires passing a JSX element via the `render` prop (e.g. `<Button render={<Link to="/login" />}>`) — there's no non-JSX way to use it, so the rule would fire on every Base UI composition, not just an occasional case.
+- Rules already turned off repo-wide, and why: `react/refs` and `react/set-state-in-effect` (oxlint's React Compiler diagnostics) misfire on two idioms used deliberately and pervasively throughout the app: (1) writing `xRef.current = value` at the top of a render body to keep a ref fresh for a long-lived DOM/event listener set up once (avoids re-subscribing every render and the stale-closure bug that comes with it — see the extensive comments in `canvas.tsx`, `code-block.tsx`, `speech-input.tsx`, `jsx-preview.tsx`), and (2) a `useEffect` that synchronizes React state with an external system (`window.matchMedia`, the Web Speech API, embla-carousel, Rive, cross-panel prop joins) — exactly what effects are for, per React's own docs, even though the compiler diagnostic flags the pattern.
 
 ## React Compiler wiring (real API, not the doc's simplified example)
 
-`docs/architecture/tech-stack.md`'s `vite.config.ts` snippet shows `react({ babel: reactCompilerPreset() })`, but the actual installed `@vitejs/plugin-react@6.0.5` API does **not** accept a `babel` option. The real, verified-working setup (see `apps/dashboard/vite.config.ts`) is:
+`apps/donve/vite.config.ts` is the verified setup:
 
 ```ts
 import babel from "@rolldown/plugin-babel";

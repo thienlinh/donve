@@ -16,7 +16,7 @@ DonVe is a SaaS / operations / automation / AI platform. Color semantics are int
 | `warning` | Attention / warning | — |
 | `destructive` | Error / destructive action | — |
 
-**Important:** don't make the whole UI orange. Keep most surfaces neutral and use orange for focus and action — this keeps a dense SaaS dashboard usable while the DonVe identity stays strong.
+**Important:** don't make the whole UI orange. Keep most surfaces neutral and use orange for focus and action — this keeps a dense operational app usable while the DonVe identity stays strong.
 
 ## Files
 

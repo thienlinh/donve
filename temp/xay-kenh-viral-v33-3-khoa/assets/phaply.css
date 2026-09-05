@@ -1,0 +1,211 @@
+/* Vinu Academy — style dùng chung cho trang Chính sách bảo mật & Điều khoản */
+:root {
+  --bg: #08050f;
+  --panel: #171130;
+  --panel2: #20183f;
+  --magenta: #ff3dbf;
+  --pink: #ff6bd6;
+  --purple-lt: #b76bff;
+  --cyan: #4fb0ff;
+  --text: #f6f0ff;
+  --soft: #e6dcfa;
+  --muted: #c6b8e4;
+  --muted2: #9382b9;
+  --line: rgba(176, 150, 255, 0.2);
+  --line-neon: rgba(255, 107, 214, 0.42);
+  --neon: linear-gradient(135deg, #ff3dbf 0%, #9b34f0 52%, #2e6bff 100%);
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--soft);
+  font-family:
+    "Be Vietnam Pro",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+header.top {
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(155, 52, 240, 0.14), transparent);
+  padding: 26px 0 30px;
+}
+header.top .brand {
+  font-family: Oswald, "Be Vietnam Pro", sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--neon);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  margin: 0 0 6px;
+}
+header.top .slogan {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin: 0;
+}
+
+main {
+  padding: 40px 0 20px;
+}
+h1 {
+  font-family: Oswald, "Be Vietnam Pro", sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4.6vw, 2.3rem);
+  line-height: 1.22;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+}
+.capnhat {
+  font-size: 0.82rem;
+  color: var(--muted2);
+  margin: 0 0 32px;
+}
+h2 {
+  font-family: Oswald, "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  color: var(--pink);
+  margin: 34px 0 12px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+h2:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--purple-lt);
+  margin: 22px 0 8px;
+}
+p,
+li {
+  color: var(--soft);
+}
+p {
+  margin: 0 0 14px;
+}
+ul {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 8px;
+}
+b,
+strong {
+  color: var(--text);
+}
+a {
+  color: var(--cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--pink);
+}
+
+.hop {
+  background: linear-gradient(160deg, var(--panel2), var(--panel));
+  border: 1px solid var(--line-neon);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin: 0 0 26px;
+}
+.hop p:last-child {
+  margin-bottom: 0;
+}
+
+.canhbao {
+  background: rgba(255, 61, 191, 0.1);
+  border: 1px dashed var(--line-neon);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 0 0 22px;
+  font-size: 0.92rem;
+}
+.canhbao b {
+  color: var(--pink);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 22px;
+  font-size: 0.92rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  vertical-align: top;
+}
+th {
+  background: rgba(155, 52, 240, 0.14);
+  color: var(--text);
+  font-weight: 700;
+}
+
+footer.bot {
+  border-top: 1px solid var(--line);
+  margin-top: 44px;
+  padding: 26px 0 44px;
+  font-size: 0.85rem;
+  color: var(--muted2);
+  text-align: center;
+}
+footer.bot a {
+  color: var(--muted);
+}
+footer.bot .cty {
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.quaylai {
+  display: inline-block;
+  margin-top: 26px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  background: var(--neon);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+  box-shadow: 0 0 26px rgba(255, 61, 191, 0.35);
+}
+.quaylai:hover {
+  color: #fff;
+  opacity: 0.92;
+}

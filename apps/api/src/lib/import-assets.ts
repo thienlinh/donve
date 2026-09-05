@@ -34,6 +34,8 @@ function extForMime(mime: string): string {
   if (mime.includes("png")) return "png";
   if (mime.includes("gif")) return "gif";
   if (mime.includes("webp")) return "webp";
+  if (mime.includes("mp4")) return "mp4";
+  if (mime.includes("webm")) return "webm";
   return "jpg";
 }
 
@@ -43,9 +45,9 @@ export interface ImportedAssetsResult {
 }
 
 /**
- * FR-B-30 "tách inline assets" + FR-B-35 flagging. Walks every `<img src>` in `html` (already
- * sanitized + srcmap-stamped) and, for each one, stores real bytes as a `pageAssets` row and
- * rewrites `src` to point at it:
+ * FR-B-30 "tách inline assets" + FR-B-35 flagging. Walks every `<img src>`/`<video src/poster>`/
+ * `<source src>` in `html` (already sanitized + srcmap-stamped) and, for each one, stores real
+ * bytes as a `pageAssets` row and rewrites the matched attribute to point at it:
  * - `data:` URIs are decoded directly (provenance is the tenant's own paste/upload, never
  *   flagged).
  * - zip-local relative paths are resolved against `zipAssets` (same provenance as above).
@@ -67,8 +69,14 @@ export async function extractInlineImportAssets(
 
   async function resolveOne(
     srcmapId: string,
-    src: string
-  ): Promise<{ op: PatchOp; assetId: string } | null> {
+    src: string,
+    attr: string,
+    removeDataSrc?: boolean
+  ): Promise<{
+    op: PatchOp;
+    removeDataSrcOp?: PatchOp;
+    assetId: string;
+  } | null> {
     let bytes: Uint8Array;
     let mime: string;
     let unverifiedSource = false;
@@ -127,21 +135,26 @@ export async function extractInlineImportAssets(
       op: {
         type: "setAttr",
         srcmapId,
-        attr: "src",
+        attr,
         value: `/api/landings/${landingPageId}/assets/${asset.id}/file`
-      }
+      },
+      removeDataSrcOp: removeDataSrc
+        ? { type: "setAttr", srcmapId, attr: "data-src", value: null }
+        : undefined
     };
   }
 
   const resolved = (
     await Promise.all(
-      extractImageSources(html).map(({ srcmapId, src }) =>
-        resolveOne(srcmapId, src)
+      extractImageSources(html).map(({ srcmapId, src, attr, removeDataSrc }) =>
+        resolveOne(srcmapId, src, attr, removeDataSrc)
       )
     )
   ).filter((r) => r !== null);
 
-  const ops = resolved.map((r) => r.op);
+  const ops = resolved.flatMap((r) =>
+    r.removeDataSrcOp ? [r.op, r.removeDataSrcOp] : [r.op]
+  );
   const assetIds = resolved.map((r) => r.assetId);
   return { html: ops.length > 0 ? applyOpsToHtml(html, ops) : html, assetIds };
 }

@@ -1,6 +1,6 @@
 ---
 name: web-design-engineer
-description: Workflow for turning a design brief into polished frontend work — verify facts before designing around a named product/brand, declare the design system upfront, ship a rough v0 before full build, avoid AI-cliche visuals. Use for any non-trivial new page, dashboard redesign, or landing page build.
+description: Workflow for turning a design brief into polished frontend work — verify facts before designing around a named product/brand, declare the design system upfront, ship a rough v0 before full build, avoid AI-cliche visuals. Use for any non-trivial new page, app redesign, or landing page build.
 ---
 
 Source: https://github.com/ConardLi/garden-skills (skill: web-design-engineer)
@@ -19,7 +19,7 @@ Purple-pink gradients, emoji filler, rounded-card-everything unless the token sy
 
 ## React-specific technical notes
 
-No inline `const styles = {...}` as a stray global; keep styling in Tailwind classes or CSS modules consistent with the rest of `apps/dashboard`.
+No inline `const styles = {...}` as a stray global; keep styling in Tailwind classes or CSS modules consistent with the rest of `apps/donve`.
 
 ## Pre-delivery checklist
 

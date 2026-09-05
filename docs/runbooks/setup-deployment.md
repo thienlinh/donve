@@ -1,6 +1,6 @@
 # Setup, Deployment & Vận hành — runbook gộp
 
-Gộp từ `ci-cd-setup.md` + `env-management.md` + `ops/infra-deployment-cost.md` + phần thao tác của `database.md` (đã xoá 4 file gốc). Đọc `docs/architecture/architecture.md` cho lý do thiết kế; file này chỉ có lệnh + checklist.
+Đây là runbook thao tác cho local, CI/CD, secrets và hạ tầng. Đọc [`docs/architecture/architecture.md`](../architecture/architecture.md) cho lý do thiết kế.
 
 ## 1. Local dev setup
 
@@ -18,7 +18,7 @@ docker-compose up -d          # postgres:18-alpine + valkey/valkey:latest (redis
 DATABASE_URL=postgres://donve:donve@localhost:5432/donve
 BETTER_AUTH_SECRET=...
 BETTER_AUTH_URL=...
-DASHBOARD_URL=...
+APP_URL=...
 PORT=...
 UPSTASH_REDIS_URL=...        # để trống local nếu dùng valkey qua ioredis driver
 UPSTASH_REDIS_TOKEN=...
@@ -68,18 +68,18 @@ GitHub repo → Secrets: `TURBO_TOKEN` (từ vercel.com/account/tokens); Variabl
 **CF Pages** — 2 project riêng, domain/build history tách biệt:
 
 ```bash
-cd apps/dashboard
-bunx wrangler pages project create dv-dashboard-staging --production-branch=main
-bunx wrangler pages project create dv-dashboard --production-branch=main
+cd apps/donve
+bunx wrangler pages project create dv-donve-staging --production-branch=main
+bunx wrangler pages project create dv-donve --production-branch=main
 ```
 
 **Custom domain** (khi đã chốt tên miền — hiện `donve.vn` chỉ là placeholder):
 
 1. Add domain vào Cloudflare.
 2. Workers `dv-api`/`dv-api-staging` → Domains & Routes → add `api.donve.vn`/`api-staging.donve.vn`.
-3. Pages `dv-dashboard`/`dv-dashboard-staging` → Custom domains → add `app.donve.vn`/`app-staging.donve.vn`.
+3. Pages `dv-donve`/`dv-donve-staging` → Custom domains → add `app.donve.vn`/`app-staging.donve.vn`.
 4. Domain cụ thể tự ưu tiên hơn route wildcard `*.donve.vn` của `edge-router`, không cần cấu hình loại trừ.
-5. Đổi domain khác → sửa `vars.BETTER_AUTH_URL`/`DASHBOARD_URL` trong `apps/api/wrangler.jsonc` + `VITE_API_URL` trong 2 workflow deploy.
+5. Đổi domain khác → sửa `vars.BETTER_AUTH_URL`/`APP_URL` trong `apps/api/wrangler.jsonc` + `VITE_API_URL` trong 2 workflow deploy.
 
 **Lighthouse CI gate (NFR-01)** — chỉ chạy khi có variable `SAMPLE_LANDING_URL` (repo-level, Actions → Variables): publish 1 landing thật lên staging, lấy hostname, set biến. Fail nếu Perf/SEO/BP/A11y < 95 mobile, LCP ≥ 1.8s, hoặc `landing-runtime` build > 10KB gzip. Giữ landing mẫu ổn định (không unpublish).
 
@@ -110,7 +110,7 @@ Lặp lại `--env production` với giá trị khác (Neon branch chính, key r
 
 ## 4. Deploy flow
 
-- `staging`: merge vào `main` → CI xanh → `deploy-staging.yml` tự chạy (wrangler deploy api + edge-router, CF Pages dashboard, DB migration tự động).
+- `staging`: merge vào `main` → CI xanh → `deploy-staging.yml` tự chạy (wrangler deploy api + edge-router, CF Pages DonVe app, DB migration tự động).
 - `prod`: `deploy-prod.yml` (workflow_dispatch) → chờ approve `Required reviewers` → chạy.
 - Rollback: trỏ lại deployment/DNS trước đó (Workers giữ deployment cũ, KV con trỏ đổi tức thời).
 
@@ -121,7 +121,7 @@ Hybrid theo bản chất workload, không "all-in" 1 bên:
 | Workload | Giai đoạn 1 (free) | Giai đoạn 2 |
 | --- | --- | --- |
 | Landing serving (edge-router+R2+KV) | Cloudflare edge | giữ nguyên, mãi mãi |
-| Dashboard SPA | CF Pages | giữ nguyên |
+| DonVe app SPA | CF Pages | giữ nguyên |
 | API (Hono) | CF Workers (100k req/ngày free) | VPS VN Bun khi cần job dài/Playwright/BullMQ |
 | Postgres | Neon free 0.5GB | self-host VPS + pgBackRest |
 | Redis/Jobs | Upstash + QStash | Valkey/Redis + BullMQ trên VPS |

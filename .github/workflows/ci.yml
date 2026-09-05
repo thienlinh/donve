@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Free Vercel remote cache for turbo — set these as repo secrets/vars
-      # (see docs/runbooks/ci-cd-setup.md) to make --affected builds share
-      # cache across branches/PRs. Harmless no-op if unset (local cache only).
+      # (see docs/runbooks/setup-deployment.md) to make --affected builds share cache across
+      # branches/PRs. Harmless no-op if unset (local cache only).
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:

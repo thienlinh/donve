@@ -1,5 +1,6 @@
 import { pageVersionSchema } from "@dv/contracts";
 import { landingPagesRepository, pageVersionsRepository } from "@dv/db";
+import { sanitizeLandingHtml } from "@dv/studio-core/sanitize";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -79,9 +80,13 @@ versionsRoutes.post("/:id/versions", async (c) => {
   const storage = createStorageFromEnv(c.env);
   const seq = currentVersion.seq + 1;
   const htmlKey = `landing-pages/${id}/v${seq}/index.html`;
+  // Every other write path to `htmlKey` content runs through this same sanitizer
+  // (generate/custom-import/AI-chat routes) — this one was missing it, which let an
+  // authenticated org member POST a `<script>` straight into stored HTML that the Studio
+  // canvas later renders same-origin via `srcDoc` + `sandbox="allow-same-origin allow-scripts"`.
   await storage.put({
     key: htmlKey,
-    body: body.html,
+    body: sanitizeLandingHtml(body.html),
     contentType: "text/html"
   });
 

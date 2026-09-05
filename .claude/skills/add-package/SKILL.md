@@ -12,7 +12,7 @@ Read `.claude/rules/tech-stack.md` first if not already in context — it has th
 1. **Pick the tsconfig preset** from `packages/config/`:
    - `react-library.json` — a package exporting React components (like `@dv/ui`, `@dv/studio-ui`)
    - `node-library.json` — a Bun/Node backend package or app (`@dv/db`, `@dv/auth`, `apps/api`, ...)
-   - `vite-app.json` — a Vite-built frontend app (`apps/dashboard`)
+   - `vite-app.json` — a Vite-built frontend app (`apps/donve`)
    - `base.json` — anything else (e.g. `apps/landing-runtime`, vanilla TS)
 
 2. **Create `<dir>/package.json`**:

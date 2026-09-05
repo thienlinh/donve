@@ -17,7 +17,7 @@ const bindings: Bindings = {
   BETTER_AUTH_URL:
     process.env.BETTER_AUTH_URL ??
     `http://localhost:${process.env.PORT ?? 3000}`,
-  DASHBOARD_URL: process.env.DASHBOARD_URL ?? "http://localhost:5173",
+  APP_URL: process.env.APP_URL ?? "http://localhost:5173",
   RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
   RUNTIME: "bun",
   LOCAL_STORAGE_DIR: process.env.LOCAL_STORAGE_DIR,

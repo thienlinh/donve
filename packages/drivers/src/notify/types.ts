@@ -16,7 +16,7 @@ export type NotifyEvent = {
   type: "sla_breach";
   props: {
     orgName: string;
-    dashboardUrl: string;
+    appUrl: string;
     leadFullName: string;
     slaHours: number;
   };

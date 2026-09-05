@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, ilike, inArray, or } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 
 import type { Db } from "../client/types.js";
 import { withOrgScope } from "../org-scope.js";
@@ -35,6 +35,51 @@ export const ordersRepository = {
     );
   },
 
+  /** Orders created or paid since a cutoff, with lead attribution for the daily operating queue. */
+  async listForOperatingSummary(
+    db: Db,
+    orgId: string,
+    since: Date,
+    until: Date
+  ) {
+    return withOrgScope<
+      {
+        id: string;
+        status: (typeof orders.$inferSelect)["status"];
+        amount: string;
+        createdAt: Date;
+        paidAt: Date | null;
+        leadId: string;
+        source: string | null;
+        utm: unknown;
+      }[]
+    >(db, orgId, (qb) =>
+      qb
+        .select({
+          id: orders.id,
+          status: orders.status,
+          amount: orders.amount,
+          createdAt: orders.createdAt,
+          paidAt: orders.paidAt,
+          leadId: orders.leadId,
+          source: leads.source,
+          utm: leads.utm
+        })
+        .from(orders)
+        .leftJoin(leads, eq(leads.id, orders.leadId))
+        .where(
+          and(
+            eq(orders.orgId, orgId),
+            or(
+              and(gte(orders.createdAt, since), lte(orders.createdAt, until)),
+              and(gte(orders.paidAt, since), lte(orders.paidAt, until))
+            )
+          )
+        )
+        .orderBy(desc(orders.createdAt))
+    );
+  },
+
   /** Orders + lead info for a set of ids, for FR-D-09's ranked candidate picker. Order is not
    * guaranteed to match `ids` — the caller re-sorts by its own ranking (`candidateOrderIds`). */
   async findCandidatesByIds(db: Db, orgId: string, ids: string[]) {
@@ -59,6 +104,66 @@ export const ordersRepository = {
         .from(orders)
         .innerJoin(leads, eq(leads.id, orders.leadId))
         .where(and(eq(orders.orgId, orgId), inArray(orders.id, ids)))
+    );
+  },
+
+  /** Seller-facing order desk rows with only the customer context needed to act. */
+  async listForOrderDesk(
+    db: Db,
+    orgId: string,
+    status?: (typeof orders.$inferSelect)["status"]
+  ) {
+    return withOrgScope<
+      {
+        id: string;
+        orgId: string;
+        code: string;
+        leadId: string;
+        campaignId: string;
+        productId: string | null;
+        amount: string;
+        status: (typeof orders.$inferSelect)["status"];
+        paidAt: Date | null;
+        fulfilledAt: Date | null;
+        expiresAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        leadFullName: string;
+        leadPhone: string;
+        leadEmail: string | null;
+        source: string | null;
+      }[]
+    >(db, orgId, (qb) =>
+      qb
+        .select({
+          id: orders.id,
+          orgId: orders.orgId,
+          code: orders.code,
+          leadId: orders.leadId,
+          campaignId: orders.campaignId,
+          productId: orders.productId,
+          amount: orders.amount,
+          status: orders.status,
+          paidAt: orders.paidAt,
+          fulfilledAt: orders.fulfilledAt,
+          expiresAt: orders.expiresAt,
+          createdAt: orders.createdAt,
+          updatedAt: orders.updatedAt,
+          leadFullName: leads.fullName,
+          leadPhone: leads.phone,
+          leadEmail: leads.email,
+          source: leads.source
+        })
+        .from(orders)
+        .innerJoin(leads, eq(leads.id, orders.leadId))
+        .where(
+          and(
+            eq(orders.orgId, orgId),
+            ...(status ? [eq(orders.status, status)] : [])
+          )
+        )
+        .orderBy(desc(orders.createdAt))
+        .limit(100)
     );
   },
 

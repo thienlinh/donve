@@ -29,7 +29,7 @@ export const dataSubjectRequestsRepository = {
     );
   },
 
-  /** Org-wide summary (dashboard indicator + the org-level GET), soonest-due first. */
+  /** Org-wide summary (app indicator + the org-level GET), soonest-due first. */
   async listByStatus(
     db: Db,
     orgId: string,

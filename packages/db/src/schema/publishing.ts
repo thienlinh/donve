@@ -52,7 +52,7 @@ export const customDomains = pgTable(
       .default("pending"),
     cfHostnameId: text("cf_hostname_id"),
     // FR-G-04 — CNAME target + ownership verification record from Cloudflare for SaaS, so the
-    // dashboard can always render "what to set up" without re-hitting the CF API on every render.
+    // app can always render "what to set up" without re-hitting the CF API on every render.
     verification: jsonb("verification").default({}),
     createdAt: timestamps.createdAt
   },

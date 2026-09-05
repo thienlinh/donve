@@ -27,6 +27,9 @@ export const leads = pgTable(
     persona: text("persona"),
     customFields: jsonb("custom_fields").default({}),
     utm: jsonb("utm").default({}),
+    // Resolved once at insert time from `utm` against `sourceLinks` for the campaign — null
+    // means direct traffic or an untracked link, not an error. See `findOrCreateLead`.
+    sourceLinkId: uuid("source_link_id"),
     stage: text("stage").notNull().default("new"),
     assigneeId: uuid("assignee_id"),
     // multi-source ingestion — every insert path (public submit form, CSV import, the
@@ -52,7 +55,7 @@ export const leads = pgTable(
     })
       .notNull()
       .default("manual"),
-    // dashboard "unread" indicator — set by `PATCH /:id/viewed`, never inferred elsewhere.
+    // App "unread" indicator — set by `PATCH /:id/viewed`, never inferred elsewhere.
     lastViewedAt: timestamp("last_viewed_at"),
     ...timestamps,
     deletedAt: deletedAt(),
@@ -66,6 +69,7 @@ export const leads = pgTable(
       .where(sql`deleted_at IS NULL`),
     index("ix_leads_list").on(t.orgId, t.campaignId, t.stage, t.createdAt),
     index("ix_leads_assignee").on(t.orgId, t.assigneeId),
+    index("ix_leads_source_link").on(t.orgId, t.sourceLinkId),
     orgIsolationPolicy(),
     platformReadPolicy()
   ]
@@ -74,7 +78,7 @@ export const leads = pgTable(
 /**
  * Auto-assignment/routing engine (module E follow-up) — ordered rule set per org, evaluated
  * top-to-bottom by `priority` in `routeLead` (apps/api/src/modules/leads/routing.ts). SLA
- * columns are stored now for the dashboard's rule editor but the breach-sweep job itself is a
+ * columns are stored now for the app's rule editor but the breach-sweep job itself is a
  * later phase — nothing reads `slaHours`/`onSlaBreach` yet.
  */
 export const assignmentRules = pgTable(
@@ -268,7 +272,12 @@ export const orders = pgTable(
     code: text("code").notNull(),
     leadId: uuid("lead_id").notNull(),
     campaignId: uuid("campaign_id").notNull(),
+    // Copied from the lead's `sourceLinkId` at order-creation time — the lead is the source of
+    // truth once resolved, never re-resolved from UTM here.
+    sourceLinkId: uuid("source_link_id"),
     productId: uuid("product_id"),
+    /** Immutable delivery recipe captured when the order is created. */
+    fulfillmentConfig: jsonb("fulfillment_config").notNull().default({}),
     amount: numeric("amount", { precision: 12, scale: 0 }).notNull(),
     status: text("status", {
       enum: [
@@ -290,6 +299,35 @@ export const orders = pgTable(
   (t) => [
     uniqueIndex("uq_order_code").on(t.orgId, t.code),
     index("ix_orders_status").on(t.orgId, t.status, t.createdAt),
+    orgIsolationPolicy(),
+    platformReadPolicy()
+  ]
+).enableRLS();
+
+/** One idempotent delivery task per paid order. External delivery is never inferred from order status. */
+export const fulfillmentTasks = pgTable(
+  "fulfillment_tasks",
+  {
+    id: id(),
+    orgId: uuid("org_id").notNull(),
+    orderId: uuid("order_id").notNull(),
+    type: text("type", {
+      enum: ["link", "zalo", "schedule", "manual"]
+    }).notNull(),
+    status: text("status", {
+      enum: ["pending", "processing", "completed", "failed"]
+    })
+      .notNull()
+      .default("pending"),
+    config: jsonb("config").notNull().default({}),
+    attempts: integer("attempts").notNull().default(0),
+    lastError: text("last_error"),
+    completedAt: timestamp("completed_at"),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex("uq_fulfillment_order").on(t.orgId, t.orderId),
+    index("ix_fulfillment_status").on(t.orgId, t.status, t.updatedAt),
     orgIsolationPolicy(),
     platformReadPolicy()
   ]

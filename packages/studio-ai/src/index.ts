@@ -15,15 +15,6 @@ export type {
 } from "./prompt.js";
 export { compileContentAgentPrompt } from "./content-agent-prompt.js";
 export type { CompileContentAgentPromptInput } from "./content-agent-prompt.js";
-export {
-  compileClassifySectionsPrompt,
-  compileExtractContentPrompt
-} from "./convert-to-native-prompt.js";
-export type {
-  CompileClassifySectionsPromptInput,
-  CompileExtractContentPromptInput,
-  SectionToClassify
-} from "./convert-to-native-prompt.js";
 export { compileCustomImportChatPrompt } from "./custom-import-chat-prompt.js";
 export type { CompileCustomImportChatPromptInput } from "./custom-import-chat-prompt.js";
 export {

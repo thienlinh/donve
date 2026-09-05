@@ -80,7 +80,7 @@ async function runDigestForOrg(
         template: "lead_digest",
         props: {
           orgName: org.name,
-          dashboardUrl: `${env.DASHBOARD_URL}/leads`,
+          appUrl: `${env.APP_URL}/leads`,
           leads: groupLeads.map((lead) => ({
             fullName: lead.fullName,
             phone: lead.phone,

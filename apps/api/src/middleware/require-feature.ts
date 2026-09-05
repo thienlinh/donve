@@ -13,7 +13,7 @@ import type { AppEnv } from "../types.js";
  *
  * The 403 message carries the feature key rather than a plan name: which plans include a key
  * lives in `plan_features` data, not in code, so naming a plan here would go stale silently.
- * The dashboard maps the key to its own upgrade copy.
+ * The app maps the key to its own upgrade copy.
  */
 export const requireFeature = (key: string) =>
   createMiddleware<AppEnv>(async (c, next) => {

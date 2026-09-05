@@ -31,7 +31,7 @@ async function publishBestEffort(
   }
 }
 
-/** architecture.md §5.3: dashboard SSE hub, fed by this channel per org. */
+/** architecture.md §5.3: app SSE hub, fed by this channel per org. */
 export function orderStreamChannel(orgId: string): string {
   return `org:${orgId}:orders`;
 }

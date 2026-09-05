@@ -10,6 +10,7 @@ export * from "./custom-import.js";
 export * from "./email.js";
 export * from "./optimization.js";
 export * from "./platform.js";
+export * from "./prompt-library.js";
 export * from "./publishing.js";
 export * from "./quality.js";
 export * from "./studio.js";

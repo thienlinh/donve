@@ -50,7 +50,7 @@ function listFilterConditions(orgId: string, filters: LeadListFilters) {
     conditions.push(eq(leads.stage, filters.stage));
   }
   if (filters.utmSource) {
-    conditions.push(sql`${leads.utm}->>'source' = ${filters.utmSource}`);
+    conditions.push(sql`${leads.utm}->>'utm_source' = ${filters.utmSource}`);
   }
   if (filters.assigneeId === "unassigned") {
     conditions.push(isNull(leads.assigneeId));
@@ -138,7 +138,7 @@ const totalPaidAmountSql = sql<number>`
 
 /** One row of `listFiltered` — the lead plus the computed age badge, in the same query the
  * caller already runs (no second round trip). Assignee display info is resolved client-side
- * from `activeOrganization.members` (dashboard already has it), so it isn't duplicated here. */
+ * from `activeOrganization.members` (the app already has it), so it isn't duplicated here. */
 function listRowSelection() {
   return {
     ...getTableColumns(leads),
@@ -298,7 +298,7 @@ export const leadsRepository = {
 
   /** SLA-breach sweep (`lib/lead-sla-sweep.ts`) — every open, assigned lead in the org, plus
    * the same `hoursSinceActivity` computed column `listFiltered` exposes, so the sweep and the
-   * dashboard's age badge always agree on what "how long has this been sitting" means. Only
+   * app's age badge always agree on what "how long has this been sitting" means. Only
    * assigned leads matter here — there's no assignee to escalate away from otherwise. */
   async listOpenAssigned(db: Db, orgId: string) {
     return withOrgScope<LeadListRow[]>(db, orgId, (qb) =>

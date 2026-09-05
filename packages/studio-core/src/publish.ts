@@ -102,6 +102,8 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/webp": "webp",
   "image/gif": "gif",
   "image/svg+xml": "svg",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
   "application/javascript": "js",
   "text/javascript": "js",
   "text/css": "css"
@@ -135,13 +137,14 @@ export async function buildPublishArtifacts(
   }
 
   const { document } = parseHTML(sanitized);
-  const ATTR_BY_TAG: Record<string, string> = {
-    img: "src",
-    source: "src",
-    link: "href",
-    video: "poster"
-  };
-  for (const [tag, attr] of Object.entries(ATTR_BY_TAG)) {
+  const ATTRS_BY_TAG: Array<{ tag: string; attr: string }> = [
+    { tag: "img", attr: "src" },
+    { tag: "source", attr: "src" },
+    { tag: "link", attr: "href" },
+    { tag: "video", attr: "src" },
+    { tag: "video", attr: "poster" }
+  ];
+  for (const { tag, attr } of ATTRS_BY_TAG) {
     for (const el of document.querySelectorAll(tag)) {
       const current = el.getAttribute(attr);
       const rewritten = current && urlRewrites.get(current);

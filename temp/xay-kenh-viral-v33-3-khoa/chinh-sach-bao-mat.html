@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chính sách bảo mật — Vinu Academy</title>
+    <meta
+      name="description"
+      content="Chính sách bảo mật dữ liệu cá nhân của Vinu Academy — CÔNG TY TNHH MCOS GROUP, áp dụng cho khách hàng đăng ký khoá học trực tuyến."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#08050F" />
+    <link
+      rel="canonical"
+      href="https://xaykenh.funu.com.vn/chinh-sach-bao-mat.html"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/apple-touch-icon-01.png"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #08050f;
+        --panel: #171130;
+        --magenta: #ff3dbf;
+        --pink: #ff6bd6;
+        --purple-lt: #b76bff;
+        --sky: #4fb0ff;
+        --text: #f6f0ff;
+        --soft: #e6dcfa;
+        --muted: #c6b8e4;
+        --muted2: #9382b9;
+        --line: rgba(176, 150, 255, 0.2);
+        --line-neon: rgba(255, 107, 214, 0.42);
+        --neon: linear-gradient(135deg, #ff3dbf 0%, #9b34f0 52%, #2e6bff 100%);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--soft);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        width: min(820px, 92vw);
+        margin-inline: auto;
+      }
+
+      header {
+        padding: 38px 0 30px;
+        border-bottom: 1px solid var(--line);
+        text-align: center;
+      }
+      header .eyebrow {
+        display: inline-block;
+        font-weight: 700;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--purple-lt);
+      }
+      header h1 {
+        font-family: "Oswald", sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: clamp(1.7rem, 4.6vw, 2.6rem);
+        color: #fff;
+        line-height: 1.15;
+        margin: 12px 0 8px;
+        text-shadow: 0 0 26px rgba(255, 107, 214, 0.4);
+      }
+      header .meta {
+        font-size: 0.86rem;
+        color: var(--muted2);
+      }
+
+      main {
+        padding: 34px 0 60px;
+      }
+      section {
+        margin-bottom: 30px;
+      }
+      h2 {
+        font-family: "Oswald", sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 1.18rem;
+        color: var(--pink);
+        letter-spacing: 0.01em;
+        margin-bottom: 12px;
+        line-height: 1.3;
+      }
+      h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 16px 0 6px;
+      }
+      p {
+        margin-bottom: 12px;
+        font-size: 0.97rem;
+      }
+      ul {
+        margin: 0 0 12px 20px;
+      }
+      li {
+        margin-bottom: 7px;
+        font-size: 0.97rem;
+      }
+      b,
+      strong {
+        color: #fff;
+      }
+      a {
+        color: var(--sky);
+      }
+
+      .box {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 26px;
+      }
+      .box.warn {
+        border-color: var(--line-neon);
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 16px;
+        font-size: 0.95rem;
+      }
+      .kv dt {
+        color: var(--muted2);
+      }
+      .kv dd {
+        color: #fff;
+        font-weight: 600;
+      }
+      @media (max-width: 560px) {
+        .kv {
+          grid-template-columns: 1fr;
+          gap: 2px;
+        }
+        .kv dd {
+          margin-bottom: 10px;
+        }
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+        margin-bottom: 12px;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: rgba(155, 52, 240, 0.14);
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 0.85em 1.7em;
+        border-radius: 14px;
+        background: var(--neon);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.95rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 30px 0 44px;
+        text-align: center;
+        font-size: 0.83rem;
+        color: var(--muted2);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <span class="eyebrow">Vinu Academy</span>
+        <h1>Chính sách bảo mật dữ liệu cá nhân</h1>
+        <p class="meta">Áp dụng từ ngày 20/08/2026 · Phiên bản 1.0</p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section>
+        <p>
+          Vinu Academy (thuộc <b>CÔNG TY TNHH MCOS GROUP</b>) tôn trọng và cam
+          kết bảo vệ dữ liệu cá nhân của bạn. Chính sách này giải thích rõ chúng
+          tôi thu thập thông tin gì, dùng vào việc gì, chia sẻ với ai, lưu trong
+          bao lâu và bạn có những quyền gì.
+        </p>
+        <p>
+          Chính sách được xây dựng theo <b>Nghị định 13/2023/NĐ-CP</b> về bảo vệ
+          dữ liệu cá nhân, <b>Luật Bảo vệ quyền lợi người tiêu dùng 2023</b> và
+          các quy định pháp luật hiện hành của Việt Nam.
+        </p>
+      </section>
+
+      <div class="box">
+        <h2 style="margin-bottom: 14px">1. Bên kiểm soát dữ liệu</h2>
+        <dl class="kv">
+          <dt>Đơn vị</dt>
+          <dd>CÔNG TY TNHH MCOS GROUP</dd>
+          <dt>Mã số thuế</dt>
+          <dd>0319111064</dd>
+          <dt>Địa chỉ trụ sở</dt>
+          <dd>
+            25 Đường số 6, Khu đô thị Lakeview, Phường Bình Trưng, Thành phố Hồ
+            Chí Minh, Việt Nam
+          </dd>
+          <dt>Thương hiệu</dt>
+          <dd>Vinu Academy</dd>
+          <dt>Hotline / Zalo</dt>
+          <dd>0789 967 568</dd>
+          <dt>Email</dt>
+          <dd>
+            <a href="mailto:quanlymcosgroup@gmail.com"
+              >quanlymcosgroup@gmail.com</a
+            >
+          </dd>
+          <dt>Fanpage</dt>
+          <dd>
+            <a href="https://m.me/vinuacademyvn" target="_blank" rel="noopener"
+              >Vinu Academy</a
+            >
+          </dd>
+        </dl>
+        <p style="margin: 14px 0 0; font-size: 0.9rem; color: var(--muted2)">
+          Mọi yêu cầu liên quan đến dữ liệu cá nhân, bạn liên hệ qua hotline,
+          email hoặc Fanpage ở trên.
+        </p>
+      </div>
+
+      <section>
+        <h2>2. Dữ liệu cá nhân chúng tôi thu thập</h2>
+        <h3>2.1. Thông tin bạn chủ động cung cấp</h3>
+        <p>
+          Khi bạn điền vào biểu mẫu đăng ký khoá học trên trang này, chúng tôi
+          thu thập:
+        </p>
+        <ul>
+          <li>
+            <b>Họ và tên</b> — bắt buộc, để xưng hô và đối chiếu khi kích hoạt
+            khoá học.
+          </li>
+          <li>
+            <b>Số điện thoại</b> — bắt buộc, để đội ngũ tư vấn liên hệ và đối
+            soát thanh toán.
+          </li>
+          <li>
+            <b>Địa chỉ email</b> — không bắt buộc, để gửi thông tin khoá học.
+          </li>
+          <li>
+            <b>Nhóm nghề nghiệp bạn tự chọn</b> — không bắt buộc, để tư vấn phù
+            hợp hơn.
+          </li>
+        </ul>
+        <p>
+          Chúng tôi <b>không thu thập dữ liệu cá nhân nhạy cảm</b> (tình trạng
+          sức khoẻ, tài chính cá nhân, tôn giáo, quan điểm chính trị, dữ liệu
+          sinh trắc học…).
+        </p>
+
+        <h3>2.2. Thông tin kỹ thuật thu thập tự động</h3>
+        <ul>
+          <li>
+            Địa chỉ trang web bạn đến từ và các tham số theo dõi chiến dịch
+            quảng cáo (utm_source, utm_campaign, fbclid…).
+          </li>
+          <li>
+            Một mã ghi nhớ lưu trên trình duyệt của bạn trong <b>30 ngày</b> để
+            biết bạn đến từ chiến dịch quảng cáo nào.
+          </li>
+          <li>
+            Cookie và mã nhận diện của Meta Pixel phục vụ đo lường hiệu quả
+            quảng cáo.
+          </li>
+        </ul>
+
+        <h3>2.3. Nếu bạn không cung cấp thông tin</h3>
+        <p>
+          Họ tên và số điện thoại là thông tin tối thiểu để chúng tôi xác nhận
+          đơn và kích hoạt khoá học cho bạn. Nếu không cung cấp, chúng tôi
+          <b>không thể hoàn tất việc đăng ký</b>. Các thông tin còn lại đều
+          không bắt buộc — không điền cũng không ảnh hưởng đến quyền lợi học
+          viên của bạn.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Mục đích và căn cứ xử lý</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Mục đích</th>
+              <th>Dữ liệu sử dụng</th>
+              <th>Căn cứ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Liên hệ tư vấn, xác nhận đơn và kích hoạt tài khoản khoá học
+              </td>
+              <td>Họ tên, số điện thoại, email</td>
+              <td>
+                Sự đồng ý của bạn khi bấm nút đăng ký; thực hiện hợp đồng cung
+                cấp khoá học
+              </td>
+            </tr>
+            <tr>
+              <td>Đối soát thanh toán chuyển khoản</td>
+              <td>Họ tên, số điện thoại</td>
+              <td>Thực hiện hợp đồng</td>
+            </tr>
+            <tr>
+              <td>Chăm sóc sau bán, hỗ trợ học viên</td>
+              <td>Họ tên, số điện thoại, email</td>
+              <td>Sự đồng ý của bạn</td>
+            </tr>
+            <tr>
+              <td>Ngăn chặn đăng ký ảo, spam</td>
+              <td>Thông tin kỹ thuật, thời gian thao tác</td>
+              <td>Lợi ích hợp pháp của doanh nghiệp</td>
+            </tr>
+            <tr>
+              <td>Đo lường hiệu quả quảng cáo</td>
+              <td>Cookie, mã nhận diện quảng cáo</td>
+              <td>Sự đồng ý của bạn khi tiếp tục sử dụng trang</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Chúng tôi <b>không bán, không trao đổi, không cho thuê</b> dữ liệu cá
+          nhân của bạn cho bất kỳ bên nào vì mục đích thương mại.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Chia sẻ dữ liệu với bên thứ ba</h2>
+        <p>
+          Dữ liệu chỉ được chia sẻ trong phạm vi cần thiết để vận hành dịch vụ:
+        </p>
+        <ul>
+          <li>
+            <b>Nền tảng FUNU</b> (api.funu.com.vn) — nơi lưu trữ đơn đăng ký và
+            vận hành hệ thống khoá học trực tuyến.
+          </li>
+          <li>
+            <b>Meta Platforms (Facebook)</b> — nhận tín hiệu đo lường quảng cáo
+            qua Meta Pixel.
+          </li>
+          <li>
+            <b>Cơ quan nhà nước có thẩm quyền</b> — khi có yêu cầu hợp pháp bằng
+            văn bản.
+          </li>
+        </ul>
+        <p>
+          Các bên xử lý dữ liệu nêu trên có nghĩa vụ bảo mật theo thoả thuận và
+          theo quy định pháp luật.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Chuyển dữ liệu ra nước ngoài</h2>
+        <p>
+          Do trang này sử dụng công cụ đo lường quảng cáo của
+          <b>Meta Platforms</b> (công ty đặt tại nước ngoài), một phần dữ liệu
+          kỹ thuật của bạn — cookie, mã nhận diện quảng cáo, hành vi truy cập
+          trang — <b>có thể được chuyển và xử lý ngoài lãnh thổ Việt Nam</b>.
+        </p>
+        <p>
+          Chúng tôi
+          <b
+            >không chuyển họ tên, số điện thoại hay email của bạn ra nước
+            ngoài</b
+          >
+          dưới dạng đọc được. Toàn bộ thông tin liên hệ được lưu trên hệ thống
+          trong nước.
+        </p>
+        <p>
+          Nếu bạn không muốn dữ liệu kỹ thuật của mình được chuyển đi, bạn có
+          thể chặn cookie trong cài đặt trình duyệt — việc này không ảnh hưởng
+          đến khả năng đăng ký khoá học.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Thời gian lưu trữ</h2>
+        <ul>
+          <li>
+            <b>Học viên đã mua khoá học:</b> lưu trong suốt thời gian bạn còn
+            quyền truy cập khoá học và thêm 24 tháng sau đó để hỗ trợ tra cứu,
+            bảo hành quyền lợi học viên.
+          </li>
+          <li>
+            <b>Người đăng ký nhưng chưa mua:</b> lưu tối đa 12 tháng kể từ lần
+            liên hệ gần nhất.
+          </li>
+          <li>
+            <b>Dữ liệu kỹ thuật (nguồn quảng cáo):</b> lưu tối đa 12 tháng.
+          </li>
+        </ul>
+        <p>
+          Hết thời hạn trên, dữ liệu sẽ được xoá hoặc ẩn danh hoá, trừ khi pháp
+          luật yêu cầu lưu lâu hơn (ví dụ chứng từ kế toán).
+        </p>
+      </section>
+
+      <section>
+        <h2>7. Quyền của bạn đối với dữ liệu cá nhân</h2>
+        <p>Theo Điều 9 Nghị định 13/2023/NĐ-CP, bạn có các quyền sau:</p>
+        <ul>
+          <li>
+            <b>Quyền được biết</b> về việc dữ liệu của mình đang được xử lý.
+          </li>
+          <li><b>Quyền đồng ý hoặc không đồng ý</b> cho phép xử lý dữ liệu.</li>
+          <li><b>Quyền truy cập</b> để xem, chỉnh sửa dữ liệu của mình.</li>
+          <li><b>Quyền rút lại sự đồng ý</b> bất cứ lúc nào.</li>
+          <li>
+            <b>Quyền xoá dữ liệu</b> và <b>quyền hạn chế xử lý</b> dữ liệu.
+          </li>
+          <li>
+            <b>Quyền phản đối</b> việc xử lý dữ liệu, bao gồm phản đối nhận tin
+            tư vấn.
+          </li>
+          <li>
+            <b>Quyền yêu cầu cung cấp</b> cho bạn bản dữ liệu cá nhân mà chúng
+            tôi đang giữ.
+          </li>
+          <li>
+            <b>Quyền tự bảo vệ</b> theo quy định của Bộ luật Dân sự và pháp luật
+            có liên quan.
+          </li>
+          <li>
+            <b>Quyền yêu cầu bồi thường thiệt hại</b> và
+            <b>quyền khiếu nại, tố cáo, khởi kiện</b> theo quy định pháp luật.
+          </li>
+        </ul>
+      </section>
+
+      <div class="box warn">
+        <h2 style="margin-bottom: 12px">8. Cách thực hiện quyền của bạn</h2>
+        <p style="margin-bottom: 10px">
+          Bạn có thể yêu cầu <b>xem, sửa, xoá dữ liệu</b> hoặc
+          <b>dừng nhận liên hệ tư vấn</b> bằng một trong hai cách:
+        </p>
+        <ul style="margin-bottom: 10px">
+          <li>Gọi hoặc nhắn Zalo tới hotline <b>0789 967 568</b></li>
+          <li>
+            Nhắn tin tới
+            <a href="https://m.me/vinuacademyvn" target="_blank" rel="noopener"
+              >Fanpage Vinu Academy</a
+            >
+          </li>
+        </ul>
+        <p style="margin-bottom: 0">
+          Chúng tôi xử lý yêu cầu <b>trong vòng 72 giờ</b> kể từ khi nhận được.
+          Nếu chỉ nói với nhân viên tư vấn qua điện thoại rằng bạn không muốn
+          nhận liên hệ nữa, chúng tôi cũng sẽ ghi nhận và ngừng liên hệ.
+        </p>
+      </div>
+
+      <section>
+        <h2>9. Từ chối nhận tin tư vấn, quảng cáo</h2>
+        <p>
+          Chúng tôi chỉ liên hệ với bạn qua gọi điện, Zalo hoặc tin nhắn khi bạn
+          đã chủ động để lại thông tin đăng ký. Chúng tôi
+          <b>không gửi tin nhắn quảng cáo hàng loạt</b> tới số điện thoại chưa
+          từng đăng ký.
+        </p>
+        <p>
+          <b>Chúng tôi không ghi âm cuộc gọi tư vấn.</b> Nội dung trao đổi qua
+          điện thoại không được thu âm, không được lưu lại dưới dạng tệp ghi âm
+          và không được chia sẻ cho bất kỳ bên nào.
+        </p>
+        <p>Bạn có thể dừng nhận liên hệ bất cứ lúc nào bằng cách:</p>
+        <ul>
+          <li>Nói trực tiếp với nhân viên tư vấn khi nhận cuộc gọi;</li>
+          <li>Nhắn <b>"TU CHOI"</b> tới Zalo <b>0789 967 568</b>;</li>
+          <li>Hoặc nhắn tới Fanpage Vinu Academy.</li>
+        </ul>
+        <p>
+          Yêu cầu được ghi nhận ngay và chúng tôi ngừng liên hệ tư vấn trong
+          vòng 72 giờ. Việc từ chối nhận tin quảng cáo
+          <b>không ảnh hưởng</b> đến quyền truy cập khoá học bạn đã mua — các
+          thông báo về khoá học và hỗ trợ kỹ thuật vẫn được gửi bình thường.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Bảo mật thông tin</h2>
+        <p>
+          Chúng tôi áp dụng các biện pháp kỹ thuật và quản lý phù hợp để bảo vệ
+          dữ liệu: truyền dữ liệu qua kết nối mã hoá HTTPS, giới hạn quyền truy
+          cập theo vai trò, và chỉ nhân sự phụ trách tư vấn – chăm sóc học viên
+          mới được tiếp cận thông tin liên hệ của bạn.
+        </p>
+        <p>
+          Tuy nhiên, không có phương thức truyền tải nào trên Internet an toàn
+          tuyệt đối. Nếu xảy ra sự cố lộ lọt dữ liệu, chúng tôi sẽ thông báo cho
+          bạn và cơ quan chức năng theo đúng quy định pháp luật.
+        </p>
+      </section>
+
+      <section>
+        <h2>11. Cookie và công cụ đo lường</h2>
+        <p>
+          Trang này sử dụng <b>Meta Pixel</b> của Facebook để đo lường hiệu quả
+          quảng cáo (ví dụ: có bao nhiêu người xem trang, bao nhiêu người điền
+          form). Công cụ này có thể đặt cookie trên trình duyệt của bạn.
+        </p>
+        <p>
+          Ngoài ra, trang có lưu trên trình duyệt của bạn một mã kỹ thuật của
+          chính chúng tôi để ghi nhớ nguồn quảng cáo (giữ 30 ngày). Mã này
+          <b>không chứa</b> họ tên, số điện thoại hay email của bạn.
+        </p>
+        <p>
+          Bạn có thể chặn cookie trong phần cài đặt trình duyệt, hoặc điều chỉnh
+          tuỳ chọn quảng cáo trong tài khoản Facebook của mình. Việc chặn cookie
+          không ảnh hưởng đến khả năng đăng ký khoá học.
+        </p>
+      </section>
+
+      <section>
+        <h2>12. Dữ liệu của trẻ em</h2>
+        <p>
+          Khoá học và dịch vụ của chúng tôi dành cho
+          <b>người từ 18 tuổi trở lên</b>. Chúng tôi không chủ đích thu thập dữ
+          liệu của người chưa đủ 18 tuổi. Theo Nghị định 13/2023/NĐ-CP, việc xử
+          lý dữ liệu của trẻ em (người dưới 16 tuổi) phải có sự đồng ý của cha,
+          mẹ hoặc người giám hộ — chúng tôi không thu thập dữ liệu thuộc nhóm
+          này. Nếu phát hiện đã thu thập nhầm, chúng tôi sẽ xoá ngay khi được
+          thông báo.
+        </p>
+      </section>
+
+      <section>
+        <h2>13. Thay đổi chính sách</h2>
+        <p>
+          Chính sách này có thể được cập nhật khi quy định pháp luật hoặc cách
+          thức vận hành thay đổi. Phiên bản mới nhất luôn được đăng tại trang
+          này kèm ngày áp dụng. Bạn nên xem lại định kỳ.
+        </p>
+      </section>
+
+      <section style="text-align: center; margin-top: 40px">
+        <a class="back" href="index.html">‹ Quay lại trang khoá học</a>
+        <p style="margin-top: 16px; font-size: 0.9rem">
+          <a href="dieu-khoan.html" style="color: var(--pink)"
+            >Xem Điều khoản sử dụng</a
+          >
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <div>
+          Sản phẩm thuộc
+          <b style="color: var(--pink)">CÔNG TY TNHH MCOS GROUP</b>
+        </div>
+        <div>
+          Hotline / Zalo: <b style="color: var(--pink)">0789 967 568</b>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

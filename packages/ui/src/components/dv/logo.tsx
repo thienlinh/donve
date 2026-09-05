@@ -24,17 +24,19 @@ const darkScaleFix: Partial<Record<keyof typeof variants, string>> = {
 
 export function Logo({
   variant = "full",
-  className
+  className,
+  alt = "Đơn Về"
 }: {
   variant?: keyof typeof variants;
   className?: string;
+  alt?: string;
 }) {
   const { light, dark } = variants[variant];
   return (
     <>
       <img
         src={light}
-        alt="Donve"
+        alt={alt}
         className={cn(
           "block object-contain object-left dark:hidden",
           className
@@ -42,7 +44,7 @@ export function Logo({
       />
       <img
         src={dark}
-        alt="Donve"
+        alt={alt}
         className={cn(
           "hidden object-contain object-left dark:block",
           darkScaleFix[variant],

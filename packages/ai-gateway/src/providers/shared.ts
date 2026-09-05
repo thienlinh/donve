@@ -1,4 +1,9 @@
-import { streamText } from "ai";
+import {
+  APICallError,
+  NoOutputGeneratedError,
+  RetryError,
+  streamText
+} from "ai";
 
 import {
   creditsForUsage,
@@ -6,6 +11,7 @@ import {
   type ModelPricing
 } from "../usage/pricing.js";
 import type {
+  AiErrorCode,
   ChatRequest,
   Credits,
   LanguageModelLike,
@@ -13,6 +19,45 @@ import type {
   StreamPart,
   TokenUsage
 } from "./types.js";
+
+/** Unwraps to the first underlying `APICallError` — either `err` itself, or (for a retried
+ * call) the first of `RetryError.errors` that is one; `RetryError` doesn't carry `statusCode`
+ * on itself, only its wrapped attempts do. */
+function firstApiCallError(err: unknown): APICallError | undefined {
+  if (APICallError.isInstance(err)) return err;
+  if (RetryError.isInstance(err)) {
+    return err.errors.find((e) => APICallError.isInstance(e));
+  }
+  return undefined;
+}
+
+/** Maps a raw provider/AI-SDK error to a stable code a caller can show the user a specific,
+ * safe message for (never the raw provider error text — see `error-handler.ts`'s masking of
+ * `message` for non-`ApiError` throws). `undefined` means "no known classification" — the
+ * caller should let it fall through to a generic failure. */
+export function classifyAiStreamError(err: unknown): AiErrorCode | undefined {
+  if (NoOutputGeneratedError.isInstance(err)) return "no_output";
+  const apiErr = firstApiCallError(err);
+  if (!apiErr?.statusCode) return undefined;
+  if (apiErr.statusCode === 429) return "rate_limited";
+  if (apiErr.statusCode === 503 || apiErr.statusCode === 529)
+    return "overloaded";
+  if (apiErr.statusCode === 404 || apiErr.statusCode === 410)
+    return "model_unavailable";
+  return undefined;
+}
+
+/** Thrown by `collectStream` for a classified `StreamPart` error — callers (e.g.
+ * `runModelCompletion`) catch this specifically to map `code` to a real `ApiError` instead of
+ * letting it collapse into a generic 500. */
+export class AiStreamError extends Error {
+  readonly code?: AiErrorCode;
+  constructor(message: string, code?: AiErrorCode) {
+    super(message);
+    this.name = "AiStreamError";
+    this.code = code;
+  }
+}
 
 /** Shared `streamText` → `StreamPart` adapter used by every concrete provider. */
 export async function* streamViaAiSdk(
@@ -52,7 +97,8 @@ export async function* streamViaAiSdk(
   } catch (err) {
     yield {
       type: "error",
-      error: err instanceof Error ? err.message : String(err)
+      error: err instanceof Error ? err.message : String(err),
+      code: classifyAiStreamError(err)
     };
   }
 }
@@ -75,7 +121,8 @@ export async function collectStream(
       // backpressures the provider stream instead of racing ahead of it.
       await onTextDelta?.(part.text);
     } else if (part.type === "finish") usage = part.usage;
-    else if (part.type === "error") throw new Error(part.error);
+    else if (part.type === "error")
+      throw new AiStreamError(part.error, part.code);
   }
   return { text, usage };
 }

@@ -15,6 +15,8 @@ import {
   templatesRepository
 } from "@dv/db";
 import { DEFAULT_DESIGN_TOKENS } from "@dv/studio-catalog";
+import { renderPageArtifact } from "@dv/studio-render";
+import type { Spec } from "@json-render/core";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -142,6 +144,42 @@ crudRoutes.get("/templates/:id/thumbnail", async (c) => {
       "x-content-type-options": "nosniff"
     }
   });
+});
+
+/** Renders a shared template's `pageSpec`/`tokens` to standalone HTML — the prompt library
+ * detail panel's `<iframe srcDoc>` preview for the 2 "trang-day-du" entries linked to a
+ * template (`prompt-library-page.tsx`). Same `renderPageArtifact` call and CSS-inlining
+ * `tooling/seed-templates/run.ts`'s thumbnail capture already does (no live storage/route to
+ * resolve the catalog stylesheet asset against here either) — returns raw HTML instead of a
+ * screenshot. No tenant boundary, same as the list/thumbnail routes above. */
+crudRoutes.get("/templates/:id/preview-html", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const id = c.req.param("id");
+  const template = await templatesRepository.findById(db, id);
+  if (!template) throw new ApiError(404, "template_not_found");
+
+  const parsed = templateSchema.parse(template);
+  const artifact = await renderPageArtifact({
+    spec: parsed.pageSpec as Spec,
+    tokens: parsed.tokens,
+    title: parsed.seo?.title ?? parsed.name,
+    hostname: "template-preview.internal",
+    canonicalPath: "/",
+    runtimeConfig: {
+      orgId: "template",
+      campaignId: null,
+      deployId: "template-preview"
+    }
+  });
+  const cssAsset = artifact.assets.find((asset) => asset.mime === "text/css");
+  const html = cssAsset
+    ? artifact.html.replace(
+        "</head>",
+        `<style>${new TextDecoder().decode(cssAsset.bytes)}</style></head>`
+      )
+    : artifact.html;
+
+  return c.html(html);
 });
 
 const saveAsTemplateSchema = z.object({

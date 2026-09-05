@@ -19,9 +19,12 @@ import {
   leadListResponseSchema,
   leadSchema,
   notifyCredentialSchema,
+  operatingSummarySchema,
+  orderDeskResponseSchema,
+  orderDeskStatusSchema,
   orgSettingsSchema,
-  salesConfigListSchema,
   salesConfigSchema,
+  salesConfigListSchema,
   savedViewSchema,
   tiktokConnectionSchema,
   updateLeadOrderStatusSchema,
@@ -48,6 +51,7 @@ import {
   organizationsRepository,
   savedViewsRepository,
   tiktokConnectionsRepository,
+  unmatchedTransactionsRepository,
   webhookCredentialsRepository,
   type Db
 } from "@dv/db";
@@ -121,7 +125,21 @@ function scopedAssigneeFilter(c: Context<AppEnv>, requested?: string) {
   return requested;
 }
 
-/** architecture.md §5.3: dashboard SSE hub — pub/sub (Upstash on Workers, plain Redis on
+/** Order desk list. Query status is optional; the response carries readable customer context. */
+leadsRoutes.get("/orders", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const rawStatus = c.req.query("status");
+  const status = rawStatus ? orderDeskStatusSchema.parse(rawStatus) : "all";
+  const rows = await ordersRepository.listForOrderDesk(
+    db,
+    orgId,
+    status === "all" ? undefined : status
+  );
+  return c.json(orderDeskResponseSchema.parse({ orders: rows }));
+});
+
+/** architecture.md §5.3: app SSE hub — pub/sub (Upstash on Workers, plain Redis on
  * Bun/VPS, see `createRealtimeFromEnv`) fanned out per-connection as SSE, so a sales rep sees
  * an order flip to `paid`/`fulfilled` without polling or refreshing. */
 leadsRoutes.get("/orders/stream", async (c) => {
@@ -164,6 +182,94 @@ leadsRoutes.get("/pipeline", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);
   return c.json({ stages: await getPipeline(db, orgId) });
+});
+
+/** Daily seller summary: only operational counts and queues, never a BI reporting view. */
+leadsRoutes.get("/operating-summary", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  // Whole-day inclusive range — a bare `new Date(start)` clone is the same instant as `start`,
+  // which made every `gte(start) AND lte(end)` filter below match nothing (a lead/order would
+  // have to land at exactly UTC midnight).
+  const end = new Date(start);
+  end.setUTCHours(23, 59, 59, 999);
+  const [leadsToday, ordersToday, unmatched] = await Promise.all([
+    leadsRepository.listForExport(db, orgId, {
+      dateFrom: start,
+      dateTo: end
+    }),
+    ordersRepository.listForOperatingSummary(db, orgId, start, end),
+    unmatchedTransactionsRepository.list(db, orgId)
+  ]);
+  const paidOrders = ordersToday.filter(
+    (order) => order.status === "paid" || order.status === "fulfilled"
+  );
+  const pendingFulfillment = ordersToday.filter(
+    (order) => order.status === "paid"
+  ).length;
+  const sourceMap: Record<string, { leads: number; paidOrders: number }> = {};
+  function sourceBucket(source: string) {
+    return (sourceMap[source] ??= { leads: 0, paidOrders: 0 });
+  }
+  for (const lead of leadsToday) {
+    const source =
+      (lead.utm as { utm_source?: string; source?: string } | null)
+        ?.utm_source ??
+      (lead.utm as { source?: string } | null)?.source ??
+      lead.source ??
+      "direct";
+    sourceBucket(source).leads += 1;
+  }
+  for (const order of ordersToday) {
+    const source =
+      (order.utm as { utm_source?: string; source?: string } | null)
+        ?.utm_source ??
+      (order.utm as { source?: string } | null)?.source ??
+      order.source ??
+      "direct";
+    sourceBucket(source).paidOrders += 1;
+  }
+
+  const payload = {
+    date: start.toISOString().slice(0, 10),
+    leads: leadsToday.length,
+    orders: ordersToday.length,
+    paid: paidOrders.length,
+    revenue: paidOrders.reduce((sum, order) => sum + Number(order.amount), 0),
+    pendingFulfillment,
+    unresolvedPayments: unmatched.filter((row) => row.status === "pending")
+      .length,
+    sources: Object.entries(sourceMap)
+      .map(([source, values]) => ({ source, ...values }))
+      .toSorted((a, b) => b.paidOrders - a.paidOrders || b.leads - a.leads),
+    // Priority order per docs/product/roadmap.md §Lớp 1: tiền đã vào nhưng chưa giao > lead mới
+    // chưa liên hệ > đối soát tồn đọng — money already collected but not yet fulfilled is the
+    // most urgent (a customer is waiting), ahead of a lead that hasn't cost anyone money yet.
+    nextActions: [
+      {
+        kind: "fulfillment" as const,
+        label: "Đơn đã thanh toán cần giao",
+        count: pendingFulfillment,
+        href: "/orders?status=paid"
+      },
+      {
+        kind: "lead" as const,
+        label: "Lead mới cần liên hệ",
+        count: leadsToday.filter((lead) => lead.stage === "new").length,
+        href: "/inbox?stage=new"
+      },
+      {
+        kind: "payment" as const,
+        label: "Giao dịch cần xác nhận",
+        count: unmatched.filter((row) => row.status === "pending").length,
+        href: "/orders"
+      }
+    ].filter((action) => action.count > 0)
+  };
+
+  return c.json(operatingSummarySchema.parse(payload));
 });
 
 leadsRoutes.get("/", async (c) => {
@@ -951,7 +1057,7 @@ leadsRoutes.patch("/:id/assignee", async (c) => {
   return c.json(leadSchema.parse(updated));
 });
 
-/** Dashboard "unread" indicator — fired (fire-and-forget) when the lead detail sheet opens. */
+/** App "unread" indicator — fired (fire-and-forget) when the lead detail sheet opens. */
 leadsRoutes.patch("/:id/viewed", async (c) => {
   const db = createDbFromEnv(c.env);
   const orgId = requireOrgId(c);

@@ -31,6 +31,15 @@ describe("sanitizeLandingHtml", () => {
     expect(out).toContain('src="/assets/a.png"');
   });
 
+  it("unwraps <noscript> content instead of dropping it, since scripts never run here", () => {
+    const out = sanitizeLandingHtml(
+      `<noscript><style>.reveal{opacity:1}</style></noscript><p onclick="bad()">Hi</p>`
+    );
+    expect(out).not.toContain("noscript");
+    expect(out).toContain("<style>.reveal{opacity:1}</style>");
+    expect(out).not.toContain("onclick");
+  });
+
   it("preserves full document structure, inline <style>, and normal attributes", () => {
     const html =
       `<!DOCTYPE html><html><head><style>body{color:red}</style></head>` +

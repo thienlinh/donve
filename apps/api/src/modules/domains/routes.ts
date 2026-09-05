@@ -115,7 +115,7 @@ async function requireCustomDomain(
   return domain;
 }
 
-// Re-checks Cloudflare's activation/SSL status for one hostname — the dashboard polls this
+// Re-checks Cloudflare's activation/SSL status for one hostname — the app polls this
 // so the tenant sees "trạng thái verify" update without waiting on a webhook.
 domainsRoutes.post("/:id/verify", async (c) => {
   const db = createDbFromEnv(c.env);

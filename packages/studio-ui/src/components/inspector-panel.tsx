@@ -1,4 +1,4 @@
-import { XIcon } from "lucide-react";
+import { ImageIcon, XIcon } from "lucide-react";
 import * as React from "react";
 
 import { formatViNumber, parseViNumber } from "../lib/vi-number";
@@ -30,6 +30,9 @@ export type InspectorValues = Partial<{
   "border-color": string;
   "border-radius": number;
   "background-color": string;
+  /** Raw CSS value, e.g. `url("https://...")` — matches `setStyle` 1:1 like every other field
+   * here. `ImageUploadValue` writes the `url(...)` wrapper; nothing else needs to. */
+  "background-image": string;
   "box-shadow": string;
   display: string;
 }>;
@@ -38,8 +41,19 @@ export type InspectorProp = keyof InspectorValues;
 
 export type InspectorPanelProps = {
   values: InspectorValues;
+  /** Lowercased tag name of the selected element — `<img>` gets a "replace image" control bound
+   * to `src` instead of the `background-image` style field every other element gets. */
+  tag?: string;
+  /** Current `src` of the selected `<img>` — not a style, so it doesn't live in `values`. Only
+   * read when `tag === "img"`. */
+  imageSrc?: string;
   /** Fired on blur/Enter only — never per keystroke (studio-builder-spec.md §5). */
   onCommit: (prop: InspectorProp, value: string | number | null) => void;
+  /** Uploads `file` through the app's existing asset pipeline and commits the result — a
+   * `setStyle background-image` for most elements, `setAttr src` for `<img>` (the consumer
+   * decides which, since it owns `tag` and the patch-op dispatch). Omit to hide the image field
+   * entirely (e.g. no landing page context yet). */
+  onUploadImage?: (file: File) => Promise<void>;
   onClose?: () => void;
 };
 
@@ -204,6 +218,69 @@ function ColorValue({
   );
 }
 
+/** `background-image: url("...")` → the bare URL, for the thumbnail preview. Any other/empty
+ * value (not yet set, or a gradient someone hand-typed) just shows no preview. */
+function urlFromCssValue(value: string | undefined): string | null {
+  const match = value ? /^url\((['"]?)(.*)\1\)$/.exec(value.trim()) : null;
+  return match?.[2] || null;
+}
+
+/** Upload button + thumbnail, shared by the "replace image" (`<img src>`) and "background
+ * image" fields — both just hand a picked `File` to `onUpload` and let the consumer decide the
+ * patch op. */
+function ImageUploadValue({
+  previewUrl,
+  onUpload
+}: {
+  previewUrl: string | null;
+  onUpload: (file: File) => Promise<void>;
+}) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = React.useState(false);
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    try {
+      await onUpload(file);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      {previewUrl ? (
+        <img
+          src={previewUrl}
+          alt=""
+          className="size-6 shrink-0 rounded-sm object-cover"
+        />
+      ) : (
+        <ImageIcon className="size-4 shrink-0 text-muted-foreground" />
+      )}
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => inputRef.current?.click()}
+        className="truncate text-primary hover:underline disabled:opacity-60"
+      >
+        {uploading ? "Đang tải…" : previewUrl ? "Thay ảnh" : "Tải ảnh lên"}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void handleFile(file);
+        }}
+      />
+    </span>
+  );
+}
+
 // Same curated allowlist as `packages/studio-catalog/src/tokens.ts`'s `GOOGLE_FONTS` (kept as a
 // literal copy, not an import: `@dv/studio-catalog` already depends on `@dv/studio-ui` for
 // `InspectorValues`, so importing back would be a package cycle). This list rarely changes: if
@@ -309,9 +386,13 @@ const DISPLAY_OPTIONS = ["block", "none"] as const;
  */
 export function InspectorPanel({
   values,
+  tag,
+  imageSrc,
   onCommit,
+  onUploadImage,
   onClose
 }: InspectorPanelProps) {
+  const isImg = tag === "img";
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-3">
       <div className="flex items-center justify-between">
@@ -510,6 +591,25 @@ export function InspectorPanel({
             onCommit={(v) => onCommit("background-color", v)}
           />
         </FieldBox>
+        {onUploadImage && (
+          <FieldBox
+            label={isImg ? "Image" : "Bg image"}
+            hint={
+              isImg
+                ? "Thay ảnh hiển thị cho phần tử này."
+                : "Ảnh nền của khối, phủ lên trên màu nền."
+            }
+          >
+            <ImageUploadValue
+              previewUrl={
+                isImg
+                  ? (imageSrc ?? null)
+                  : urlFromCssValue(values["background-image"])
+              }
+              onUpload={onUploadImage}
+            />
+          </FieldBox>
+        )}
         <FieldBox
           label="Padding"
           hint="Khoảng đệm bên trong khối, giữa viền và nội dung."

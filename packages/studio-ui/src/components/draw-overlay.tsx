@@ -158,7 +158,7 @@ export const DrawOverlay = React.forwardRef<
       ref={canvasRef}
       width={width}
       height={height}
-      className="absolute inset-0 top-0 left-0"
+      className="absolute top-0 left-0"
       style={{
         touchAction: "none",
         cursor: active ? "crosshair" : undefined,

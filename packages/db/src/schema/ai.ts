@@ -5,6 +5,7 @@ import {
   jsonb,
   pgTable,
   text,
+  unique,
   uniqueIndex,
   uuid
 } from "drizzle-orm/pg-core";
@@ -69,7 +70,12 @@ export const skills = pgTable(
     ...timestamps
   },
   (t) => [
-    uniqueIndex("uq_skill").on(t.orgId, t.slug),
+    // A real UNIQUE CONSTRAINT (not `uniqueIndex`, which has no `nullsNotDistinct` in this
+    // drizzle-orm version) — a platform skill has `orgId: null`; Postgres's default uniqueness
+    // semantics treat NULL as never equal to itself, so without this two seed runs of the same
+    // platform skill silently insert two rows instead of conflicting (confirmed live 2026-09-04:
+    // `onConflictDoNothing()` in `seed.ts` never fired for platform skills, only org-owned ones).
+    unique("uq_skill").on(t.orgId, t.slug).nullsNotDistinct(),
     orgIsolationPolicy(),
     orgOrPlatformReadPolicy()
   ]

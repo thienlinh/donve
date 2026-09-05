@@ -87,7 +87,7 @@ assetsRoutes.get("/:id/assets", async (c) => {
   return c.json({ assets: z.array(pageAssetSchema).parse(assets) });
 });
 
-// FR-B-28 ZIP export — streams the stored asset bytes so the dashboard can bundle them
+// FR-B-28 ZIP export — streams the stored asset bytes so the app can bundle them
 // under `assets/` without any R2 presign infra (same authenticated-stream pattern as
 // `/srcmap` and `/thumbnail` above).
 assetsRoutes.get("/:id/assets/:assetId/file", async (c) => {

@@ -13,6 +13,7 @@ import {
 } from "@dv/db";
 import { compileGeneratePrompt } from "@dv/studio-ai";
 import {
+  autoNameLayers,
   InvalidGeneratedHtmlError,
   srcmapToJson,
   stampSrcmap
@@ -80,7 +81,9 @@ async function persistFirstGeneratedVersion(
 ) {
   let html: string;
   try {
-    html = stampSrcmap(sanitizeLandingHtml(extractHtml(rawText)));
+    html = autoNameLayers(
+      stampSrcmap(sanitizeLandingHtml(extractHtml(rawText)))
+    ).html;
   } catch (err) {
     // Surfaced as a clean, client-safe 422 instead of the raw parser error (`err.message` is
     // masked entirely for a 500 — see errorHandler.ts) — the retry button on the studio empty

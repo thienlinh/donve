@@ -15,7 +15,8 @@ import {
   leadsRepository,
   membershipsRepository,
   ordersRepository,
-  productsRepository
+  productsRepository,
+  sourceLinksRepository
 } from "@dv/db";
 import { payments } from "@dv/drivers";
 import { Hono } from "hono";
@@ -41,7 +42,7 @@ export const publicRoutes = new Hono<AppEnv>();
 const ORDER_CODE_ATTEMPTS = 5;
 const UNIQUE_VIOLATION = "23505";
 // ponytail: no privacy-policy versioning system exists yet — one hardcoded version, bump this
-// string (and start passing a real version through) once the dashboard has a policy editor.
+// string (and start passing a real version through) once the app has a policy editor.
 // Exported so every other lead-ingestion path (CSV import, Facebook/Zalo OA webhooks) records
 // consent against the same policy version instead of hardcoding a second copy of this string.
 export const CONSENT_POLICY_VERSION = "2026-01-01";
@@ -131,7 +132,13 @@ publicRoutes.post("/leads", async (c) => {
     ip: ip ?? null
   });
 
-  const order = await maybeCreateOrder(db, body.orgId, campaign, lead.id);
+  const order = await maybeCreateOrder(
+    db,
+    body.orgId,
+    campaign,
+    lead.id,
+    lead.sourceLinkId
+  );
 
   return c.json(
     publicLeadResultSchema.parse({ leadId: lead.id, status, order }),
@@ -283,6 +290,12 @@ export async function findOrCreateLead(
 
   try {
     const assigneeId = await pickRoundRobinAssignee(db, body.orgId, campaign);
+    const sourceLink = await sourceLinksRepository.findByCampaignAndUtm(
+      db,
+      body.orgId,
+      campaign.id,
+      body.utm
+    );
     const inserted = await leadsRepository.insert(db, body.orgId, {
       campaignId: campaign.id,
       fullName: body.fullName,
@@ -291,6 +304,7 @@ export async function findOrCreateLead(
       persona: body.persona ?? null,
       customFields: body.customFields,
       utm: body.utm,
+      sourceLinkId: sourceLink?.id ?? null,
       stage: "new",
       assigneeId,
       source
@@ -352,7 +366,8 @@ async function maybeCreateOrder(
   campaign: NonNullable<
     Awaited<ReturnType<typeof campaignsRepository.findById>>
   >,
-  leadId: string
+  leadId: string,
+  sourceLinkId: string | null
 ) {
   const paymentConfig = campaignPaymentConfigSchema.parse(
     campaign.paymentConfig
@@ -367,6 +382,7 @@ async function maybeCreateOrder(
 
   let amount: number | null = null;
   let productId: string | null = null;
+  let productAttributes: unknown = {};
   if (paymentConfig.amountSource === "fixed") {
     amount = paymentConfig.fixedAmount ?? null;
   } else {
@@ -381,9 +397,35 @@ async function maybeCreateOrder(
     if (paid) {
       amount = Number(paid.price);
       productId = paid.id;
+      productAttributes = paid.attributes;
     }
   }
   if (amount === null || amount <= 0) return null;
+  const attributes =
+    productAttributes &&
+    typeof productAttributes === "object" &&
+    !Array.isArray(productAttributes)
+      ? (productAttributes as Record<string, unknown>)
+      : {};
+  const fulfillmentConfig = {
+    fulfillmentType:
+      typeof attributes.fulfillmentType === "string"
+        ? attributes.fulfillmentType
+        : typeof attributes.deliveryType === "string"
+          ? attributes.deliveryType
+          : "manual",
+    ...(typeof attributes.resourceUrl === "string"
+      ? { resourceUrl: attributes.resourceUrl }
+      : {}),
+    ...(typeof attributes.zaloGroupUrl === "string"
+      ? { zaloGroupUrl: attributes.zaloGroupUrl }
+      : paymentConfig.zaloGroupUrl
+        ? { zaloGroupUrl: paymentConfig.zaloGroupUrl }
+        : {}),
+    ...(typeof attributes.activationInstructions === "string"
+      ? { instructions: attributes.activationInstructions }
+      : {})
+  };
 
   const expiresAt = paymentConfig.expireMinutes
     ? new Date(Date.now() + paymentConfig.expireMinutes * 60_000)
@@ -401,7 +443,9 @@ async function maybeCreateOrder(
         code,
         leadId,
         campaignId: campaign.id,
+        sourceLinkId,
         productId,
+        fulfillmentConfig,
         amount: String(amount),
         status: "pending",
         expiresAt

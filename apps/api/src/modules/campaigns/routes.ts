@@ -6,16 +6,23 @@ import {
   campaignListResponseSchema,
   campaignWithProductsSchema,
   createCampaignSchema,
+  createSourceLinkSchema,
+  sourceLinkListResponseSchema,
+  sourceLinkSchema,
   updateCampaignSchema
 } from "@dv/contracts";
 import {
   auditLogsRepository,
   campaignProductsRepository,
   campaignsRepository,
+  customDomainsRepository,
+  deploymentsRepository,
   eventsRepository,
   generateCampaignPublicId,
+  landingPagesRepository,
   leadsRepository,
-  ordersRepository
+  ordersRepository,
+  sourceLinksRepository
 } from "@dv/db";
 import { Hono, type Context } from "hono";
 
@@ -297,10 +304,142 @@ campaignsRoutes.post("/:id/duplicate", async (c) => {
     action: "campaign.duplicate",
     targetType: "campaign",
     targetId: row.id,
+
     meta: { sourceCampaignId: id }
   });
 
   return c.json(campaignWithProductsSchema.parse({ ...row, productIds }), 201);
+});
+campaignsRoutes.get("/:id/source-links", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const campaignId = c.req.param("id");
+  const campaign = await campaignsRepository.findById(db, orgId, campaignId);
+  if (!campaign || campaign.deletedAt) {
+    throw new ApiError(404, "campaign_not_found");
+  }
+  const links = await sourceLinksRepository.listForCampaign(
+    db,
+    orgId,
+    campaignId
+  );
+  return c.json(sourceLinkListResponseSchema.parse({ links }));
+});
+
+campaignsRoutes.post("/:id/source-links", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const campaignId = c.req.param("id");
+  const body = createSourceLinkSchema.parse(await c.req.json());
+  const campaign = await campaignsRepository.findById(db, orgId, campaignId);
+  if (!campaign || campaign.deletedAt) {
+    throw new ApiError(404, "campaign_not_found");
+  }
+
+  const pages = await landingPagesRepository.list(db, orgId);
+  const page = body.landingPageId
+    ? pages.find(
+        (candidate) =>
+          candidate.id === body.landingPageId &&
+          candidate.campaignId === campaignId &&
+          !candidate.deletedAt
+      )
+    : pages.find(
+        (candidate) =>
+          candidate.campaignId === campaignId && !candidate.deletedAt
+      );
+  if (!page) throw new ApiError(400, "published_landing_required");
+
+  const liveDeployments = (await deploymentsRepository.list(db, orgId))
+    .filter(
+      (deployment) =>
+        deployment.landingPageId === page.id && deployment.status === "live"
+    )
+    .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const deployment = liveDeployments[0];
+  if (!deployment) throw new ApiError(400, "published_landing_required");
+
+  const customDomain = (await customDomainsRepository.list(db, orgId)).find(
+    (domain) => domain.landingPageId === page.id && domain.status === "active"
+  );
+  const hostname = customDomain?.hostname ?? deployment.hostname;
+  const target = new URL(`https://${hostname}/`);
+  target.searchParams.set("utm_source", body.utmSource);
+  target.searchParams.set("utm_medium", body.utmMedium);
+  target.searchParams.set("utm_campaign", body.utmCampaign);
+  target.searchParams.set("utm_content", body.utmContent);
+  if (body.utmTerm) target.searchParams.set("utm_term", body.utmTerm);
+
+  try {
+    const link = await sourceLinksRepository.insert(db, orgId, {
+      campaignId,
+      landingPageId: page.id,
+      name: body.name,
+      key: body.key,
+      utmSource: body.utmSource,
+      utmMedium: body.utmMedium,
+      utmCampaign: body.utmCampaign,
+      utmContent: body.utmContent,
+      utmTerm: body.utmTerm ?? null,
+      targetUrl: target.toString()
+    });
+    if (!link) throw new ApiError(500, "source_link_create_failed");
+    await auditLogsRepository.insert(db, orgId, {
+      actorId: c.get("userId"),
+      action: "source_link.create",
+      targetType: "source_link",
+      targetId: link.id,
+      meta: { campaignId, key: link.key }
+    });
+    await eventsRepository.insertBatch(db, [
+      {
+        orgId,
+        campaignId,
+        deploymentId: null,
+        type: "share_link_created",
+        sessionHash: null,
+        anonymousId: null,
+        landingPageId: page.id,
+        pageVersionId: null,
+        meta: {
+          sourceLinkId: link.id,
+          key: link.key,
+          utm_source: link.utmSource,
+          utm_content: link.utmContent
+        }
+      }
+    ]);
+    return c.json(sourceLinkSchema.parse(link), 201);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "23505") {
+      throw new ApiError(409, "source_link_key_exists");
+    }
+    throw error;
+  }
+});
+
+campaignsRoutes.delete("/:id/source-links/:linkId", async (c) => {
+  const db = createDbFromEnv(c.env);
+  const orgId = requireOrgId(c);
+  const campaignId = c.req.param("id");
+  const link = await sourceLinksRepository.findById(
+    db,
+    orgId,
+    c.req.param("linkId")
+  );
+  if (!link || link.campaignId !== campaignId) {
+    throw new ApiError(404, "source_link_not_found");
+  }
+  const removed = await sourceLinksRepository.remove(db, orgId, link.id);
+  if (!removed) throw new ApiError(404, "source_link_not_found");
+  await auditLogsRepository.insert(db, orgId, {
+    actorId: c.get("userId"),
+    action: "source_link.delete",
+    targetType: "source_link",
+    targetId: link.id,
+    meta: { campaignId, key: link.key }
+  });
+  return c.json(sourceLinkSchema.parse(removed));
 });
 
 /** FR-C-05: daily views/submits/orders/reconciled-revenue for the last 30 days. */

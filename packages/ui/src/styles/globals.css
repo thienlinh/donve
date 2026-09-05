@@ -2,6 +2,15 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+/* Display face for headings only — `latin`/`vietnamese` subsets, weights 700/800 only (not the
+   full family) to keep this deliberately small, matching the `cwv-budget` skill's own "chỉ 1 web
+   font" budget philosophy even though that skill targets published landing pages, not this app
+   shell. Be Vietnam Pro was designed for the Vietnamese diacritic set specifically (not a Latin
+   font with Vietnamese bolted on), which is why it was picked over a more generic display face. */
+@import "@fontsource/be-vietnam-pro/latin-700.css";
+@import "@fontsource/be-vietnam-pro/latin-800.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-700.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-800.css";
 
 @custom-variant dark (&:is(.dark *));
 /* 4 levels up from packages/ui/src/styles/ reaches the repo root — these were previously off by
@@ -9,9 +18,9 @@
    matching zero files) so `apps/**`'s own Tailwind classes were relying entirely on
    `@tailwindcss/vite`'s automatic per-build module-graph scan, not this explicit source list.
    `studio-catalog` is a new addition — its component files (`@dv/studio-catalog`) are consumed
-   by the dashboard's Puck integration (`buildPuckConfig`), and being a monorepo sibling package
+   by the DonVe app's Puck integration (`buildPuckConfig`), and being a monorepo sibling package
    outside this file's own directory tree, its utility classes are NOT picked up by automatic
-   detection the way `apps/dashboard`'s own files are. */
+   detection the way app source files are. */
 @source "../../../../apps/**/*.{ts,tsx}";
 @source "../../../../packages/studio-catalog/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
@@ -22,6 +31,23 @@
 @source "../node_modules/@streamdown/mermaid/dist/*.js";
 
 @theme inline {
+  /* Typography — 2-font system (body/heading), locked deliberately instead of leaving the app
+     shell on the browser's default `ui-sans-serif` stack. `--font-sans` makes the
+     `@fontsource-variable/inter` face above (already loaded, previously only consumed as a
+     fallback value inside `packages/studio-catalog/src/tokens.ts`'s generated-page defaults —
+     never actually applied to this app's own chrome) the real body font here too.
+     `--font-heading` is Be Vietnam Pro — Tailwind v4 auto-generates the `font-heading` utility
+     from this theme key, and 7 shared components (card/dialog/sheet/drawer/alert-dialog/empty/
+     questionnaire titles) already carry a `font-heading` class with no matching token behind it
+     (confirmed live 2026-09-04 — a real design-system hook left wired but inert since whoever
+     added those classes never defined this variable). Also applied to raw `h1`-`h4` in
+     `@layer base` below for the screens that use a semantic heading tag directly instead of one
+     of those title slots (e.g. `today-page.tsx`'s own `<h1>`). */
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  --font-heading: "Be Vietnam Pro", var(--font-sans);
+
   /* shadcn / core */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -65,6 +91,18 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* User-facing semantic roles */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-border-strong: var(--border-strong);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
 
   /* DonVe brand */
   --color-brand: var(--brand);
@@ -146,6 +184,18 @@
   --border: oklch(0.91 0.012 70);
   --input: oklch(0.91 0.012 70);
   --ring: oklch(0.685 0.185 50);
+
+  /* User-facing semantic aliases */
+  --canvas: var(--background);
+  --surface: var(--card);
+  --surface-subtle: var(--muted);
+  --text: var(--foreground);
+  --text-muted: var(--muted-foreground);
+  --text-inverse: var(--primary-foreground);
+  --border-strong: var(--ring);
+  --danger: var(--destructive);
+  --info: oklch(0.62 0.15 230);
+  --info-foreground: oklch(0.985 0 0);
 
   /* Data visualization */
   --chart-1: oklch(0.685 0.185 50);
@@ -371,7 +421,7 @@
   );
 
   /* -- Radius (global) — shares this app's own radius scale so Puck controls match every
-     shadcn control elsewhere in the dashboard. */
+     shadcn control elsewhere in the app. */
   --puck-radius-xs: calc(var(--radius) * 0.3);
   --puck-radius-s: calc(var(--radius) * 0.45);
   --puck-radius-m: var(--radius-sm);
@@ -424,7 +474,7 @@
   --puck-header-color-text: var(--foreground);
 
   /* -- Sidebar (theming/sidebar) — left uses the app's own `--sidebar` surface so the plugin
-     bar + left panel read as one continuous strip with the dashboard's own nav sidebar. -- */
+     bar + left panel read as one continuous strip with the app's own nav sidebar. -- */
   --puck-sidebar-left-color-bg: var(--sidebar);
   --puck-sidebar-right-color-bg: var(--card);
 
@@ -583,6 +633,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

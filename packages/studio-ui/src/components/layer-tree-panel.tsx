@@ -54,7 +54,7 @@ export type LayerTreePanelProps = {
 };
 
 // LayerTree virtualizes past this threshold (studio-builder-spec.md §11). Exported so a
-// consumer (the dashboard's `footer` prop) can explain why drag-reorder disappears past it,
+// consumer (the app's `footer` prop) can explain why drag-reorder disappears past it,
 // without duplicating the number.
 export const LAYER_TREE_VIRTUALIZE_THRESHOLD = 100;
 const ROW_HEIGHT = 30;

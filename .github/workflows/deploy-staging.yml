@@ -29,12 +29,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Filters build to @dv/api + @dv/dashboard (and everything they depend on, "..." suffix)
+      # Filters build to @dv/api + @dv/donve (and everything they depend on, "..." suffix)
       # plus @dv/landing-runtime directly — nothing depends on it via package deps, but the
       # Lighthouse gate below needs its dist/ bundle to size-check. @dv/edge-router needs no
       # build step (JIT TS source, wrangler bundles it directly at deploy time).
-      - name: Build API + Dashboard
-        run: bunx turbo run build --filter=@dv/api... --filter=@dv/dashboard... --filter=@dv/landing-runtime
+      - name: Build API + DonVe app
+        run: bunx turbo run build --filter=@dv/api... --filter=@dv/donve... --filter=@dv/landing-runtime
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -48,7 +48,7 @@ jobs:
 
       # Worker secrets (DATABASE_URL, BETTER_AUTH_SECRET, etc.) are NOT synced here — set by
       # hand with `wrangler secret put <KEY> --env staging` (or `secret bulk`) whenever one
-      # changes. See docs/runbooks/env-management.md. `wrangler deploy` never clears existing
+      # changes. See docs/runbooks/setup-deployment.md. `wrangler deploy` never clears existing
       # Worker secrets, so this only needs to run again when a value actually changes.
       - name: Deploy API (CF Workers, staging)
         working-directory: apps/api
@@ -69,8 +69,8 @@ jobs:
 
       # Serves published landing pages from the R2/KV api's publish pipeline just wrote to
       # (architecture.md §5.2) — deployed after api so the KV/R2 data it reads already exists.
-      # No custom domain route attached yet (*.donve.vn wildcard — manual CF dashboard step
-      # once the platform domain is locked, see ci-cd-setup.md §5); the Worker is reachable at
+      # No custom domain route attached yet (*.donve.vn wildcard — manual Cloudflare step
+      # once the platform domain is locked, see the deployment runbook); the Worker is reachable at
       # its *.workers.dev URL in the meantime.
       - name: Deploy Edge Router (CF Workers, staging)
         working-directory: apps/edge-router
@@ -79,18 +79,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # Separate CF Pages project from prod (dv-dashboard-staging vs
-      # dv-dashboard) — see docs/runbooks/ci-cd-setup.md for one-time
+      # Separate CF Pages project from prod (dv-donve-staging vs
+      # dv-donve) — see the deployment runbook for one-time
       # `wrangler pages project create` setup.
-      - name: Deploy Dashboard (CF Pages, staging)
-        working-directory: apps/dashboard
-        run: bunx wrangler pages deploy dist --project-name=dv-dashboard-staging --branch=main
+      - name: Deploy DonVe app (CF Pages, staging)
+        working-directory: apps/donve
+        run: bunx wrangler pages deploy dist --project-name=dv-donve-staging --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       # NFR-01 gate (tooling/lighthouse-ci) — no-op until a sample landing page is published on
-      # staging and its URL set as the `SAMPLE_LANDING_URL` repo variable (ci-cd-setup.md §7).
+      # staging and its URL set as the `SAMPLE_LANDING_URL` repo variable (setup-deployment.md).
       # ubuntu-latest ships Google Chrome preinstalled, so chrome-launcher needs no setup step.
       - name: Lighthouse CI gate (NFR-01, sample landing)
         if: vars.SAMPLE_LANDING_URL != ''
